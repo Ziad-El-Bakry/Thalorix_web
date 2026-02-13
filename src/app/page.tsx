@@ -1,1 +1,1 @@
-export default function Page(){return <div>Dashboard12</div>}
+export default function Page(){return <div>Dashboard Home12</div>}

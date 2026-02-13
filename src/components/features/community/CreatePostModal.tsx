@@ -1,0 +1,1 @@
+export default function CreatePostModal(){ return <div>Create Post Modal</div>}

@@ -1,1 +1,1 @@
-export default function Page(){return <div>Page</div>}
+export default function AIGenerator(){ return <div>AI Generator</div>}

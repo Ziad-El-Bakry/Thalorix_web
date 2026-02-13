@@ -1,1 +1,1 @@
-export default function NotFound(){return <div>404</div>}
+export default function NotFound(){ return <div>Not Found</div>}

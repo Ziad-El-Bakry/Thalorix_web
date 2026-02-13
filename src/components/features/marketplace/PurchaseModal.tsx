@@ -1,0 +1,1 @@
+export default function PurchaseModal(){ return <div>Purchase Modal</div>}

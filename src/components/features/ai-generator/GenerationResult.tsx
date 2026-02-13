@@ -1,0 +1,1 @@
+export default function GenerationResult(){ return <div>Generation Result</div>}
