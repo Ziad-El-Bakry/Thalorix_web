@@ -32,11 +32,11 @@ export default function Page() {
                 className="w-full h-full"
               />
             </div>
-
-            {/* SVG Neon Stroke */}
+            
             {/* SVG Neon Stroke - Responsive Version */}
             <svg
-              viewBox="0 0 100 100" 
+              viewBox="0 0 100 100"
+              preserveAspectRatio="xMidYMid meet" 
               className="absolute inset-0 w-full h-full pointer-events-none z-20 overflow-visible"
             >
               <filter id="neon-glow">
@@ -75,12 +75,12 @@ export default function Page() {
                 transition={{ type: "spring", stiffness: 300 }}
               >
                 <Image
-                  src="/images/logoS.png"
+                  src="/images/thalorix.png"
                   alt="Thalorix Logo"
-                  width={400}
-                  height={300}
+                  width={250}
+                  height={250}
                   priority
-                  className="relative z-40 w-[180px] md:w-[250px] lg:w-[300px] h-auto transition-all duration-700 group-hover:drop-shadow-[0_0_50px_rgba(34,211,238,0.7)]"
+                  className="relative z-40 w-[225px] md:w-[200px] lg:w-[285px] h-auto transition-all duration-700 group-hover:drop-shadow-[0_0_50px_rgba(34,211,238,0.7)]"
                 />
               </motion.div>
             </div>
