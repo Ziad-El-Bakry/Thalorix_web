@@ -112,8 +112,7 @@ export default function Page() {
           >
             <div className="flex flex-col gap-6 md:gap-8">
               <h1 className="font-black leading-[1.1] text-3xl md:text-6xl lg:text-7xl text-[#103B40]">
-                Launch your
-                <br />
+                <div>Launch your</div>
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-700 to-cyan-600">
                   Startup Now!
                 </span>
