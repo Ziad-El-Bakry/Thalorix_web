@@ -75,7 +75,7 @@ export default function Page() {
                 transition={{ type: "spring", stiffness: 300 }}
               >
                 <Image
-                  src="/public/images/thalorix.png"
+                  src="/images/thalorix.png"
                   alt="Thalorix Logo"
                   width={250}
                   height={250}
