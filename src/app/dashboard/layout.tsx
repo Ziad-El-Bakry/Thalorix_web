@@ -25,17 +25,17 @@ export default function DashboardLayout({
 
 
         <div className="p-6 md:p-10">
-          <AnimatePresence mode="wait">
+          {/* <AnimatePresence mode="wait">
             <motion.div
-              key={pathname}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.3 }}
-            >
+              // key={pathname}
+              // initial={{ opacity: 0, y: 20 }}
+              // animate={{ opacity: 1, y: 0 }}
+              // exit={{ opacity: 0, y: -15 }}
+              // transition={{ duration: 0.3 }}
+            > */}
               {children}
-            </motion.div>
-          </AnimatePresence>
+            {/* </motion.div>
+          </AnimatePresence> */}
         </div>
 
       </div>
