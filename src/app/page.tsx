@@ -93,7 +93,7 @@ export default function Page() {
             >
               THALORIX
             </motion.span>
-            <div className="h-[2px] w-0 bg-cyan-400 mt-2 transition-all duration-700 group-hover:w-full opacity-50" />
+            <div className="h-[2px] w-0 bg-blue-400 mt-2 transition-all duration-700 group-hover:w-full opacity-50" />
           </div>
         </Link>
       </motion.aside>
