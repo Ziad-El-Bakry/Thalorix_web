@@ -10,3 +10,10 @@
 @theme {
   --animate-spin-slow: spin 8s linear infinite;
 }
+
+/* Hide browser's built-in password reveal icon */
+input::-ms-reveal,
+input::-ms-clear,
+input::-webkit-credentials-auto-fill-button {
+  display: none;
+}
