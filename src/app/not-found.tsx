@@ -1,1 +1,1 @@
-export default function NotFound(){ return <div>Not Found</div>}
+export default function NotFound(){ return <div>Not Found 12</div>}
