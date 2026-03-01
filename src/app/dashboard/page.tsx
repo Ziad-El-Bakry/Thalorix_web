@@ -32,7 +32,7 @@ export default function DashboardPage() {
           mb-12
         "
       >
-        <QuickAccessCard title="Upload Template" description="Share templates" icon="" href="/dashboard/marketplace" />
+        <QuickAccessCard title="Upload Template" description="Share templates" icon="⬆️" href="/dashboard/marketplace" />
         <QuickAccessCard title="Community" description="Join discussions" icon="👥" href="/dashboard/community" />
         <QuickAccessCard title="Messages" description="Chat with team" icon="💬" href="/dashboard/messages" />
         <QuickAccessCard title="Analytics" description="Track performance" icon="📈" href="/dashboard/analytics" />

@@ -4,7 +4,7 @@ import { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Sidebar from "@/components/layout/Sidebar";
-  //import MobileNavbar from "@/components/layout/MobileNavbar";
+import MobileNavbar from "@/components/layout/MobileNavbar";
 
 export default function DashboardLayout({
   children,
@@ -23,7 +23,7 @@ export default function DashboardLayout({
       <div className="flex-1 lg:ml-64">
         
         {/* Mobile Navbar */}
-        {/* // <MobileNavbar /> */}
+        <MobileNavbar />
 
         <div className="p-6 md:p-10">
           <AnimatePresence mode="wait">
