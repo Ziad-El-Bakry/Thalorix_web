@@ -16,7 +16,6 @@ export default function Sidebar() {
 				<div className="w-12 h-12 rounded-full bg-teal-800 flex items-center justify-center text-xl font-bold">T</div>
 				<div className="text-lg font-bold tracking-wide">THALORIX</div>
 			</div>
-
 			<nav className="flex-1">
 				<ul className="space-y-1">
 					{NAV.map((item) => (

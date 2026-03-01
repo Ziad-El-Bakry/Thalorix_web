@@ -10,8 +10,8 @@ export default function Page() {
       <motion.aside
         initial={{ x: -100, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
-        transition={{ duration: 0.7, ease: "easeOut" }}
-        className="flex flex-col items-center justify-center px-4 py-12 w-full lg:max-w-[412px] lg:min-h-screen bg-[#103B40] lg:rounded-tr-[30px] lg:rounded-br-[30px] shadow-2xl z-20"
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="flex flex-col items-center justify-center px-4 py-12 w-full lg:max-w-[412px] lg:min-h-screen bg-[#103B40] shadow-2xl z-20"
       >
         <Link
           href="/"
@@ -32,11 +32,11 @@ export default function Page() {
                 className="w-full h-full"
               />
             </div>
-            
+
             {/* SVG Neon Stroke - Responsive Version */}
             <svg
               viewBox="0 0 100 100"
-              preserveAspectRatio="xMidYMid meet" 
+              preserveAspectRatio="xMidYMid meet"
               className="absolute inset-0 w-full h-full pointer-events-none z-20 overflow-visible"
             >
               <filter id="neon-glow">
@@ -53,7 +53,7 @@ export default function Page() {
                 fill="transparent"
                 strokeDasharray="10"
                 animate={{
-                  strokeDashoffset: [0, -180], 
+                  strokeDashoffset: [0, -180],
                   opacity: [0.6, 1, 0.6],
                 }}
                 transition={{
@@ -125,9 +125,14 @@ export default function Page() {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="w-full sm:w-auto px-8 md:px-40 py-4 md:py-6 rounded-[20px] md:rounded-[35px] text-xl md:text-3xl font-black transition-all shadow-xl bg-[#103B40] text-[#A3C9D9] hover:bg-[#144a50]"
+                  className="w-full sm:w-auto cursor-pointer px-6 md:px-16 py-4 md:py-4 rounded-[20px] md:rounded-[35px] text-xl md:text-2xl font-black transition-all shadow-xl bg-[#103B40] text-[#A3C9D9] hover:bg-[#144a50]"
                 >
-                  Login
+                  <Link
+                    href="/login"
+
+                  >
+                    Login
+                  </Link>
                 </motion.button>
                 <Link
                   href="/register"
