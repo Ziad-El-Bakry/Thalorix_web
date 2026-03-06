@@ -85,7 +85,7 @@ export default function Page() {
                   width={250}
                   height={250}
                   priority
-                  className="relative z-40 w-56.25 md:w-50 lg:w-71.25 h-auto transition-all duration-700 group-hover:drop-shadow-[0_0_50px_rgba(34,211,238,0.7)]"
+                  className="relative z-40 w-[225px] md:w-[200px] lg:w-[285px] h-auto transition-all duration-700 group-hover:drop-shadow-[0_0_50px_rgba(34,211,238,0.7)]"
                 />
               </motion.div>
             </div>
