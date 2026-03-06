@@ -32,15 +32,38 @@ export default function DashboardPage() {
           mb-12
         "
       >
-        <QuickAccessCard title="Upload Template" description="Share templates" icon="⬆️" href="/dashboard/marketplace" />
-        <QuickAccessCard title="Community" description="Join discussions" icon="👥" href="/dashboard/community" />
-        <QuickAccessCard title="Messages" description="Chat with team" icon="💬" href="/dashboard/messages" />
-        <QuickAccessCard title="Analytics" description="Track performance" icon="📈" href="/dashboard/analytics" />
+        <QuickAccessCard
+          title="Upload Template"
+          description="Share templates"
+          icon="⬆️"
+          href="/dashboard/marketplace"
+        />
+        <QuickAccessCard
+          title="Community"
+          description="Join discussions"
+          icon="👥"
+          href="/dashboard/community"
+        />
+        <QuickAccessCard
+          title="Messages"
+          description="Chat with team"
+          icon="💬"
+          href="/dashboard/messages"
+        />
+        <QuickAccessCard
+          title="Analytics"
+          description="Track performance"
+          icon="📈"
+          href="/dashboard/analytics"
+        />
       </motion.div>
 
       {/* Recent Activity */}
       <div className="bg-white rounded-1xl p-6 shadow-sm">
-        <SectionHeader title="Recent Activity" viewAllHref="/dashboard/activity" />
+        <SectionHeader
+          title="Recent Activity"
+          viewAllHref="/dashboard/activity"
+        />
 
         <div className="space-y-4">
           <ActivityItem
