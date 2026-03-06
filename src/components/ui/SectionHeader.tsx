@@ -8,27 +8,13 @@ interface SectionHeaderProps {
 
 export default function SectionHeader({ title, viewAllHref, action }: SectionHeaderProps) {
   return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginBottom: 24,
-    }}>
-      <h2 style={{
-        fontSize: 16,
-        fontWeight: 700,
-        color: '#103B40',
-      }}>
+    <div className="flex items-center justify-between mb-4 md:mb-6">
+      <h2 className="text-base md:text-lg font-bold text-[#103B40]">
         {title}
       </h2>
       
       {viewAllHref && (
-        <Link href={viewAllHref} style={{
-          fontSize: 13,
-          fontWeight: 650,
-          color: '#346C73',
-          textDecoration: 'none',
-        }}>
+        <Link href={viewAllHref} className="text-[13px] md:text-sm font-semibold text-[#346C73] hover:underline decoration-2 underline-offset-4">
           View All
         </Link>
       )}

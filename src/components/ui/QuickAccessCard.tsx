@@ -31,70 +31,27 @@ export default function QuickAccessCard({
         }}
         whileTap={{ scale: 0.98 }}
         transition={{ duration: 0.4 }}
-        style={{
-          background: color,
-          borderRadius: 15,
-          padding: "28px 24px",
-          display: "flex",
-          flexDirection: "column",
-          gap: 12,
-          position: "relative",
-          cursor: "pointer",
-          minHeight: 150,
-        }}
+        className="flex flex-col relative cursor-pointer gap-3 min-h-[140px] md:min-h-[150px] p-5 md:p-7 rounded-[15px]"
+        style={{ background: color }}
       >
         {badge && (
-          <span
-            style={{
-              position: "absolute",
-              top: 12,
-              right: 12,
-              background: "#ef4444",
-              color: "white",
-              fontSize: 11,
-              fontWeight: 700,
-              padding: "3px 8px",
-              borderRadius: 999,
-            }}
-          >
+          <span className="absolute top-3 right-3 bg-red-500 text-white text-[10px] sm:text-[11px] font-bold px-2 py-0.5 sm:py-1 rounded-full">
             {badge}
           </span>
         )}
 
         <motion.div
           whileHover={{ rotate: 10 }}
-          style={{
-            width: 42,
-            height: 42,
-            //background: "rgba(255,255,255,0.15)",
-            borderRadius: 10,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 20,
-          }}
+          className="flex items-center justify-center text-lg md:text-xl w-10 h-10 md:w-[42px] md:h-[42px] rounded-lg"
         >
           {icon}
         </motion.div>
 
         <div>
-          <h3
-            style={{
-              color: "white",
-              fontSize: 16,
-              fontWeight: 700,
-              marginBottom: 4,
-            }}
-          >
+          <h3 className="text-white text-sm sm:text-base font-bold mb-1">
             {title}
           </h3>
-          <p
-            style={{
-              color: "rgba(255,255,255,0.7)",
-              fontSize: 13,
-              lineHeight: 1.4,
-            }}
-          >
+          <p className="text-white/70 text-xs sm:text-[13px] leading-relaxed">
             {description}
           </p>
         </div>

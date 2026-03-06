@@ -4,20 +4,22 @@ import { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 //import { motion, AnimatePresence } from "framer-motion";
 import Sidebar from "@/components/layout/Sidebar";
+import MobileNavbar from "@/components/layout/MobileNavbar";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
       {/* Sidebar Desktop */}
       <Sidebar />
 
       {/* Main Area */}
-      <div className="flex-1 lg:ml-64">
+      <div className="flex-1 lg:ml-64 flex flex-col min-h-screen max-w-full overflow-hidden">
         {/* Mobile Navbar */}
+        <MobileNavbar />
 
-        <div className="p-6 md:p-10">
+        <div className="flex-1 p-4 md:p-6 lg:p-10 w-full">
           {/* <AnimatePresence mode="wait">
             <motion.div
               // key={pathname}

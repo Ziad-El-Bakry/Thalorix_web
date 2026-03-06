@@ -59,7 +59,7 @@ export default function DashboardPage() {
       </motion.div>
 
       {/* Recent Activity */}
-      <div className="bg-white rounded-1xl p-6 shadow-sm">
+      <div className="bg-white rounded-xl md:rounded-2xl p-4 sm:p-5 md:p-6 shadow-sm">
         <SectionHeader
           title="Recent Activity"
           viewAllHref="/dashboard/activity"
