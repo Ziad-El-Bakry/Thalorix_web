@@ -29,7 +29,7 @@ export default function Sidebar() {
       initial={{ x: -60, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       transition={{ duration: 0.4 }}
-      className="fixed left-0 top-0 h-screen w-64 bg-[#103B40] text-white p-6 flex flex-col hidden lg:flex"
+      className="fixed left-0 top-0 h-screen w-64 bg-[#103B40] text-white p-6 flex flex-col lg:flex"
       style={{
         backgroundColor: "#103B40",
         //border: "4px solid #6FA5A9",

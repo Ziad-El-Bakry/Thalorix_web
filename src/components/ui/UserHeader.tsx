@@ -8,8 +8,8 @@ interface UserHeaderProps {
 }
 
 export default function UserHeader({ name, avatar, badge, badgeIcon }: UserHeaderProps) {
- // const initials = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
-
+ // Fallback avatar if none provided
+  const avatarSrc = avatar || "/images/avatar.png";
   return (
     <div style={{
       display: 'flex',
@@ -36,7 +36,7 @@ export default function UserHeader({ name, avatar, badge, badgeIcon }: UserHeade
             color: '#103B40',
             marginBottom: 2,
           }}>
-            Welcome, {name}
+            Welcome {name}
           </h1>
         </div>
       </div>

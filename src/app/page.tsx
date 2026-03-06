@@ -11,13 +11,13 @@ export default function Page() {
         initial={{ x: -100, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="flex flex-col items-center justify-center px-4 py-12 w-full lg:max-w-[412px] lg:min-h-screen bg-[#103B40] shadow-2xl z-20"
+        className="flex flex-col items-center justify-center px-4 py-12 w-full lg:max-w-103 lg:min-h-screen bg-[#103B40] shadow-2xl z-20"
       >
         <Link
           href="/"
           className="group relative flex flex-col items-center justify-center w-full"
         >
-          <div className="relative flex items-center justify-center w-[280px] h-[280px] md:w-[350px] md:h-[350px] lg:w-[380px] lg:h-[350px]">
+          <div className="relative flex items-center justify-center w-70 h-70 md:w-87.5 md:h-87.5 lg:w-95 lg:h-87.5">
             {/* Animated Aura */}
             <div
               className="absolute inset-0 opacity-0 group-hover:opacity-40 transition-opacity duration-1000 blur-[30px] md:blur-[50px]"
@@ -62,7 +62,12 @@ export default function Page() {
                     repeat: Infinity,
                     ease: "linear",
                   },
-                  opacity: { duration: 2, delay: 0.1, repeat: Infinity, ease: "easeInOut" },
+                  opacity: {
+                    duration: 2,
+                    delay: 0.1,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  },
                 }}
                 className="opacity-100"
                 filter="url(#neon-glow)"
@@ -80,7 +85,7 @@ export default function Page() {
                   width={250}
                   height={250}
                   priority
-                  className="relative z-40 w-[225px] md:w-[200px] lg:w-[285px] h-auto transition-all duration-700 group-hover:drop-shadow-[0_0_50px_rgba(34,211,238,0.7)]"
+                  className="relative z-40 w-56.25 md:w-50 lg:w-71.25 h-auto transition-all duration-700 group-hover:drop-shadow-[0_0_50px_rgba(34,211,238,0.7)]"
                 />
               </motion.div>
             </div>
@@ -93,7 +98,7 @@ export default function Page() {
             >
               THALORIX
             </motion.span>
-            <div className="h-[2px] w-0 bg-blue-400 mt-2 transition-all duration-700 group-hover:w-full opacity-50" />
+            <div className="h-0.5 w-0 bg-blue-400 mt-2 transition-all duration-700 group-hover:w-full opacity-50" />
           </div>
         </Link>
       </motion.aside>
@@ -104,16 +109,16 @@ export default function Page() {
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="relative w-full max-w-[900px]"
+          className="relative w-full max-w-225"
         >
           <section
-            className="relative rounded-[25px] md:rounded-[40px] border-[5px] md:border-[10px] p-6 md:p-16 bg-[#f5f6fb] shadow-[10px_10px_30px_rgba(0,0,0,0.1)] transition-all duration-500 hover:shadow-[30px_30px_80px_rgba(0,0,0,0.15)]"
+            className="relative rounded-[25px] md:rounded-[40px] border-[5px] md:border-10 p-6 md:p-16 bg-[#f5f6fb] shadow-[10px_10px_30px_rgba(0,0,0,0.1)] transition-all duration-500 hover:shadow-[30px_30px_80px_rgba(0,0,0,0.15)]"
             style={{ borderColor: "rgba(255,255,255,0.5)" }}
           >
             <div className="flex flex-col gap-6 md:gap-8">
               <h1 className="font-black leading-[1.1] text-3xl md:text-6xl lg:text-7xl text-[#103B40]">
                 <div>Launch your</div>
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-700 to-cyan-600">
+                <span className="text-transparent bg-clip-text bg-linear-to-r from-teal-700 to-cyan-600">
                   Startup Now!
                 </span>
               </h1>
@@ -129,7 +134,7 @@ export default function Page() {
                 >
                   <Link
                     href="/login"
-
+                    className="text-[#A3C9D9] font-bold text-base md:text-2xl hover:underline py-2"
                   >
                     Login
                   </Link>
