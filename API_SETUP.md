@@ -8,7 +8,7 @@ This guide helps you configure the Thalorix API connection for local development
 
 ### Configuration Options
 
-#### Option 1: Backend with /api path (Recommended for Replit)
+#### Option 1: Backend with /api path (Recommended for o)
 
 ```env
 NEXT_PUBLIC_API_BASE_URL=https://ec2c4293-09f7-4f14-abb7-719218c2dde6-00-1i7vvmht2kv2r.worf.replit.dev/api
