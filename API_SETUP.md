@@ -4,18 +4,23 @@
 
 This guide helps you configure the Thalorix API connection for local development and production.
 
-## Environment Variables
+## 1. Environment Configuration
 
-### Configuration Options
+### .env.local
 
-#### Option 1: Backend with /api path (Recommended for o)
+In your `thalorix-web` project, create or update `.env.local`:
 
 ```env
-NEXT_PUBLIC_API_BASE_URL=https://ec2c4293-09f7-4f14-abb7-719218c2dde6-00-1i7vvmht2kv2r.worf.replit.dev/api
+# Backend API URLs
+NEXT_PUBLIC_API_URL=https://thalorix-back-end--om8523302.replit.app
+NEXT_PUBLIC_API_BASE_URL=https://thalorix-back-end--om8523302.replit.app/api
 NEXT_PUBLIC_API_VERSION=v1
+
+# Real-time connection
+NEXT_PUBLIC_SOCKET_URL=https://thalorix-back-end--om8523302.replit.app
 ```
 
-**Result:** `https://ec2c4293-09f7-4f14-abb7-719218c2dde6-00-1i7vvmht2kv2r.worf.replit.dev/api/v1`
+**Result:** `https://thalorix-back-end--om8523302.replit.app/api/v1`
 
 #### Option 2: Backend without /api path (For custom servers)
 
@@ -42,7 +47,7 @@ NEXT_PUBLIC_API_VERSION=v1
 Decide whether you're using:
 
 - ✅ **Local Backend** (Development): `http://localhost:3001`
-- ✅ **Replit Backend** (Production): `https://ec2c4293-09f7-4f14-abb7-719218c2dde6-00-1i7vvmht2kv2r.worf.replit.dev`
+- ✅ **Replit Backend** (Production): `https://thalorix-back-end--om8523302.replit.app`
 
 ### 2. Update `.env.local`
 
@@ -97,7 +102,7 @@ This page will:
 
 2. **Check API URL:** Verify `NEXT_PUBLIC_API_BASE_URL` is correct
    - Local: `http://localhost:3001`
-   - Replit: `https://ec2c4293-09f7-4f14-abb7-719218c2dde6-00-1i7vvmht2kv2r.worf.replit.dev/api`
+   - Replit: `https://thalorix-back-end--om8523302.replit.app/api`
 
 3. **Enable CORS** on your backend
    - Backend must allow requests from `http://localhost:3000`
