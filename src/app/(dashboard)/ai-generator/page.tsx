@@ -1,1 +1,0 @@
-export default function AIGenerator(){ return <div>AI Generator</div>}

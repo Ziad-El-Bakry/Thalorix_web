@@ -1,1 +1,19 @@
 @import "tailwindcss";
+:root {
+  --animate-spin-slow: spin 4s linear infinite;
+}
+
+@keyframes border-draw {
+  0% { stroke-dashoffset: 1000; }
+  100% { stroke-dashoffset: 0; }
+}
+@theme {
+  --animate-spin-slow: spin 8s linear infinite;
+}
+
+/* Hide browser's built-in password reveal icon */
+input::-ms-reveal,
+input::-ms-clear,
+input::-webkit-credentials-auto-fill-button {
+  display: none;
+}
