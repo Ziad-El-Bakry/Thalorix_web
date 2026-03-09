@@ -10,7 +10,7 @@ export default function DashboardPage() {
   return (
     <div className="max-w-7xl mx-auto">
       {/* Header */}
-      <UserHeader name="User" badge="Developer" badgeIcon="🔔" />
+      <UserHeader name="User" badge="Developer" />
 
       {/* Quick Access */}
       <SectionHeader title="Quick Access" />
