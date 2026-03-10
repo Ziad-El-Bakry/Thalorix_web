@@ -21,7 +21,7 @@ export default function ChatListItem({
       <img
         src={other.avatarUrl || "/images/default-avatar.png"}
         alt={other.name}
-        className="w-10 h-10 rounded-full object-cover"
+        className="w-10 h-12 rounded-full object-cover"
       />
       <div className="ml-3 flex-1">
         <div className="flex justify-between items-center">

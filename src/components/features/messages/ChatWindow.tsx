@@ -88,7 +88,7 @@ const sampleConv: Conversation = {
   lastMessage: undefined,
 };
 
-export default function ChatWindow() {
+export default function ChatWindow({ onBack }: { onBack?: () => void }) {
   const [conversation, setConversation] = useState<Conversation>(sampleConv);
   const [inputValue, setInputValue] = useState("");
 
@@ -124,7 +124,7 @@ export default function ChatWindow() {
 
   return (
     <div className="flex-1 flex flex-col h-full">
-      <ChatHeader user={other} />
+      <ChatHeader user={other} onBack={onBack} />
       <div
         ref={containerRef}
         className="flex-1 p-4 overflow-y-auto bg-gray-100"

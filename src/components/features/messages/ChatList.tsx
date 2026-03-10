@@ -12,15 +12,13 @@ const dummyUser: User = {
   online: true,
 };
 
-const dummyConversations: Conversation[] = Array.from({ length: 8 }).map(
+const dummyConversations: Conversation[] = Array.from({ length: 8}).map(
   (_, i) => ({
     id: String(i + 1),
     participants: [
       {
         id: String(i + 2),
-        name: ["Omar", "Jhon", "Mahdy", "Tony", "Sara", "Emy", "Gemy", "Ghaly"][
-          i
-        ],
+        name: ["Omar", "Jhon", "Mahdy", "Tony", "Sara", "Emy", "Gemy", "Ghaly", "Ziad", "Ahmed", "Mohamed", "Ali"][i],
         avatarUrl: `/images/avatar-${i + 2}.jpg`,
         online: i % 2 === 0,
       },
@@ -36,10 +34,14 @@ const dummyConversations: Conversation[] = Array.from({ length: 8 }).map(
   }),
 );
 
-export default function ChatList() {
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+export default function ChatList({
+  selectedId,
+  onSelect,
+}: {
+  selectedId: string | null;
+  onSelect: (id: string) => void;
+}) {
   const listRef = React.useRef<HTMLDivElement>(null);
-
   React.useEffect(() => {
     if (selectedId && listRef.current) {
       const el = listRef.current.querySelector(
@@ -54,10 +56,10 @@ export default function ChatList() {
   return (
     <div
       ref={listRef}
-      className="w-[40%] min-w-[250px] md:w-[10%] md:min-w-[380px] max-w-[820px] border-r overflow-y-auto bg-white h-full flex-shrink-0"
+      className="w-full md:w-[40%] md:min-w-[380px] md:max-w-[820px] border-r overflow-y-auto bg-white h-full flex-shrink-0"
     >
       <div className="p-4 font-semibold border-b flex justify-between items-center bg-gray-50/50 sticky top-0 z-10 backdrop-blur-sm">
-        <span>Welcome, Emad</span>
+        <span>Welcome User</span>
         <div className="flex gap-1 text-gray-600">
           <button className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors">
             <MessageSquarePlus className="w-5 h-5" />
@@ -72,7 +74,7 @@ export default function ChatList() {
           key={conv.id}
           conversation={conv}
           selected={conv.id === selectedId}
-          onClick={() => setSelectedId(conv.id)}
+          onClick={() => onSelect(conv.id)}
           // pass id so item adds data attribute
           data-id={conv.id}
         />

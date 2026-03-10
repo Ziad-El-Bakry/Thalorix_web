@@ -1,11 +1,19 @@
 import React from "react";
 import { ChatHeaderProps } from "../../../types/message";
-import { Search, Phone, Video, MoreHorizontal } from "lucide-react";
+import { Search, Phone, Video, MoreHorizontal, ArrowLeft } from "lucide-react";
 
-export default function ChatHeader({ user }: ChatHeaderProps) {
+export default function ChatHeader({ user, onBack }: ChatHeaderProps & { onBack?: () => void }) {
   return (
-    <div className="flex items-center justify-between p-4 border-b bg-white sticky top-0 z-10">
+    <div className="flex items-center justify-between p-2 border-b bg-white sticky top-0 z-10">
       <div className="flex items-center">
+        {onBack && (
+          <button 
+            onClick={onBack}
+            className="md:hidden mr-2 p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5 text-gray-600" />
+          </button>
+        )}
         <img
           src={user.avatarUrl || "/images/default-avatar.png"}
           alt={user.name}
@@ -18,7 +26,7 @@ export default function ChatHeader({ user }: ChatHeaderProps) {
           )}
         </div>
       </div>
-      <div className="flex items-center space-x-1 text-gray-600">
+      <div className="flex items-center space-x-1 text-gray-700">
         <button className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors">
           <Search className="w-5 h-5" />
         </button>

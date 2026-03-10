@@ -1,5 +1,6 @@
 import React from "react";
 import { MessageBubbleProps } from "../../../types/message";
+import { Check, CheckCheck } from "lucide-react";
 
 export default function MessageBubble({
   message,
@@ -33,14 +34,25 @@ export default function MessageBubble({
             </span>
           )}
           <span
-            className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium shadow-sm ${
+            className={`text-[10px] flex items-center gap-1 px-1.5 py-0.5 rounded-full font-medium shadow-sm ${
               isOwn ? "bg-black/20 text-white" : "bg-black/10 text-gray-700"
             }`}
           >
-            {new Date(message.timestamp).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
+            <span>
+              {new Date(message.timestamp).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </span>
+            {isOwn && message.status === "sent" && (
+              <Check className="w-3 h-3 text-white/70" />
+            )}
+            {isOwn && message.status === "delivered" && (
+              <CheckCheck className="w-3 h-3 text-white/70" />
+            )}
+            {isOwn && message.status === "read" && (
+              <CheckCheck className="w-3 h-3 text-blue-400" />
+            )}
           </span>
         </div>
       </div>
