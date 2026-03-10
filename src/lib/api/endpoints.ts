@@ -6,7 +6,7 @@ export const ENDPOINTS = {
   // APP
   // ============================================
   APP: {
-    INFO: 'api/v1/app/', // Will become: /api/v1
+    INFO: '', // Will become: /api/v1
   },
 
   // ============================================

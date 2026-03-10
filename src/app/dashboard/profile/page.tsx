@@ -200,11 +200,11 @@ function PersonalDetails({ onSave }: { onSave: () => void }) {
             <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
                     <label className="block text-xs font-semibold text-gray-700 mb-2">First Name</label>
-                    <Input defaultValue="Maher" className="bg-white border-none shadow-sm h-11" />
+                    <Input defaultValue="" className="bg-white border-none shadow-sm h-11" />
                 </div>
                 <div>
                     <label className="block text-xs font-semibold text-gray-700 mb-2">Last Name</label>
-                    <Input defaultValue="Kojan" className="bg-white border-none shadow-sm h-11" />
+                    <Input defaultValue="" className="bg-white border-none shadow-sm h-11" />
                 </div>
             </motion.div>
 
@@ -232,7 +232,7 @@ function PersonalDetails({ onSave }: { onSave: () => void }) {
 
             <motion.div variants={itemVariants} className="mb-6">
                 <label className="block text-xs font-semibold text-gray-700 mb-2">Phone Number</label>
-                <Input defaultValue="+234 3786877583" className="bg-white border-none shadow-sm h-11" />
+                <Input defaultValue="" className="bg-white border-none shadow-sm h-11" />
             </motion.div>
 
             <motion.div variants={itemVariants} className="mb-8 border-b border-[#D3E0E2] pb-10">
@@ -247,12 +247,12 @@ function PersonalDetails({ onSave }: { onSave: () => void }) {
 
                 <div className="mb-5">
                     <label className="block text-xs font-semibold text-gray-700 mb-2">Facebook</label>
-                    <Input defaultValue="www.facebook.com/maherkojan" className="bg-white border-none shadow-sm h-11" />
+                    <Input defaultValue="" className="bg-white border-none shadow-sm h-11" />
                 </div>
 
                 <div className="mb-5">
                     <label className="block text-xs font-semibold text-gray-700 mb-2">Instagram</label>
-                    <Input defaultValue="www.instagram.com/maherkojan" className="bg-white border-none shadow-sm h-11" />
+                    <Input defaultValue="" className="bg-white border-none shadow-sm h-11" />
                 </div>
             </motion.div>
 

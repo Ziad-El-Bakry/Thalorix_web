@@ -2,6 +2,7 @@
 
 import { ReactNode } from "react";
 import Image from "next/image";
+import NavigationLoader from "@/components/layout/NavigationLoader";
 
 interface AuthLayoutProps {
     children: ReactNode;
@@ -68,7 +69,7 @@ export function AuthLayout({ children, variant = "default" }: AuthLayoutProps) {
                                 {/* Bottom-right profile */}
                                 <div className="absolute bottom-4 right-2 w-20 h-20 rounded-full overflow-hidden border-2 border-white/30 shadow-lg">
                                     <Image
-                                        src="/profile3.png"
+                                        src="/  profile3.png"
                                         alt="User 3"
                                         width={80}
                                         height={80}
@@ -100,7 +101,9 @@ export function AuthLayout({ children, variant = "default" }: AuthLayoutProps) {
 
                 {/* Right Panel – Form */}
                 <div className="flex-1 bg-[#eef1f5] flex items-center justify-center p-8 md:p-12">
-                    <div className="w-full max-w-sm">{children}</div>
+                    <div className="w-full max-w-sm">
+                        <NavigationLoader>{children}</NavigationLoader>
+                    </div>
                 </div>
             </div>
         </div>

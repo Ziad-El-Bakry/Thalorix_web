@@ -22,7 +22,9 @@ export default function ChatHeader({ user }: ChatHeaderProps) {
         <Search className="w-5 h-5 cursor-pointer" />
         <Phone className="w-5 h-5 cursor-pointer" />
         <Video className="w-5 h-5 cursor-pointer" />
-        <MoreHorizontal className="w-5 h-5 cursor-pointer" />
+        <MoreHorizontal className="w-5 h-5 cursor-pointer">
+          
+          </MoreHorizontal>
       </div>
     </div>
   );
