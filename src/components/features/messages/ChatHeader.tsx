@@ -18,13 +18,19 @@ export default function ChatHeader({ user }: ChatHeaderProps) {
           )}
         </div>
       </div>
-      <div className="flex items-center space-x-4 text-gray-600">
-        <Search className="w-5 h-5 cursor-pointer" />
-        <Phone className="w-5 h-5 cursor-pointer" />
-        <Video className="w-5 h-5 cursor-pointer" />
-        <MoreHorizontal className="w-5 h-5 cursor-pointer">
-          
-          </MoreHorizontal>
+      <div className="flex items-center space-x-1 text-gray-600">
+        <button className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors">
+          <Search className="w-5 h-5" />
+        </button>
+        <button className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors">
+          <Phone className="w-5 h-5" />
+        </button>
+        <button className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors">
+          <Video className="w-5 h-5" />
+        </button>
+        <button className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors">
+          <MoreHorizontal className="w-5 h-5" />
+        </button>
       </div>
     </div>
   );

@@ -15,7 +15,7 @@ export default function MessageBubble({
         />
       )}
       <div
-        className={`max-w-[60%] px-3 py-2 rounded-lg relative ${
+        className={`max-w-[60%] px-3 py-2 pb-7 rounded-lg relative min-w-[100px] ${
           isOwn
             ? "bg-teal-800 text-white rounded-tr-none"
             : "bg-gray-200 text-gray-800 rounded-tl-none"
@@ -24,19 +24,25 @@ export default function MessageBubble({
         <p className="text-sm" style={{ wordBreak: "break-word" }}>
           {message.text}
         </p>
-        <span
-          className={`text-[10px] absolute bottom-1 right-2 ${isOwn ? "text-white" : "text-gray-700"}`}
-        >
-          {new Date(message.timestamp).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
-        </span>
-        {isOwn && message.status === "failed" && (
-          <span className="text-[10px] text-red-500 absolute bottom-1 left-2">
-            Failed
+
+        {/* Timing and Status styled as a pill/button */}
+        <div className="flex items-center gap-1 absolute bottom-1 right-1.5">
+          {isOwn && message.status === "failed" && (
+            <span className="text-[10px] bg-red-500 text-white px-1.5 py-0.5 rounded-full font-medium shadow-sm">
+              Failed
+            </span>
+          )}
+          <span
+            className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium shadow-sm ${
+              isOwn ? "bg-black/20 text-white" : "bg-black/10 text-gray-700"
+            }`}
+          >
+            {new Date(message.timestamp).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
           </span>
-        )}
+        </div>
       </div>
     </div>
   );
