@@ -12,7 +12,7 @@ export default function ForgetPasswordForm() {
         // Here you would typically send the reset email via your API
         setIsSubmitted(true);
     };
-
+    
     if (isSubmitted) {
         return (
             <div className="space-y-6 text-center">
