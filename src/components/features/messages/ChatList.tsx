@@ -8,7 +8,7 @@ import { MessageSquarePlus, MoreVertical } from "lucide-react";
 const dummyUser: User = {
   id: "1",
   name: "William",
-  avatarUrl: "/images/avatar-1.jpg",
+  avatarUrl: "/images/avatar.png",
   online: true,
 };
 
@@ -19,7 +19,7 @@ const dummyConversations: Conversation[] = Array.from({ length: 8}).map(
       {
         id: String(i + 2),
         name: ["Omar", "Jhon", "Mahdy", "Tony", "Sara", "Emy", "Gemy", "Ghaly", "Ziad", "Ahmed", "Mohamed", "Ali"][i],
-        avatarUrl: `/images/avatar-${i + 2}.jpg`,
+        avatarUrl: `/images/avatar.png`,
         online: i % 2 === 0,
       },
     ],

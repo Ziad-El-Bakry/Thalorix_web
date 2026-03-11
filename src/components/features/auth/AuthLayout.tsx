@@ -47,7 +47,7 @@ export function AuthLayout({ children, variant = "default" }: AuthLayoutProps) {
                                 {/* Top profile */}
                                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-20 rounded-full overflow-hidden border-2 border-white/30 shadow-lg">
                                     <Image
-                                        src="/profile1.png"
+                                        src="/images/profile1.png"
                                         alt="User 1"
                                         width={80}
                                         height={80}
@@ -58,7 +58,7 @@ export function AuthLayout({ children, variant = "default" }: AuthLayoutProps) {
                                 {/* Bottom-left profile */}
                                 <div className="absolute bottom-4 left-2 w-20 h-20 rounded-full overflow-hidden border-2 border-teal-400/50 shadow-lg">
                                     <Image
-                                        src="/profile2.png"
+                                        src="/images/profile2.png"
                                         alt="User 2"
                                         width={80}
                                         height={80}
@@ -69,7 +69,7 @@ export function AuthLayout({ children, variant = "default" }: AuthLayoutProps) {
                                 {/* Bottom-right profile */}
                                 <div className="absolute bottom-4 right-2 w-20 h-20 rounded-full overflow-hidden border-2 border-white/30 shadow-lg">
                                     <Image
-                                        src="/  profile3.png"
+                                        src="/images/profile3.png"
                                         alt="User 3"
                                         width={80}
                                         height={80}
@@ -86,9 +86,9 @@ export function AuthLayout({ children, variant = "default" }: AuthLayoutProps) {
                         </>
                     ) : (
                         <div className="flex flex-col items-center justify-center h-full w-full">
-                            <div className="w-64 h-64 relative">
+                            <div className="w-96 h-96 relative">
                                 <Image
-                                    src="/verify-logo.png"
+                                    src="/images/Thalorix.png"
                                     alt="Thalorix Logo"
                                     fill
                                     className="object-contain drop-shadow-[0_0_15px_rgba(45,212,191,0.5)]"

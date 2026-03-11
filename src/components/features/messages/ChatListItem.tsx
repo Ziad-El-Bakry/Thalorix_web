@@ -19,7 +19,7 @@ export default function ChatListItem({
       onClick={onClick}
     >
       <img
-        src={other.avatarUrl || "/images/default-avatar.png"}
+        src={other.avatarUrl || "/images/avatar.png"}
         alt={other.name}
         className="w-10 h-12 rounded-full object-cover"
       />

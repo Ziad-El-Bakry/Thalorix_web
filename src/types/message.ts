@@ -10,9 +10,14 @@ export interface User {
 export interface Message {
     id: string;
     sender: User;
-    text: string;
+    text?: string;
     timestamp: string; // ISO string
     status?: "sent" | "delivered" | "read" | "failed";
+    audioUrl?: string;
+    imageUrl?: string;
+    fileUrl?: string;
+    fileType?: "pdf" | "zip" | "image" | "file";
+    fileName?: string;
 }
 
 export interface Conversation {
@@ -41,5 +46,5 @@ export interface ChatHeaderProps {
 export interface MessageInputProps {
     value: string;
     onChange: (val: string) => void;
-    onSend: () => void;
+    onSend: (content: string, type?: "text" | "audio" | "image" | "file" | "pdf" | "zip", fileName?: string) => void;
 }
