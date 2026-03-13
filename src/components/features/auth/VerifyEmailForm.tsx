@@ -88,7 +88,7 @@ export default function VerifyEmailForm() {
                 </div>
             </motion.div>
 
-            <div className="flex justify-center gap-3 md:gap-4 mt-2">
+            <div className="flex justify-center gap-2 sm:gap-3 md:gap-4 mt-2">
                 {otp.map((digit, index) => (
                     <motion.input
                         variants={itemVariants}
@@ -101,7 +101,7 @@ export default function VerifyEmailForm() {
                         onChange={(e) => handleChange(index, e.target.value)}
                         onKeyDown={(e) => handleKeyDown(index, e)}
                         onPaste={handlePaste}
-                        className="w-[54px] h-[64px] text-center text-2xl font-bold text-[#103B40] bg-[#a8ccce] rounded-xl border-2 border-transparent focus:bg-white focus:border-[#103B40]/20 focus:outline-none transition-all shadow-sm"
+                        className="w-[45px] h-[55px] sm:w-[50px] sm:h-[60px] md:w-[54px] md:h-[64px] text-center text-xl sm:text-2xl font-bold text-[#103B40] bg-[#a8ccce] rounded-xl border-2 border-transparent focus:bg-white focus:border-[#103B40]/20 focus:outline-none transition-all shadow-sm"
                     />
                 ))}
             </div>

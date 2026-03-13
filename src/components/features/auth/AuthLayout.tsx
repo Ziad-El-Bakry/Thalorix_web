@@ -132,10 +132,10 @@ export function AuthLayout({ children, variant = "default" }: AuthLayoutProps) {
                     initial={{ x: 50, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
                     transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
-                    className="flex-1 bg-[#eef1f5] flex items-center justify-center p-8 md:p-12"
+                    className="flex-1 bg-[#eef1f5] flex items-center justify-center p-4 sm:p-8 md:p-12 relative overflow-y-auto"
                 >
                     <div className={`w-full ${variant === 'verify'
-                        ? 'max-w-xl bg-white/70 backdrop-blur-md rounded-[50px] p-20 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.1)] border border-white/50'
+                        ? 'max-w-xl bg-white/70 backdrop-blur-md rounded-[30px] sm:rounded-[50px] p-8 sm:p-12 md:p-20 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.1)] border border-white/50 m-4'
                         : 'max-w-sm'
                         }`}>
                         <NavigationLoader>{children}</NavigationLoader>
