@@ -1,5 +1,5 @@
-import React from "react";
-import { CheckCheck, FileText, Archive, Download } from "lucide-react";
+import React, { useState, useRef, useEffect } from "react";
+import { CheckCheck, FileText, Archive, Download, Play, Pause, Volume2, MoreVertical } from "lucide-react";
 
 export default function MessageBubble({ message, isOwn = false, onImageClick }: any) {
   // دالة لتحميل الملف عند النقر
@@ -69,11 +69,7 @@ export default function MessageBubble({ message, isOwn = false, onImageClick }: 
     }
 
     if (message.audioUrl) {
-      return (
-        <div className="flex items-center gap-2 py-2 min-w-[240px] mb-2">
-          <audio src={message.audioUrl} controls className="h-10 w-full accent-teal-500" />
-        </div>
-      );
+      return <CustomAudioPlayer src={message.audioUrl} />;
     }
 
     return <p className="text-sm leading-relaxed pr-14 pb-1.5" style={{ wordBreak: "break-word" }}>{message.text}</p>;
@@ -136,3 +132,78 @@ export default function MessageBubble({ message, isOwn = false, onImageClick }: 
   );
 }
 
+function CustomAudioPlayer({ src }: { src: string }) {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [duration, setDuration] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const setAudioData = () => {
+      setDuration(audio.duration);
+      setCurrentTime(audio.currentTime);
+    }
+
+    const setAudioTime = () => setCurrentTime(audio.currentTime);
+
+    audio.addEventListener('loadedmetadata', setAudioData);
+    audio.addEventListener('timeupdate', setAudioTime);
+    audio.addEventListener('ended', () => setIsPlaying(false));
+
+    return () => {
+      audio.removeEventListener('loadedmetadata', setAudioData);
+      audio.removeEventListener('timeupdate', setAudioTime);
+      audio.removeEventListener('ended', () => setIsPlaying(false));
+    }
+  }, [src]);
+
+  const togglePlayPause = () => {
+    const prevValue = isPlaying;
+    setIsPlaying(!prevValue);
+    if (!prevValue) {
+      audioRef.current?.play();
+    } else {
+      audioRef.current?.pause();
+    }
+  };
+
+  const formatTime = (secs: number) => {
+    if (isNaN(secs) || !isFinite(secs)) return "0:00";
+    const minutes = Math.floor(secs / 60);
+    const seconds = Math.floor(secs % 60);
+    const returnedSeconds = seconds < 10 ? `0${seconds}` : `${seconds}`;
+    return `${minutes}:${returnedSeconds}`;
+  };
+
+  const calculateProgress = () => {
+    if (!duration) return 0;
+    return (currentTime / duration) * 100;
+  };
+
+  return (
+    <div className="flex items-center bg-[#f0f2f5] rounded-full px-4 py-2 mb-3 mt-1 shadow-sm w-full sm:w-[320px] gap-3">
+      <audio ref={audioRef} src={src} preload="metadata" />
+      <button onClick={togglePlayPause} className="text-gray-800 focus:outline-none flex-shrink-0 hover:text-gray-600 transition-colors">
+        {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current" />}
+      </button>
+      
+      <span className="text-[13px] text-gray-700 font-medium min-w-[70px] shrink-0 text-center">
+        {formatTime(currentTime)} / {formatTime(duration)}
+      </span>
+      
+      <div className="flex-1 bg-gray-300 rounded-full h-1.5 relative cursor-pointer overflow-hidden">
+        <div className="bg-[#164e46] h-full rounded-full transition-all duration-100 ease-linear" style={{ width: `${calculateProgress()}%` }}></div>
+      </div>
+      
+      <button className="text-gray-800 focus:outline-none flex-shrink-0 hover:text-gray-600 transition-colors ml-1">
+        <Volume2 className="w-5 h-5" />
+      </button>
+      <button className="text-gray-800 focus:outline-none flex-shrink-0 hover:text-gray-600 transition-colors">
+        <MoreVertical className="w-5 h-5" />
+      </button>
+    </div>
+  );
+}

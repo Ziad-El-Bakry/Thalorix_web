@@ -1,5 +1,6 @@
 import React from "react";
 import { ChatListItemProps } from "../../../types/message";
+import { CheckCheck } from "lucide-react";
 
 export default function ChatListItem({
   conversation,
@@ -35,7 +36,14 @@ export default function ChatListItem({
             </span>
           )}
         </div>
-        {last && <p className="text-xs text-gray-600 truncate">{last.text}</p>}
+        {last && (
+          <div className="flex items-center gap-1 overflow-hidden">
+            {last.sender.id === "1" && (
+              <CheckCheck className={`w-3.5 h-3.5 flex-shrink-0 ${last.status === 'read' ? 'text-blue-500' : 'text-gray-400'}`} />
+            )}
+            <p className="text-xs text-gray-600 truncate">{last.text}</p>
+          </div>
+        )}
       </div>
       {other.online && (
         <span className="w-2 h-2 bg-green-500 rounded-full ml-2" />

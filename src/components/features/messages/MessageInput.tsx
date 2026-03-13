@@ -14,13 +14,24 @@ export default function MessageInput({ value, onChange, onSend }: any) {
 
   const handleAttachmentClick = (type: string) => {
     if (!fileInputRef.current) return;
+    
+    // Reset attributes first
+    fileInputRef.current.removeAttribute('capture');
+    fileInputRef.current.removeAttribute('accept');
+    
     if (type === 'camera') {
       fileInputRef.current.setAttribute('accept', 'image/*');
       fileInputRef.current.setAttribute('capture', 'environment');
+    } else if (type === 'images') {
+      fileInputRef.current.setAttribute('accept', 'image/png, image/jpeg, image/webp, image/gif');
+    } else if (type === 'pdf') {
+      fileInputRef.current.setAttribute('accept', '.pdf,application/pdf');
+    } else if (type === 'zip') {
+      fileInputRef.current.setAttribute('accept', '.zip,application/zip,application/x-zip-compressed');
     } else {
-      fileInputRef.current.removeAttribute('capture');
-      fileInputRef.current.setAttribute('accept', type === 'images' ? 'image/*' : '*/*');
+      fileInputRef.current.setAttribute('accept', '*/*');
     }
+    
     fileInputRef.current.click();
     setShowAttachments(false);
   };
@@ -71,17 +82,17 @@ export default function MessageInput({ value, onChange, onSend }: any) {
   };
 
   return (
-    <div className="flex items-center px-4 py-3 bg-[#004d40] sticky bottom-0 z-10 w-full border-t border-teal-900/50">
+    <div className="flex items-center px-4 py-3 bg-[#004d40] sticky bottom-0 z-10 w-full border-t border-teal-900/50 relative">
       {showAttachments && (
-        <div className="absolute bottom-20 left-6 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden w-52 animate-in fade-in slide-in-from-bottom-3 duration-200">
-          <AttachmentOption icon={<Camera className="w-4 h-4 text-purple-500" />} label="Camera" onClick={() => handleAttachmentClick('camera')} />
-          <AttachmentOption icon={<ImageIcon className="w-4 h-4 text-blue-500" />} label="Images" onClick={() => handleAttachmentClick('images')} />
-          <AttachmentOption icon={<FileText className="w-4 h-4 text-red-500" />} label="PDF" onClick={() => handleAttachmentClick('pdf')} />
-          <AttachmentOption icon={<Archive className="w-4 h-4 text-yellow-600" />} label="Zip File" onClick={() => handleAttachmentClick('zip')} hideBorder={true} />
+        <div className="absolute bottom-[110%] left-6 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden w-56 animate-in fade-in zoom-in-95 slide-in-from-bottom-5 duration-200">
+          <AttachmentOption icon={<Camera className="w-5 h-5 text-indigo-500" />} label="Camera" onClick={() => handleAttachmentClick('camera')} />
+          <AttachmentOption icon={<ImageIcon className="w-5 h-5 text-blue-500" />} label="Photos & Videos" onClick={() => handleAttachmentClick('images')} />
+          <AttachmentOption icon={<FileText className="w-5 h-5 text-rose-500" />} label="PDF Document" onClick={() => handleAttachmentClick('pdf')} />
+          <AttachmentOption icon={<Archive className="w-5 h-5 text-amber-500" />} label="Zip Archive" onClick={() => handleAttachmentClick('zip')} hideBorder={true} />
         </div>
       )}
 
-      <div className="flex-1 flex items-center bg-[#00695c] rounded-full px-4 py-2 mr-3 border border-[#00796b]">
+      <div className={`flex-1 flex items-center rounded-full px-4 py-2 mr-3 bg-[#00695c] border border-[#00796b]`}>
         {!isRecording ? (
           <>
             <button onClick={() => setShowAttachments(!showAttachments)} className="text-gray-300 hover:text-white mr-2">
@@ -97,12 +108,11 @@ export default function MessageInput({ value, onChange, onSend }: any) {
             />
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-between px-2">
-            <div className="flex items-center gap-2 text-red-400 animate-pulse">
-              <div className="w-2 h-2 bg-red-500 rounded-full" />
-              <span className="text-sm font-mono text-white">{Math.floor(recordingTime/60)}:{(recordingTime%60).toString().padStart(2,'0')}</span>
-            </div>
-            <span className="text-gray-300 text-xs italic">Recording...</span>
+          <div className="flex-1 flex items-center gap-3">
+            <Mic className="w-5 h-5 text-red-500 animate-pulse" />
+            <span className="text-sm font-medium text-white">
+              {Math.floor(recordingTime/60)}:{(recordingTime%60).toString().padStart(2,'0')}
+            </span>
           </div>
         )}
       </div>
@@ -124,8 +134,14 @@ export default function MessageInput({ value, onChange, onSend }: any) {
 
 function AttachmentOption({ icon, label, onClick, hideBorder }: any) {
   return (
-    <button onClick={onClick} className={`flex items-center gap-4 w-full px-5 py-3.5 text-sm text-gray-700 hover:bg-gray-50 ${!hideBorder ? 'border-b border-gray-100' : ''}`}>
-      {icon} <span className="font-medium">{label}</span>
+    <button 
+      onClick={onClick} 
+      className={`flex items-center gap-4 w-full px-5 py-4 text-[15px] text-gray-700 hover:bg-gray-50/80 active:bg-gray-100 transition-colors ${!hideBorder ? 'border-b border-gray-50' : ''}`}
+    >
+      <div className="bg-gray-50 p-2 rounded-full border border-gray-100/50 shadow-sm">
+        {icon}
+      </div>
+      <span className="font-medium">{label}</span>
     </button>
   );
 }
