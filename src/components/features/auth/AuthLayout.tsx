@@ -12,7 +12,7 @@ interface AuthLayoutProps {
 export function AuthLayout({ children, variant = "default" }: AuthLayoutProps) {
     return (
         <div className="min-h-screen flex items-center justify-center bg-[#0d2f33] p-4">
-            <div className="flex w-full max-w-[900px] min-h-[560px] rounded-2xl overflow-hidden shadow-2xl">
+            <div className="flex w-full max-w-[1100px] min-h-[560px] rounded-2xl overflow-hidden shadow-2xl">
                 {/* Left Panel – Branding */}
                 <div className="hidden md:flex w-[42%] bg-[#103B40] flex-col items-center justify-between p-10 relative">
 
@@ -101,7 +101,10 @@ export function AuthLayout({ children, variant = "default" }: AuthLayoutProps) {
 
                 {/* Right Panel – Form */}
                 <div className="flex-1 bg-[#eef1f5] flex items-center justify-center p-8 md:p-12">
-                    <div className="w-full max-w-sm">
+                    <div className={`w-full ${variant === 'verify'
+                        ? 'max-w-xl bg-white/70 backdrop-blur-md rounded-[50px] p-20 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.1)] border border-white/50'
+                        : 'max-w-sm'
+                        }`}>
                         <NavigationLoader>{children}</NavigationLoader>
                     </div>
                 </div>

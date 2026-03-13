@@ -2,41 +2,17 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function ForgetPasswordForm() {
     const [email, setEmail] = useState("");
-    const [isSubmitted, setIsSubmitted] = useState(false);
+    const router = useRouter();
 
     const handleSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
         e.preventDefault();
         // Here you would typically send the reset email via your API
-        setIsSubmitted(true);
+        router.push(`/verify-email?email=${encodeURIComponent(email)}`);
     };
-    
-    if (isSubmitted) {
-        return (
-            <div className="space-y-6 text-center">
-                <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-8 h-8 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                </div>
-                <h2 className="text-2xl font-semibold text-[#103B40]">
-                    Check your email
-                </h2>
-                <p className="text-sm text-gray-600 mb-8">
-                    We&apos;ve sent a password reset link to <br />
-                    <span className="font-medium text-gray-900">{email}</span>
-                </p>
-                <Link
-                    href="/login"
-                    className="block w-full bg-[#103B40] hover:bg-[#0c2f33] text-white font-bold text-sm tracking-wider py-3 rounded-lg transition-colors cursor-pointer"
-                >
-                    BACK TO LOGIN
-                </Link>
-            </div>
-        );
-    }
 
     return (
         <div className="space-y-6">

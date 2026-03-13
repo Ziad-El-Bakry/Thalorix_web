@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Bell, Code, Camera, Copy, Lock, Trash2, CheckCircle, AlertCircle, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,34 @@ type Tab = "personal" | "password";
 export default function ProfilePage() {
     const [activeTab, setActiveTab] = useState<Tab>("personal");
     const [showToast, setShowToast] = useState(false);
+    const [copied, setCopied] = useState(false);
+    const [previewImage, setPreviewImage] = useState("/images/avatar.png");
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const userId = "user001_1sunx...";
+
+    const handleCopy = () => {
+        navigator.clipboard.writeText(userId);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPreviewImage(reader.result as string);
+                setShowToast(true);
+                setTimeout(() => setShowToast(false), 3000);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const triggerUpload = () => {
+        fileInputRef.current?.click();
+    };
 
     const handleSave = () => {
         setShowToast(true);
@@ -62,16 +91,25 @@ export default function ProfilePage() {
                         <h2 className="text-[26px] font-semibold mb-8 text-[#103B40] w-full text-center">User Profile</h2>
 
                         <div className="relative mb-3 group">
-                            <motion.div
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                onChange={handleFileChange}
+                                accept="image/*"
+                                className="hidden"
+                            />
+                            <motion.div 
+                                onClick={triggerUpload}
                                 whileHover={{ scale: 1.05 }}
                                 className="w-[100px] h-[100px] rounded-full overflow-hidden bg-gray-200 border-4 border-white shadow-lg flex items-center justify-center relative cursor-pointer"
                             >
-                                <Image src="/images/avatar.png" alt="Avatar" layout="fill" className="object-cover" />
+                                <Image src={previewImage} alt="Avatar" layout="fill" className="object-cover" />
                                 <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                     <Camera size={24} className="text-white" />
                                 </div>
                             </motion.div>
-                            <motion.button
+                            <motion.button 
+                                onClick={triggerUpload}
                                 whileHover={{ scale: 1.1 }}
                                 whileTap={{ scale: 0.9 }}
                                 className="absolute bottom-0 right-0 bg-[#103B40] text-white p-2 rounded-full shadow-md hover:bg-[#0c2e32] transition-colors"
@@ -86,16 +124,33 @@ export default function ProfilePage() {
 
                         <div className="flex items-center gap-2 mb-10 w-full justify-center">
                             <div className="bg-white border border-gray-200 rounded px-3 py-2 text-xs text-gray-500 truncate w-[160px] shadow-sm">
-                                User ID: user001_1sunx...
-                            </div>
-                            <motion.button
-                                whileHover={{ backgroundColor: "#f9fafb" }}
-                                whileTap={{ scale: 0.95 }}
-                                className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded shadow-sm hover:bg-gray-50 transition-colors"
-                            >
-                                <Copy size={14} />
-                                Copy
-                            </motion.button>
+                            User ID: {userId}
+                        </div>
+                        <motion.button 
+                            whileHover={{ backgroundColor: copied ? "#16a34a" : "#f9fafb" }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={handleCopy}
+                            animate={{
+                                backgroundColor: copied ? "#22c55e" : "#ffffff",
+                                borderColor: copied ? "#22c55e" : "#e5e7eb",
+                                color: copied ? "#ffffff" : "#4b5563"
+                            }}
+                            className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold border rounded shadow-sm transition-colors duration-200"
+                        >
+                            <AnimatePresence mode="wait" initial={false}>
+                                <motion.div
+                                    key={copied ? "check" : "copy"}
+                                    initial={{ opacity: 0, scale: 0.5 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.5 }}
+                                    transition={{ duration: 0.15 }}
+                                    className="flex items-center gap-1.5"
+                                >
+                                    {copied ? <CheckCircle size={14} /> : <Copy size={14} />}
+                                    <span>{copied ? "Copied!" : "Copy"}</span>
+                                </motion.div>
+                            </AnimatePresence>
+                        </motion.button>
                         </div>
 
                         <div className="w-full text-left">
@@ -133,9 +188,13 @@ export default function ProfilePage() {
                                     className="absolute top-0 left-1/2 z-10 w-full max-w-sm"
                                 >
                                     <div className="flex items-center justify-center gap-2 px-6 py-3 rounded-lg shadow-xl text-white text-sm font-medium bg-[#1fce81]">
-                                        <CheckCircle size={18} />
-                                        {activeTab === "password" ? "Password updated successfully!" : "Profile updated successfully!"}
-                                    </div>
+                                    <CheckCircle size={18} />
+                                    {activeTab === "password" 
+                                        ? "Password updated successfully!" 
+                                        : fileInputRef.current?.files?.length 
+                                            ? "Profile photo updated!" 
+                                            : "Profile updated successfully!"}
+                                </div>
                                 </motion.div>
                             )}
                         </AnimatePresence>
@@ -266,22 +325,32 @@ function PersonalDetails({ onSave }: { onSave: () => void }) {
 }
 
 function ChangePassword({ onSave, onCancel }: { onSave: () => void; onCancel: () => void }) {
-    const [showPassword, setShowPassword] = useState(false);
+    const [showOldPassword, setShowOldPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const [password, setPassword] = useState("KASFS&^%*%$#");
-    const [confirmPassword, setConfirmPassword] = useState("KASFS&^%*%$#");
+    const [oldPassword, setOldPassword] = useState("");
+    const [newPassword, setNewPassword] = useState("");
+    const [confirmNewPassword, setConfirmNewPassword] = useState("");
     const [error, setError] = useState("");
 
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
     const handleSave = () => {
         setError("");
-        if (!passwordRegex.test(password)) {
-            setError("Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.");
+        if (!oldPassword) {
+            setError("Please enter your current password.");
             return;
         }
-        if (password !== confirmPassword) {
-            setError("Passwords do not match.");
+        if (!newPassword) {
+            setError("Please enter a new password.");
+            return;
+        }
+        if (!passwordRegex.test(newPassword)) {
+            setError("New password must be at least 8 characters long and include uppercase, lowercase, number, and special character.");
+            return;
+        }
+        if (newPassword !== confirmNewPassword) {
+            setError("New passwords do not match.");
             return;
         }
         onSave();
@@ -305,29 +374,57 @@ function ChangePassword({ onSave, onCancel }: { onSave: () => void; onCancel: ()
                 <label className="block text-xs font-semibold text-gray-700 mb-2">Enter Current Password</label>
                 <div className="relative">
                     <Input
-                        type={showPassword ? "text" : "password"}
-                        value={password}
-                        onChange={(e: any) => setPassword(e.target.value)}
+                        type={showOldPassword ? "text" : "password"}
+                        value={oldPassword}
+                        onChange={(e: any) => setOldPassword(e.target.value)}
                         className="bg-white border-none shadow-sm h-11 text-gray-500 pr-10 transition-all"
                     />
                     <motion.button
                         whileTap={{ scale: 0.8 }}
                         type="button"
-                        onClick={() => setShowPassword(!showPassword)}
+                        onClick={() => setShowOldPassword(!showOldPassword)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                     >
-                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        {showOldPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </motion.button>
+                </div>
+                <div className="mt-2 text-right">
+                    <Link 
+                        href="/forget-password" 
+                        className="text-xs font-semibold text-[#103B40] hover:underline transition-all"
+                    >
+                        Forgot your password?
+                    </Link>
+                </div>
+            </motion.div>
+
+            <motion.div variants={itemVariants} className="mb-6 mt-2 relative">
+                <label className="block text-xs font-semibold text-gray-700 mb-2">Enter New Password</label>
+                <div className="relative">
+                    <Input
+                        type={showNewPassword ? "text" : "password"}
+                        value={newPassword}
+                        onChange={(e: any) => setNewPassword(e.target.value)}
+                        className="bg-white border-none shadow-sm h-11 text-gray-500 pr-10 transition-all"
+                    />
+                    <motion.button
+                        whileTap={{ scale: 0.8 }}
+                        type="button"
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                        {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </motion.button>
                 </div>
             </motion.div>
 
             <motion.div variants={itemVariants} className="mb-4 mt-2 relative">
-                <label className="block text-xs font-semibold text-gray-700 mb-2">Confirm Current Password</label>
+                <label className="block text-xs font-semibold text-gray-700 mb-2">Confirm New Password</label>
                 <div className="relative">
                     <Input
                         type={showConfirmPassword ? "text" : "password"}
-                        value={confirmPassword}
-                        onChange={(e: any) => setConfirmPassword(e.target.value)}
+                        value={confirmNewPassword}
+                        onChange={(e: any) => setConfirmNewPassword(e.target.value)}
                         className="bg-white border-none shadow-sm h-11 text-gray-500 pr-10 transition-all"
                     />
                     <motion.button
