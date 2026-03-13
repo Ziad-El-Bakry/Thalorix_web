@@ -48,7 +48,28 @@ export default function ProfilePage() {
     };
 
     return (
-        <div className="w-full flex flex-col gap-6">
+        <div className="w-full flex flex-col gap-6 relative">
+            {/* Toast Notification - Floating at top of page */}
+            <AnimatePresence>
+                {showToast && (
+                    <motion.div
+                        initial={{ y: -100, opacity: 0, x: "-50%" }}
+                        animate={{ y: 20, opacity: 1, x: "-50%" }}
+                        exit={{ y: -100, opacity: 0, x: "-50%" }}
+                        className="fixed top-0 left-1/2 z-[100] w-full max-w-sm"
+                    >
+                        <div className="flex items-center justify-center gap-2 px-6 py-3 rounded-lg shadow-2xl text-white text-sm font-bold bg-[#1fce81] border border-white/20">
+                            <CheckCircle size={18} />
+                            {activeTab === "password"
+                                ? "Password updated successfully!"
+                                : fileInputRef.current?.files?.length
+                                    ? "Profile photo updated!"
+                                    : "Profile updated successfully!"}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             {/* Top Header - Moved outside the border */}
             <motion.div
                 initial={{ opacity: 0 }}
@@ -178,27 +199,6 @@ export default function ProfilePage() {
 
                     {/* Right Content Area */}
                     <div className="flex-1 relative pl-2 overflow-hidden">
-                        {/* Toast Notification */}
-                        <AnimatePresence>
-                            {showToast && (
-                                <motion.div
-                                    initial={{ y: -50, opacity: 0, x: "-50%" }}
-                                    animate={{ y: 0, opacity: 1, x: "-50%" }}
-                                    exit={{ y: -50, opacity: 0, x: "-50%" }}
-                                    className="absolute top-0 left-1/2 z-10 w-full max-w-sm"
-                                >
-                                    <div className="flex items-center justify-center gap-2 px-6 py-3 rounded-lg shadow-xl text-white text-sm font-medium bg-[#1fce81]">
-                                    <CheckCircle size={18} />
-                                    {activeTab === "password" 
-                                        ? "Password updated successfully!" 
-                                        : fileInputRef.current?.files?.length 
-                                            ? "Profile photo updated!" 
-                                            : "Profile updated successfully!"}
-                                </div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-
                         <motion.div
                             key={activeTab}
                             initial={{ opacity: 0, x: 20 }}
