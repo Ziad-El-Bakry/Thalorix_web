@@ -2,6 +2,25 @@ import React from "react";
 import { ChatListItemProps } from "../../../types/message";
 import { CheckCheck } from "lucide-react";
 
+const AVATAR_COLORS = [
+  "bg-teal-600",
+  "bg-blue-600",
+  "bg-purple-600",
+  "bg-orange-500",
+  "bg-pink-600",
+  "bg-indigo-600",
+  "bg-rose-600",
+  "bg-amber-600",
+  "bg-cyan-600",
+  "bg-emerald-600",
+];
+
+function getAvatarColor(name: string): string {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+}
+
 export default function ChatListItem({
   conversation,
   selected,
@@ -10,44 +29,72 @@ export default function ChatListItem({
 }: ChatListItemProps & React.HTMLAttributes<HTMLDivElement>) {
   const other = conversation.participants[0];
   const last = conversation.lastMessage;
+  const colorClass = getAvatarColor(other.name);
+  // Simulated unread count for demo (odd IDs get unread)
+  const unread = !selected && parseInt(conversation.id) % 4 === 2 ? 2 : 0;
 
   return (
     <div
       {...rest}
-      className={`flex items-center p-2 cursor-pointer transition-colors relative ${
-        selected ? "bg-white border-l-4 border-teal-600" : "hover:bg-gray-100"
+      className={`flex items-center px-3 py-2.5 cursor-pointer transition-colors relative border-b border-gray-50 ${
+        selected
+          ? "bg-teal-50 border-l-[3px] border-l-teal-600"
+          : "hover:bg-gray-50 border-l-[3px] border-l-transparent"
       }`}
       onClick={onClick}
     >
-      <img
-        src={other.avatarUrl || "/images/avatar.png"}
-        alt={other.name}
-        className="w-10 h-12 rounded-full object-cover"
-      />
-      <div className="ml-3 flex-1">
-        <div className="flex justify-between items-center">
-          <span className="font-medium text-sm">{other.name}</span>
+      {/* Avatar */}
+      <div className="relative flex-shrink-0">
+        {other.avatarUrl ? (
+          <img
+            src={other.avatarUrl}
+            alt={other.name}
+            className="w-11 h-11 rounded-full object-cover"
+          />
+        ) : (
+          <div className={`w-11 h-11 rounded-full flex items-center justify-center text-white font-semibold text-base ${colorClass}`}>
+            {other.name.charAt(0).toUpperCase()}
+          </div>
+        )}
+        {other.online && (
+          <span className="absolute bottom-0.5 right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white" />
+        )}
+      </div>
+
+      {/* Content */}
+      <div className="ml-3 flex-1 min-w-0">
+        <div className="flex justify-between items-baseline mb-0.5">
+          <span className={`text-sm truncate pr-2 ${selected || unread ? "font-semibold text-gray-900" : "font-medium text-gray-800"}`}>
+            {other.name}
+          </span>
           {last && (
-            <span className="text-xs text-gray-500">
-              {new Date(last.timestamp).toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
+            <span className={`text-[11px] flex-shrink-0 ${unread ? "text-teal-600 font-medium" : "text-gray-400"}`}>
+              {new Date(last.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
             </span>
           )}
         </div>
         {last && (
-          <div className="flex items-center gap-1 overflow-hidden">
-            {last.sender.id === "1" && (
-              <CheckCheck className={`w-3.5 h-3.5 flex-shrink-0 ${last.status === 'read' ? 'text-blue-500' : 'text-gray-400'}`} />
+          <div className="flex items-center justify-between gap-1">
+            <div className="flex items-center gap-1 min-w-0 flex-1">
+              {last.sender.id === "1" && (
+                <CheckCheck
+                  className={`w-3.5 h-3.5 flex-shrink-0 ${
+                    last.status === "read" ? "text-blue-500" : "text-gray-400"
+                  }`}
+                />
+              )}
+              <p className={`text-xs truncate ${unread ? "text-gray-700 font-medium" : "text-gray-500"}`}>
+                {last.text}
+              </p>
+            </div>
+            {unread > 0 && (
+              <span className="flex-shrink-0 w-5 h-5 rounded-full bg-teal-600 text-white text-[10px] font-semibold flex items-center justify-center">
+                {unread}
+              </span>
             )}
-            <p className="text-xs text-gray-600 truncate">{last.text}</p>
           </div>
         )}
       </div>
-      {other.online && (
-        <span className="w-2 h-2 bg-green-500 rounded-full ml-2" />
-      )}
     </div>
   );
 }

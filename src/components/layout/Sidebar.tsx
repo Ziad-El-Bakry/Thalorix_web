@@ -32,8 +32,7 @@ export default function Sidebar() {
       className="fixed left-0 top-0 h-screen w-64 bg-[#103B40] text-white p-6 hidden lg:flex flex-col z-50"
       style={{
         backgroundColor: "#103B40",
-        //border: "4px solid #6FA5A9",
-        borderRadius: "3px",
+        borderRadius: "0px",
       }}
     >
       {/* Logo */}

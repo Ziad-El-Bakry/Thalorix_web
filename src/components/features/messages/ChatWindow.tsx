@@ -7,11 +7,26 @@ import MessageBubble from "./MessageBubble";
 import MessageInput from "./MessageInput";
 import { X } from "lucide-react";
 
-export default function ChatWindow({ onBack }: { onBack?: () => void }) {
+export default function ChatWindow({ 
+  conversation,
+  onBack 
+}: { 
+  conversation?: Conversation;
+  onBack?: () => void 
+}) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (conversation) {
+      setMessages(conversation.messages || []);
+    } else {
+      setMessages([]);
+    }
+  }, [conversation]);
 
   const handleSend = (content: string, type: "text" | "audio" | "image" | "file" | "pdf" | "zip" = "text", fileName?: string) => {
     if (type === "text" && content.trim() === "") return;
@@ -39,21 +54,42 @@ export default function ChatWindow({ onBack }: { onBack?: () => void }) {
     }
   }, [messages]);
 
-  const otherUser = { id: "2", name: "William", online: true, avatarUrl: "/images/avatar.png" };
+  if (!conversation) {
+    return (
+      <div className="flex-1 flex flex-col h-full bg-[#f0f2f5] items-center justify-center text-gray-500">
+        Select a conversation to start chatting
+      </div>
+    );
+  }
+
+  const otherUser = conversation.participants?.[0] || { id: "1", name: "User", online: true, avatarUrl: "/images/avatar.png" };
 
   return (
     <div className="flex-1 flex flex-col h-full bg-[#f0f2f5] relative">
-      <ChatHeader user={otherUser} onBack={onBack} />
+      <ChatHeader user={otherUser} onBack={onBack} onSearch={setSearchQuery} />
       <div ref={containerRef} className="flex-1 p-4 overflow-y-auto space-y-4">
-        {messages.map((m) => (
-          <MessageBubble 
-            key={m.id} 
-            message={m} 
-            isOwn={m.sender.id === "1"} 
-            onImageClick={(url: string) => setSelectedImage(url)} 
-          />
-        ))}
+        {messages
+          .filter((m) => {
+            if (!searchQuery) return true;
+            if (!m.text) return false;
+            return m.text.toLowerCase().includes(searchQuery.toLowerCase());
+          })
+          .map((m) => (
+            <MessageBubble 
+              key={m.id} 
+              message={m} 
+              isOwn={m.sender.id === "1"} 
+              onImageClick={(url: string) => setSelectedImage(url)} 
+            />
+          ))}
+          
+        {searchQuery && messages.filter(m => m.text?.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
+          <div className="w-full text-center text-gray-500 py-8 text-sm">
+            No messages found matching "{searchQuery}"
+          </div>
+        )}
       </div>
+      
       <MessageInput value={inputValue} onChange={setInputValue} onSend={handleSend} />
 
       {/* Fullscreen Image Modal */}

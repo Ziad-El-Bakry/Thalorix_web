@@ -7,31 +7,27 @@ export default function MessageInput({ value, onChange, onSend }: any) {
   const [showAttachments, setShowAttachments] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
-  
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleAttachmentClick = (type: string) => {
     if (!fileInputRef.current) return;
-    
-    // Reset attributes first
-    fileInputRef.current.removeAttribute('capture');
-    fileInputRef.current.removeAttribute('accept');
-    
-    if (type === 'camera') {
-      fileInputRef.current.setAttribute('accept', 'image/*');
-      fileInputRef.current.setAttribute('capture', 'environment');
-    } else if (type === 'images') {
-      fileInputRef.current.setAttribute('accept', 'image/png, image/jpeg, image/webp, image/gif');
-    } else if (type === 'pdf') {
-      fileInputRef.current.setAttribute('accept', '.pdf,application/pdf');
-    } else if (type === 'zip') {
-      fileInputRef.current.setAttribute('accept', '.zip,application/zip,application/x-zip-compressed');
+    fileInputRef.current.removeAttribute("capture");
+    fileInputRef.current.removeAttribute("accept");
+    if (type === "camera") {
+      fileInputRef.current.setAttribute("accept", "image/*");
+      fileInputRef.current.setAttribute("capture", "environment");
+    } else if (type === "images") {
+      fileInputRef.current.setAttribute("accept", "image/png, image/jpeg, image/webp, image/gif");
+    } else if (type === "pdf") {
+      fileInputRef.current.setAttribute("accept", ".pdf,application/pdf");
+    } else if (type === "zip") {
+      fileInputRef.current.setAttribute("accept", ".zip,application/zip,application/x-zip-compressed");
     } else {
-      fileInputRef.current.setAttribute('accept', '*/*');
+      fileInputRef.current.setAttribute("accept", "*/*");
     }
-    
     fileInputRef.current.click();
     setShowAttachments(false);
   };
@@ -42,66 +38,71 @@ export default function MessageInput({ value, onChange, onSend }: any) {
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
       const chunks: Blob[] = [];
-      
       mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
       mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(chunks, { type: 'audio/webm' });
-        const audioUrl = URL.createObjectURL(audioBlob);
-        onSend(audioUrl, "audio"); // إرسال الصوت كنوع audio
-        stream.getTracks().forEach(track => track.stop());
+        const blob = new Blob(chunks, { type: "audio/webm" });
+        onSend(URL.createObjectURL(blob), "audio");
+        stream.getTracks().forEach((t) => t.stop());
       };
-
       mediaRecorder.start();
       setIsRecording(true);
-      timerRef.current = setInterval(() => setRecordingTime(prev => prev + 1), 1000);
-    } catch (err) {
-      alert("يرجى السماح بالوصول للميكروفون");
+      timerRef.current = setInterval(() => setRecordingTime((p) => p + 1), 1000);
+    } catch {
+      alert("Please allow microphone access");
     }
   };
 
   const stopRecording = () => {
-    if (mediaRecorderRef.current) {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
-      if (timerRef.current) clearInterval(timerRef.current);
-      setRecordingTime(0);
-    }
+    mediaRecorderRef.current?.stop();
+    setIsRecording(false);
+    if (timerRef.current) clearInterval(timerRef.current);
+    setRecordingTime(0);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      let type: any = 'file';
-      if (file.type.startsWith('image/')) type = 'image';
-      else if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) type = 'pdf';
-      else if (file.type === 'application/zip' || file.type === 'application/x-zip-compressed' || file.name.endsWith('.zip')) type = 'zip';
-      
-      onSend(url, type, file.name);
-    }
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    let type: any = "file";
+    if (file.type.startsWith("image/")) type = "image";
+    else if (file.type === "application/pdf" || file.name.endsWith(".pdf")) type = "pdf";
+    else if (file.type.includes("zip") || file.name.endsWith(".zip")) type = "zip";
+    onSend(url, type, file.name);
+    e.target.value = "";
   };
 
+  const fmtTime = (s: number) =>
+    `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+
   return (
-    <div className="flex items-center px-4 py-3 bg-[#004d40] sticky bottom-0 z-10 w-full border-t border-teal-900/50 relative">
+    <div className="flex items-end px-3 py-2.5 bg-[#00695c] sticky bottom-0 z-10 w-full border-t border-teal-900/40 gap-2 relative">
+
+      {/* Attachment Menu */}
       {showAttachments && (
-        <div className="absolute bottom-[110%] left-6 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden w-56 animate-in fade-in zoom-in-95 slide-in-from-bottom-5 duration-200">
-          <AttachmentOption icon={<Camera className="w-5 h-5 text-indigo-500" />} label="Camera" onClick={() => handleAttachmentClick('camera')} />
-          <AttachmentOption icon={<ImageIcon className="w-5 h-5 text-blue-500" />} label="Photos & Videos" onClick={() => handleAttachmentClick('images')} />
-          <AttachmentOption icon={<FileText className="w-5 h-5 text-rose-500" />} label="PDF Document" onClick={() => handleAttachmentClick('pdf')} />
-          <AttachmentOption icon={<Archive className="w-5 h-5 text-amber-500" />} label="Zip Archive" onClick={() => handleAttachmentClick('zip')} hideBorder={true} />
+        <div className="absolute bottom-[calc(100%+6px)] left-3 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden w-52 animate-in fade-in zoom-in-95 slide-in-from-bottom-3 duration-150">
+          <AttachmentOption icon={<Camera className="w-4.5 h-4.5 text-indigo-500" />} label="Camera" onClick={() => handleAttachmentClick("camera")} />
+          <AttachmentOption icon={<ImageIcon className="w-4.5 h-4.5 text-blue-500" />} label="Photos & Videos" onClick={() => handleAttachmentClick("images")} />
+          <AttachmentOption icon={<FileText className="w-4.5 h-4.5 text-rose-500" />} label="PDF Document" onClick={() => handleAttachmentClick("pdf")} />
+          <AttachmentOption icon={<Archive className="w-4.5 h-4.5 text-amber-500" />} label="Zip Archive" onClick={() => handleAttachmentClick("zip")} hideBorder />
         </div>
       )}
 
-      <div className={`flex-1 flex items-center rounded-full px-4 py-2 mr-3 bg-[#00695c] border border-[#00796b]`}>
+      {/* Input Area */}
+      <div className="flex-1 flex items-center rounded-2xl bg-[#00796b] border border-teal-500/30 px-3 py-2 gap-2 min-h-[44px]">
         {!isRecording ? (
           <>
-            <button onClick={() => setShowAttachments(!showAttachments)} className="text-gray-300 hover:text-white mr-2">
-              <Paperclip className={`w-5 h-5 transition-transform ${showAttachments ? 'rotate-45' : 'rotate-[135deg]'}`} />
+            <button
+              onClick={() => setShowAttachments(!showAttachments)}
+              className="text-white/60 hover:text-white transition-colors flex-shrink-0"
+            >
+              <Paperclip
+                className={`w-5 h-5 transition-transform duration-200 ${showAttachments ? "rotate-45" : "rotate-[135deg]"}`}
+              />
             </button>
             <input
               type="text"
-              className="flex-1 bg-transparent text-white placeholder-gray-400 focus:outline-none text-sm"
-              placeholder="Your message"
+              className="flex-1 bg-transparent text-white placeholder-white/40 focus:outline-none text-sm"
+              placeholder="Your message..."
               value={value}
               onChange={(e) => onChange(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && value.trim() && onSend(value, "text")}
@@ -109,38 +110,68 @@ export default function MessageInput({ value, onChange, onSend }: any) {
           </>
         ) : (
           <div className="flex-1 flex items-center gap-3">
-            <Mic className="w-5 h-5 text-red-500 animate-pulse" />
-            <span className="text-sm font-medium text-white">
-              {Math.floor(recordingTime/60)}:{(recordingTime%60).toString().padStart(2,'0')}
-            </span>
+            <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse" />
+            <span className="text-sm font-medium text-white tabular-nums">{fmtTime(recordingTime)}</span>
+            <span className="text-xs text-white/50">Recording...</span>
           </div>
         )}
       </div>
 
-      <div className="flex items-center gap-2">
+      {/* Action Buttons */}
+      <div className="flex items-center gap-1.5 flex-shrink-0">
         {isRecording ? (
-          <button onClick={stopRecording} className="p-2 bg-red-500 text-white rounded-full"><Square size={18} fill="white" /></button>
+          <button
+            onClick={stopRecording}
+            className="w-10 h-10 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-colors shadow-sm"
+          >
+            <Square className="w-4 h-4 fill-white" />
+          </button>
         ) : (
-          <button onClick={startRecording} className="p-2 text-gray-300 hover:text-white"><Mic className="w-5 h-5" /></button>
-        )}
-        {!isRecording && (
-          <button onClick={() => onSend(value, "text")} disabled={!value.trim()} className="p-2 text-white disabled:opacity-30"><Send className="w-5 h-5" /></button>
+          <>
+            {!value.trim() && (
+              <button
+                onClick={startRecording}
+                className="w-10 h-10 text-white/70 hover:text-white hover:bg-white/10 rounded-full flex items-center justify-center transition-colors"
+              >
+                <Mic className="w-5 h-5" />
+              </button>
+            )}
+            {value.trim() && (
+              <button
+                onClick={() => onSend(value, "text")}
+                className="w-10 h-10 bg-white text-teal-700 hover:bg-gray-100 rounded-full flex items-center justify-center transition-colors shadow-sm"
+              >
+                <Send className="w-4.5 h-4.5" />
+              </button>
+            )}
+          </>
         )}
       </div>
+
       <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileChange} />
     </div>
   );
 }
 
-function AttachmentOption({ icon, label, onClick, hideBorder }: any) {
+function AttachmentOption({
+  icon,
+  label,
+  onClick,
+  hideBorder,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+  hideBorder?: boolean;
+}) {
   return (
-    <button 
-      onClick={onClick} 
-      className={`flex items-center gap-4 w-full px-5 py-4 text-[15px] text-gray-700 hover:bg-gray-50/80 active:bg-gray-100 transition-colors ${!hideBorder ? 'border-b border-gray-50' : ''}`}
+    <button
+      onClick={onClick}
+      className={`flex items-center gap-3 w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors ${
+        !hideBorder ? "border-b border-gray-50" : ""
+      }`}
     >
-      <div className="bg-gray-50 p-2 rounded-full border border-gray-100/50 shadow-sm">
-        {icon}
-      </div>
+      <div className="bg-gray-50 p-2 rounded-full border border-gray-100 shrink-0">{icon}</div>
       <span className="font-medium">{label}</span>
     </button>
   );
