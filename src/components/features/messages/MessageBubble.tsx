@@ -129,9 +129,35 @@ export default function MessageBubble({ message, isOwn = false, onImageClick, on
       return <CustomAudioPlayer src={message.audioUrl} isOwn={isOwn} />;
     }
 
+    const renderTextWithLinks = (text: string) => {
+      if (!text) return null;
+      // Basic regex for URLs
+      const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/g;
+      const parts = text.split(urlRegex);
+      
+      return parts.map((part, i) => {
+        if (part.match(urlRegex)) {
+          const href = part.startsWith('http') ? part : `https://${part}`;
+          return (
+            <a
+              key={i}
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`underline hover:opacity-80 transition-opacity break-all font-medium ${isOwn ? (message.status === "failed" ? "text-red-700" : "text-white") : "text-teal-600"}`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {part}
+            </a>
+          );
+        }
+        return <span key={i}>{part}</span>;
+      });
+    };
+
     return (
-      <p className="text-sm leading-relaxed pr-14 pb-1" style={{ wordBreak: "break-word" }}>
-        {message.text}
+      <p className="text-sm leading-relaxed pr-14 pb-1" style={{ wordBreak: "break-word", whiteSpace: "pre-wrap" }}>
+        {renderTextWithLinks(message.text)}
       </p>
     );
   };
