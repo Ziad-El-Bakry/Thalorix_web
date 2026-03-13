@@ -18,6 +18,7 @@ export default function ChatWindow({
   const [inputValue, setInputValue] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -42,10 +43,12 @@ export default function ChatWindow({
       fileName: fileName,
       timestamp: new Date().toISOString(),
       status: "sent",
+      replyToMessage: replyingTo || undefined,
     };
 
     setMessages((prev) => [...prev, newMsg]);
     setInputValue("");
+    setReplyingTo(null);
   };
 
   useEffect(() => {
@@ -74,14 +77,42 @@ export default function ChatWindow({
             if (!m.text) return false;
             return m.text.toLowerCase().includes(searchQuery.toLowerCase());
           })
-          .map((m) => (
-            <MessageBubble 
-              key={m.id} 
-              message={m} 
-              isOwn={m.sender.id === "1"} 
-              onImageClick={(url: string) => setSelectedImage(url)} 
-            />
-          ))}
+          .map((m, index, arr) => {
+            const currentMessageDate = new Date(m.timestamp).toDateString();
+            const previousMessageDate = index > 0 ? new Date(arr[index - 1].timestamp).toDateString() : null;
+            const showDate = currentMessageDate !== previousMessageDate;
+
+            let dateLabel = currentMessageDate;
+            const today = new Date();
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+
+            if (currentMessageDate === today.toDateString()) {
+              dateLabel = "Today";
+            } else if (currentMessageDate === yesterday.toDateString()) {
+              dateLabel = "Yesterday";
+            } else {
+              dateLabel = new Date(m.timestamp).toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' });
+            }
+
+            return (
+              <React.Fragment key={m.id}>
+                {showDate && (
+                  <div className="flex justify-center my-4">
+                    <span className="bg-white/90 text-gray-500 text-xs font-medium px-4 py-1.5 rounded-full shadow-sm tracking-wide">
+                      {dateLabel}
+                    </span>
+                  </div>
+                )}
+                <MessageBubble 
+                  message={m} 
+                  isOwn={m.sender.id === "1"} 
+                  onImageClick={(url: string) => setSelectedImage(url)} 
+                  onReply={(msg: Message) => setReplyingTo(msg)}
+                />
+              </React.Fragment>
+            );
+          })}
           
         {searchQuery && messages.filter(m => m.text?.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
           <div className="w-full text-center text-gray-500 py-8 text-sm">
@@ -90,7 +121,13 @@ export default function ChatWindow({
         )}
       </div>
       
-      <MessageInput value={inputValue} onChange={setInputValue} onSend={handleSend} />
+      <MessageInput 
+        value={inputValue} 
+        onChange={setInputValue} 
+        onSend={handleSend} 
+        replyingTo={replyingTo}
+        onCancelReply={() => setReplyingTo(null)}
+      />
 
       {/* Fullscreen Image Modal */}
       {selectedImage && (

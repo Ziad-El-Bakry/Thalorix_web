@@ -2,6 +2,7 @@
 
 import { useState, useRef, KeyboardEvent } from "react";
 import { useSearchParams } from "next/navigation";
+import { motion } from "framer-motion";
 
 export default function VerifyEmailForm() {
     const searchParams = useSearchParams();
@@ -53,9 +54,28 @@ export default function VerifyEmailForm() {
         }
     };
 
+    const containerVariants = {
+        hidden: { opacity: 0, y: 20 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: { duration: 0.5, staggerChildren: 0.1 },
+        },
+    };
+
+    const itemVariants = {
+        hidden: { opacity: 0, y: 10 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+    };
+
     return (
-        <div className="space-y-12 flex flex-col items-center w-full">
-            <div className="text-center space-y-6">
+        <motion.div 
+            initial="hidden"
+            animate="visible"
+            variants={containerVariants}
+            className="space-y-12 flex flex-col items-center w-full"
+        >
+            <motion.div variants={itemVariants} className="text-center space-y-6">
                 <h2 className="text-[32px] font-bold text-[#103B40] tracking-tight">
                     Check your email
                 </h2>
@@ -66,11 +86,12 @@ export default function VerifyEmailForm() {
                         <span className="font-semibold text-[#103B40]">{email}</span>.
                     </p>
                 </div>
-            </div>
+            </motion.div>
 
             <div className="flex justify-center gap-3 md:gap-4 mt-2">
                 {otp.map((digit, index) => (
-                    <input
+                    <motion.input
+                        variants={itemVariants}
                         key={index}
                         ref={inputRefs[index]}
                         type="text"
@@ -85,12 +106,13 @@ export default function VerifyEmailForm() {
                 ))}
             </div>
 
-            <button
+            <motion.button
+                variants={itemVariants}
                 type="button"
                 className="text-base font-semibold text-[#103B40] hover:text-[#0c2f33] transition-colors mt-4"
             >
                 Resend code
-            </button>
-        </div>
+            </motion.button>
+        </motion.div>
     );
 }

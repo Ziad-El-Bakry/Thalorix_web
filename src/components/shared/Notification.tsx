@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bell, CheckCircle, Info, ShieldX,CircleCheckBig,CircleX,MessageCircle } from "lucide-react";
+import { Bell, CheckCircle, Info, ShieldX, CircleX, MessageCircle } from "lucide-react";
 import { useNotifications } from "./useNotifications";
 
-export default function Notifications() {
+export default function Notifications({ alignClass = "-right-[90px] md:right-0 w-[310px] md:w-80" }: { alignClass?: string } = {}) {
     const [isOpen, setIsOpen] = useState(false);
     const { hasUnread, markNotificationsRead } = useNotifications();
 
@@ -39,12 +39,12 @@ export default function Notifications() {
                     <>
                         {/* Overlay to close when clicking outside */}
                         <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
-                        
+
                         <motion.div
                             initial={{ opacity: 0, y: 10, scale: 0.95 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                            className="absolute right-0 top-12 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden"
+                            className={`absolute ${alignClass} top-12 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 z-[100] overflow-hidden`}
                         >
                             <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
                                 <h3 className="font-semibold text-[#103B40]">Notifications</h3>

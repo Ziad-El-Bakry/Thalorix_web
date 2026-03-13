@@ -53,6 +53,8 @@ export interface Message {
 
   replyTo?: string;
 
+  replyToMessage?: Message;
+
   reactions?: {
     emoji: string;
     users: string[];
@@ -89,6 +91,7 @@ export interface MessageBubbleProps {
   message: Message;
   isOwn?: boolean;
   onImageClick?: (url: string) => void;
+  onReply?: (message: Message) => void;
 }
 
 export interface ChatHeaderProps {
@@ -97,12 +100,12 @@ export interface ChatHeaderProps {
 
 export interface MessageInputProps {
   value: string;
-
   onChange: (val: string) => void;
-
   onSend: (
     content: string,
     type?: "text" | "audio" | "image" | "file" | "pdf" | "zip",
     fileName?: string
   ) => void;
+  replyingTo?: Message | null;
+  onCancelReply?: () => void;
 }

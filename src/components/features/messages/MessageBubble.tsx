@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
-import { CheckCheck, FileText, Archive, Download, Play, Pause, Volume2, MoreVertical } from "lucide-react";
+import { motion, useAnimation } from "framer-motion";
+import { CheckCheck, FileText, Archive, Download, Play, Pause, Volume2, Reply } from "lucide-react";
+import MessageContextMenu from "./MessageContextMenu";
 
-export default function MessageBubble({ message, isOwn = false, onImageClick }: any) {
+export default function MessageBubble({ message, isOwn = false, onImageClick, onReply }: any) {
   const handleFileDownload = () => {
     if (!message.fileUrl) return;
     const a = document.createElement("a");
@@ -11,6 +13,60 @@ export default function MessageBubble({ message, isOwn = false, onImageClick }: 
     a.click();
     document.body.removeChild(a);
   };
+
+  // Context Menu State
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
+  const touchTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent default browser context menu
+    setContextMenu({ x: e.clientX, y: e.clientY });
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    // Prevent starting a long press if already open
+    if (contextMenu) return;
+      
+    // Save touch coordinates
+    const touch = e.touches[0];
+    const x = touch.clientX;
+    const y = touch.clientY;
+
+    touchTimerRef.current = setTimeout(() => {
+      setContextMenu({ x, y });
+    }, 500); // 500ms long press threshold
+  };
+
+  const handleTouchEndOrMove = () => {
+    if (touchTimerRef.current) {
+      clearTimeout(touchTimerRef.current);
+      touchTimerRef.current = null;
+    }
+  };
+
+  const controls = useAnimation();
+  const [showSwipeIcon, setShowSwipeIcon] = useState(false);
+
+  const handleDragEnd = (event: any, info: any) => {
+    // If swiped right past the 50px threshold
+    if (info.offset.x > 50) {
+      if (onReply) onReply(message);
+    }
+    // Snap back to original position
+    controls.start({ x: 0, transition: { type: "spring", stiffness: 300, damping: 25 } });
+    setShowSwipeIcon(false);
+  };
+
+  const handleDrag = (event: any, info: any) => {
+    setShowSwipeIcon(info.offset.x > 30);
+  };
+
+  const handleMenuReply = () => {
+    if (onReply) onReply(message);
+  };
+
+  const onSelect = () => console.log("Select message:", message.id);
+  const onDelete = () => console.log("Delete message:", message.id);
 
   const renderContent = () => {
     if (message.imageUrl) {
@@ -81,24 +137,64 @@ export default function MessageBubble({ message, isOwn = false, onImageClick }: 
   };
 
   return (
-    <div className={`flex ${isOwn ? "justify-end" : "justify-start"} mb-2 gap-2 animate-in fade-in slide-in-from-bottom-1`}>
+    <>
+      <div 
+        className={`flex ${isOwn ? "justify-end" : "justify-start"} mb-2 gap-2 animate-in fade-in slide-in-from-bottom-1 relative overflow-hidden`}
+      >
+      {/* Swipe Reply Icon Indicator (renders behind the bubble) */}
+      <div 
+        className={`absolute inset-y-0 left-0 flex items-center pl-4 transition-opacity duration-200 ${showSwipeIcon && !isOwn ? "opacity-100" : "opacity-0"}`}
+        style={{ zIndex: 0 }}
+      >
+        <div className="w-8 h-8 rounded-full bg-black/10 flex items-center justify-center">
+          <Reply className="w-4 h-4 text-gray-500" />
+        </div>
+      </div>
+      
       {!isOwn && (
         <img
           src={message.sender?.avatarUrl || "/images/avatar.png"}
           alt={message.sender?.name || "User"}
-          className="w-7 h-7 rounded-full object-cover flex-shrink-0 mt-auto mb-1 ring-1 ring-black/5"
+          className="w-7 h-7 rounded-full object-cover flex-shrink-0 mt-auto mb-1 ring-1 ring-black/5 z-10"
         />
       )}
 
-      <div className="flex flex-col max-w-[80%] sm:max-w-[340px] md:max-w-[420px]">
+      <motion.div 
+        drag="x"
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.2}
+        onDrag={handleDrag}
+        onDragEnd={handleDragEnd}
+        animate={controls}
+        className="flex flex-col max-w-[80%] sm:max-w-[340px] md:max-w-[420px] z-10"
+      >
         <div
-          className={`w-fit min-w-[100px] p-3 pb-5 relative shadow-sm ${isOwn
+          onContextMenu={handleContextMenu}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEndOrMove}
+          onTouchMove={handleTouchEndOrMove}
+          className={`w-fit min-w-[100px] p-3 pb-5 relative shadow-sm cursor-pointer hover:brightness-[0.98] transition-all ${isOwn
               ? message.status === "failed"
                 ? "bg-red-50 text-black rounded-2xl rounded-tr-sm"
                 : "bg-[#005c4b] text-white rounded-2xl rounded-tr-sm"
               : "bg-white text-gray-800 rounded-2xl rounded-tl-sm"
             }`}
         >
+          {/* Quoted Reply Block */}
+          {message.replyToMessage && (
+            <div className={`mb-2 p-2 rounded-lg border-l-4 text-xs ${isOwn ? 'bg-black/10 border-white/50' : 'bg-gray-100 border-teal-500'}`}>
+              <span className={`font-semibold block mb-0.5 ${isOwn ? 'text-teal-100' : 'text-teal-700'}`}>
+                {message.replyToMessage.sender?.id === "1" ? "You" : message.replyToMessage.sender?.name}
+              </span>
+              <p className={`truncate opacity-90 ${isOwn ? 'text-white' : 'text-gray-600'}`}>
+                {message.replyToMessage.text || 
+                 (message.replyToMessage.imageUrl ? "Photo" : 
+                 message.replyToMessage.fileUrl ? "Document" : 
+                 message.replyToMessage.audioUrl ? "Voice message" : "Message")}
+              </p>
+            </div>
+          )}
+
           {renderContent()}
 
           <div className="flex items-center gap-1 absolute bottom-1.5 right-2.5">
@@ -129,7 +225,7 @@ export default function MessageBubble({ message, isOwn = false, onImageClick }: 
             </button>
           </div>
         )}
-      </div>
+      </motion.div>
 
       {isOwn && (
         <img
@@ -139,6 +235,20 @@ export default function MessageBubble({ message, isOwn = false, onImageClick }: 
         />
       )}
     </div>
+    
+      {/* Context Menu Portal render */}
+      {contextMenu && (
+        <MessageContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          onClose={() => setContextMenu(null)}
+          onReply={handleMenuReply}
+          onSelect={onSelect}
+          onDelete={onDelete}
+          isOwn={isOwn}
+        />
+      )}
+    </>
   );
 }
 

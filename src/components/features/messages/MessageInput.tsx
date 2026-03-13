@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { Paperclip, Mic, Send, Image as ImageIcon, FileText, Archive, Camera, Square } from "lucide-react";
+import { Paperclip, Mic, Send, Image as ImageIcon, FileText, Archive, Camera, Square, X } from "lucide-react";
 
-export default function MessageInput({ value, onChange, onSend }: any) {
+export default function MessageInput({ value, onChange, onSend, replyingTo, onCancelReply }: any) {
   const [showAttachments, setShowAttachments] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
@@ -76,6 +76,29 @@ export default function MessageInput({ value, onChange, onSend }: any) {
 
   return (
     <div className="flex items-end px-3 py-2.5 bg-[#00695c] sticky bottom-0 z-10 w-full border-t border-teal-900/40 gap-2 relative">
+
+      {/* Replying To Preview */}
+      {replyingTo && (
+        <div className="absolute bottom-full left-0 right-0 bg-[#00695c] px-3 pb-2 pt-1 border-t border-teal-500/30 animate-in slide-in-from-bottom-2 fade-in">
+          <div className="bg-[#00796b] rounded-xl p-2.5 flex items-center gap-3 border-l-4 border-l-teal-300">
+            <div className="flex-1 min-w-0">
+              <span className="text-teal-200 text-xs font-semibold">Replying to {replyingTo.sender?.name || "User"}</span>
+              <p className="text-white text-sm truncate opacity-90 mt-0.5">
+                {replyingTo.text || 
+                 (replyingTo.imageUrl ? "Photo" : 
+                 replyingTo.fileUrl ? "Document" : 
+                 replyingTo.audioUrl ? "Voice message" : "Message")}
+              </p>
+            </div>
+            <button 
+              onClick={onCancelReply}
+              className="p-1.5 hover:bg-white/10 rounded-full transition-colors text-white/70 hover:text-white shrink-0"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Attachment Menu */}
       {showAttachments && (

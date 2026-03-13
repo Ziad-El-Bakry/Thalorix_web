@@ -83,7 +83,7 @@ export default function MobileNavbar() {
         <div className="flex items-center gap-2">
           {isMessagesPage && (
             <div className="text-white [&_button]:text-white [&_button]:hover:text-gray-200">
-              <Notifications />
+              <Notifications alignClass="-right-2 md:right-0 w-[300px] sm:w-80" />
             </div>
           )}
           <button

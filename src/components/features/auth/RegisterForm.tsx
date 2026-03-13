@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 
 export default function RegisterForm() {
     const [email, setEmail] = useState("");
@@ -21,15 +22,34 @@ export default function RegisterForm() {
         // proceed with registration
     };
 
+    const containerVariants = {
+        hidden: { opacity: 0, y: 20 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: { duration: 0.5, staggerChildren: 0.1 },
+        },
+    };
+
+    const itemVariants = {
+        hidden: { opacity: 0, y: 10 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+    };
+
     return (
-        <div className="space-y-6">
-            <h2 className="text-2xl font-semibold text-[#103B40] text-center">
+        <motion.div 
+            initial="hidden"
+            animate="visible"
+            variants={containerVariants}
+            className="space-y-6"
+        >
+            <motion.h2 variants={itemVariants} className="text-2xl font-semibold text-[#103B40] text-center">
                 Sign Up
-            </h2>
+            </motion.h2>
 
             <form onSubmit={handleSubmit} className="space-y-5">
                 {/* Email */}
-                <div className="space-y-1.5">
+                <motion.div variants={itemVariants} className="space-y-1.5">
                     <label className="block text-xs font-semibold text-gray-700 tracking-wide">
                         Email
                     </label>
@@ -43,10 +63,10 @@ export default function RegisterForm() {
                         title="Enter a valid email address (e.g. user@example.com)"
                         className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-300 transition"
                     />
-                </div>
+                </motion.div>
 
                 {/* Password */}
-                <div className="space-y-1.5">
+                <motion.div variants={itemVariants} className="space-y-1.5">
                     <label className="block text-xs font-semibold text-gray-700 tracking-wide">
                         Password
                     </label>
@@ -79,10 +99,10 @@ export default function RegisterForm() {
                             )}
                         </button>
                     </div>
-                </div>
+                </motion.div>
 
                 {/* Confirm Password */}
-                <div className="space-y-1.5">
+                <motion.div variants={itemVariants} className="space-y-1.5">
                     <label className="block text-xs font-semibold text-gray-700 tracking-wide">
                         Confirm Password
                     </label>
@@ -116,10 +136,10 @@ export default function RegisterForm() {
                         </button>
                     </div>
 
-                </div>
+                </motion.div>
 
                 {/* Terms */}
-                <p className="text-xs text-gray-600">
+                <motion.p variants={itemVariants} className="text-xs text-gray-600">
                     By continuing, you agree to our{" "}
                     <Link href="/terms" className="text-[#103B40] font-medium underline">
                         Terms
@@ -129,23 +149,24 @@ export default function RegisterForm() {
                         Privacy Policy
                     </Link>
                     .
-                </p>
+                </motion.p>
 
                 {/* Error */}
                 {error && (
-                    <p className="text-sm text-red-600 font-medium">{error}</p>
+                    <motion.p variants={itemVariants} className="text-sm text-red-600 font-medium">{error}</motion.p>
                 )}
 
                 {/* Register */}
-                <button
+                <motion.button
+                    variants={itemVariants}
                     type="submit"
                     className="w-full bg-[#103B40] hover:bg-[#0c2f33] text-white font-bold text-sm tracking-wider py-3 rounded-lg transition-colors cursor-pointer"
                 >
                     Register
-                </button>
+                </motion.button>
 
                 {/* Sign In link */}
-                <p className="text-center text-sm text-gray-500">
+                <motion.p variants={itemVariants} className="text-center text-sm text-gray-500">
                     Already have an account?{" "}
                     <Link
                         href="/login"
@@ -153,8 +174,8 @@ export default function RegisterForm() {
                     >
                         Sign In
                     </Link>
-                </p>
+                </motion.p>
             </form>
-        </div>
+        </motion.div>
     );
 }

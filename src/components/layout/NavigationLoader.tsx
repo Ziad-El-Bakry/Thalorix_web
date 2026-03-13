@@ -12,7 +12,7 @@ function NavigationEvents({ setIsLoading }: { setIsLoading: (loading: boolean) =
     setIsLoading(true);
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 1000); // 1000ms delay
+    }, 500); // 1000ms delay
 
     return () => clearTimeout(timer);
   }, [pathname, searchParams, setIsLoading]);
