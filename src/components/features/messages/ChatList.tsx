@@ -12,7 +12,7 @@ const dummyUser: User = {
   online: true,
 };
 
-const dummyConversations: Conversation[] = Array.from({ length: 8}).map(
+const dummyConversations: Conversation[] = Array.from({ length: 12}).map(
   (_, i) => ({
     id: String(i + 1),
     participants: [
@@ -20,14 +20,14 @@ const dummyConversations: Conversation[] = Array.from({ length: 8}).map(
         id: String(i + 2),
         name: ["Omar", "Jhon", "Mahdy", "Tony", "Sara", "Emy", "Gemy", "Ghaly", "Ziad", "Ahmed", "Mohamed", "Ali"][i],
         avatarUrl: `/images/avatar.png`,
-        online: i % 2 === 0,
+        online: i>=0 && i<=3,
       },
     ],
     messages: [],
     lastMessage: {
       id: "lm" + i,
       sender: dummyUser,
-      text: "Hey, I think there's a mistake on my...",
+      text: "Hey, I think there's a mistake on my Code...",
       timestamp: new Date().toISOString(),
       status: "read",
     },
