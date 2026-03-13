@@ -112,11 +112,11 @@ export function AuthLayout({ children, variant = "default" }: AuthLayoutProps) {
                             <motion.div 
                                 initial={{ scale: 0.5, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
-                                transition={{ duration: 0.5, delay: 0.2 }}
-                                className="w-96 h-96 relative"
+                                transition={{ duration: 0.7, delay: 0.8 }}
+                                className="w-90 h-90 relative"
                             >
                                 <Image
-                                    src="/images/Thalorix.png"
+                                    src="/images/thalorix.png"
                                     alt="Thalorix Logo"
                                     fill
                                     className="object-contain drop-shadow-[0_0_15px_rgba(45,212,191,0.5)]"
