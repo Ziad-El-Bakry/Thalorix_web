@@ -92,13 +92,12 @@ export default function MessageBubble({ message, isOwn = false, onImageClick }: 
 
       <div className="flex flex-col max-w-[80%] sm:max-w-[340px] md:max-w-[420px]">
         <div
-          className={`w-fit min-w-[100px] p-3 pb-5 relative shadow-sm ${
-            isOwn
+          className={`w-fit min-w-[100px] p-3 pb-5 relative shadow-sm ${isOwn
               ? message.status === "failed"
                 ? "bg-red-50 text-black rounded-2xl rounded-tr-sm"
                 : "bg-[#005c4b] text-white rounded-2xl rounded-tr-sm"
               : "bg-white text-gray-800 rounded-2xl rounded-tl-sm"
-          }`}
+            }`}
         >
           {renderContent()}
 
@@ -125,7 +124,7 @@ export default function MessageBubble({ message, isOwn = false, onImageClick }: 
           <div className="flex items-center gap-1 justify-end mt-1 text-[11px] font-medium">
             <span className="text-red-500">Failed to send</span>
             <button className="flex items-center gap-1 text-teal-700 hover:text-teal-900 transition-colors ml-1">
-              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /></svg>
               Retry
             </button>
           </div>
@@ -182,9 +181,8 @@ function CustomAudioPlayer({ src, isOwn }: { src: string; isOwn?: boolean }) {
       <audio ref={audioRef} src={src} preload="metadata" />
       <button
         onClick={toggle}
-        className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-colors ${
-          isOwn ? "bg-white/20 hover:bg-white/30 text-white" : "bg-teal-600 hover:bg-teal-700 text-white"
-        }`}
+        className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-colors ${isOwn ? "bg-white/20 hover:bg-white/30 text-white" : "bg-teal-600 hover:bg-teal-700 text-white"
+          }`}
       >
         {isPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current ml-0.5" />}
       </button>

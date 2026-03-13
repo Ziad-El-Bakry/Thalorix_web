@@ -14,6 +14,9 @@ import {
   Menu,
   X,
 } from "lucide-react";
+import Notifications from "@/components/shared/Notification";
+import { useNotifications } from "@/components/shared/useNotifications";
+import { useChatState } from "@/components/features/messages/useChatState";
 
 const NAV = [
   { label: "Home", href: "/dashboard", icon: Home },
@@ -27,6 +30,13 @@ const NAV = [
 export default function MobileNavbar() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
+  const isMessagesPage = pathname?.includes("/messages");
+  const { hasUnreadMessages, markMessagesRead } = useNotifications();
+  const { isChatOpen } = useChatState();
+
+  if (isMessagesPage && isChatOpen) {
+    return null;
+  }
 
   return (
     <div className="lg:hidden">
@@ -70,12 +80,19 @@ export default function MobileNavbar() {
           ))}
         </motion.h1>
 
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="text-white hover:bg-white/10 p-2 rounded-md transition-colors"
-        >
-          {isOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
+        <div className="flex items-center gap-2">
+          {isMessagesPage && (
+            <div className="text-white [&_button]:text-white [&_button]:hover:text-gray-200">
+              <Notifications />
+            </div>
+          )}
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="text-white hover:bg-white/10 p-2 rounded-md transition-colors"
+          >
+            {isOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Menu Dropdown */}
@@ -96,7 +113,12 @@ export default function MobileNavbar() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    onClick={() => setIsOpen(false)}
+                    onClick={() => {
+                      setIsOpen(false);
+                      if (item.label === "Message") {
+                        markMessagesRead();
+                      }
+                    }}
                   >
                     <motion.div
                       whileTap={{ scale: 0.98 }}
@@ -108,6 +130,9 @@ export default function MobileNavbar() {
                     >
                       <Icon size={20} className={isActive ? "text-white" : "text-[#6FA5A9]"} />
                       {item.label}
+                      {item.label === "Message" && hasUnreadMessages && (
+                        <span className="ml-auto w-2 h-2 bg-red-500 rounded-full border border-transparent shadow-[0_0_8px_rgba(239,68,68,0.8)]"></span>
+                      )}
                     </motion.div>
                   </Link>
                 );

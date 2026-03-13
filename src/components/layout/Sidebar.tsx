@@ -11,6 +11,7 @@ import {
   Store,
   User,
 } from "lucide-react";
+import { useNotifications } from "@/components/shared/useNotifications";
 
 const NAV = [
   { label: "Home", href: "/dashboard", icon: Home },
@@ -23,6 +24,7 @@ const NAV = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const { hasUnreadMessages, markMessagesRead } = useNotifications();
 
   return (
     <motion.aside
@@ -88,7 +90,14 @@ export default function Sidebar() {
 
             return (
               <li key={item.href}>
-                <Link href={item.href}>
+                <Link 
+                  href={item.href}
+                  onClick={() => {
+                    if (item.label === "Message") {
+                      markMessagesRead();
+                    }
+                  }}
+                >
                   <motion.div
                     whileHover={{ x: 4 }}
                     transition={{ type: "spring", stiffness: 300 }}
@@ -100,6 +109,9 @@ export default function Sidebar() {
                   >
                     <Icon size={18} />
                     {item.label}
+                    {item.label === "Message" && hasUnreadMessages && (
+                      <span className="ml-auto w-2 h-2 bg-red-500 rounded-full border border-transparent shadow-[0_0_8px_rgba(239,68,68,0.8)]"></span>
+                    )}
                   </motion.div>
                 </Link>
               </li>

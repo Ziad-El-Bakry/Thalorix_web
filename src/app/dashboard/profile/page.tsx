@@ -3,10 +3,11 @@
 import React, { useState, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Bell, Code, Camera, Copy, Lock, Trash2, CheckCircle, AlertCircle, Eye, EyeOff, ArrowLeft } from "lucide-react";
+import { Bell, Code, Camera, Copy, Lock, Trash2, CheckCircle, AlertCircle, Eye, EyeOff, ArrowLeft, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import Notifications from "@/components/shared/Notification";
 
 type Tab = "personal" | "password";
 
@@ -15,6 +16,8 @@ export default function ProfilePage() {
     const [showToast, setShowToast] = useState(false);
     const [copied, setCopied] = useState(false);
     const [previewImage, setPreviewImage] = useState("/images/avatar.png");
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const userId = "user001_1sunx...";
@@ -49,6 +52,35 @@ export default function ProfilePage() {
 
     return (
         <div className="w-full flex flex-col gap-6 relative">
+            {/* Image Preview Modal */}
+            <AnimatePresence>
+                {isPreviewModalOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[300] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm"
+                        onClick={() => setIsPreviewModalOpen(false)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="relative max-w-4xl w-full flex items-center justify-center p-6"
+                            onClick={(e: any) => e.stopPropagation()}
+                        >
+                            <img src={previewImage} alt="Preview" className="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl" />
+                            <button
+                                onClick={() => setIsPreviewModalOpen(false)}
+                                className="absolute top-0 right-0 md:-top-6 md:-right-6 bg-white/10 hover:bg-white/25 p-2 rounded-full text-white backdrop-blur-md transition-colors border border-white/20 z-10"
+                            >
+                                <X size={24} />
+                            </button>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             {/* Toast Notification - Floating at top of page */}
             <AnimatePresence>
                 {showToast && (
@@ -78,14 +110,7 @@ export default function ProfilePage() {
                 className="flex justify-end items-center px-4"
             >
                 <div className="flex gap-4">
-                    <motion.button
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        className="relative p-2 text-gray-600 hover:text-gray-900 transition-colors"
-                    >
-                        <Bell size={24} />
-                        <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
-                    </motion.button>
+                    <Notifications />
                     <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                         <Button variant="primary" className="rounded-full px-5 py-2 h-10 gap-2 text-sm shadow-md">
                             <Code size={16} />
@@ -95,6 +120,7 @@ export default function ProfilePage() {
                 </div>
             </motion.div>
 
+            {/* Main Profile Card Content */}
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -111,32 +137,74 @@ export default function ProfilePage() {
                     >
                         <h2 className="text-[26px] font-semibold mb-8 text-[#103B40] w-full text-center">User Profile</h2>
 
-                        <div className="relative mb-3 group">
-                            <input
-                                type="file"
-                                ref={fileInputRef}
-                                onChange={handleFileChange}
-                                accept="image/*"
-                                className="hidden"
-                            />
-                            <motion.div 
-                                onClick={triggerUpload}
-                                whileHover={{ scale: 1.05 }}
-                                className="w-[100px] h-[100px] rounded-full overflow-hidden bg-gray-200 border-4 border-white shadow-lg flex items-center justify-center relative cursor-pointer"
-                            >
-                                <Image src={previewImage} alt="Avatar" layout="fill" className="object-cover" />
-                                <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Camera size={24} className="text-white" />
-                                </div>
-                            </motion.div>
-                            <motion.button 
-                                onClick={triggerUpload}
-                                whileHover={{ scale: 1.1 }}
-                                whileTap={{ scale: 0.9 }}
-                                className="absolute bottom-0 right-0 bg-[#103B40] text-white p-2 rounded-full shadow-md hover:bg-[#0c2e32] transition-colors"
-                            >
-                                <Camera size={14} />
-                            </motion.button>
+                        <div className="relative mb-3 group flex justify-center w-full">
+                            <div className="relative">
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    onChange={handleFileChange}
+                                    accept="image/*"
+                                    className="hidden"
+                                />
+                                <motion.div 
+                                    onClick={() => setIsMenuOpen(!isMenuOpen)}
+                                    whileHover={{ scale: 1.05 }}
+                                    className="w-[100px] h-[100px] rounded-full overflow-hidden bg-gray-200 border-4 border-white shadow-lg flex items-center justify-center relative cursor-pointer z-10"
+                                >
+                                    <Image src={previewImage} alt="Avatar" layout="fill" className="object-cover" />
+                                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                        <Camera size={24} className="text-white" />
+                                    </div>
+                                </motion.div>
+                                <motion.button 
+                                    onClick={() => setIsMenuOpen(!isMenuOpen)}
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.9 }}
+                                    className="absolute bottom-0 right-0 bg-[#103B40] text-white p-2 rounded-full shadow-md hover:bg-[#0c2e32] transition-colors z-20"
+                                >
+                                    <Camera size={14} />
+                                </motion.button>
+
+                                {/* Dropdown overlay to close menu */}
+                                {isMenuOpen && (
+                                    <div 
+                                        className="fixed inset-0 z-30" 
+                                        onClick={() => setIsMenuOpen(false)} 
+                                    />
+                                )}
+                                
+                                <AnimatePresence>
+                                    {isMenuOpen && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                                            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                            className="absolute md:top-[110px] top-[100px] left-1/2 -translate-x-1/2 z-40 bg-white rounded-xl shadow-xl border border-gray-100 w-48 overflow-hidden"
+                                        >
+                                            <button 
+                                                onClick={() => {
+                                                    setIsMenuOpen(false);
+                                                    triggerUpload();
+                                                }}
+                                                className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium border-b border-gray-50 last:border-0"
+                                            >
+                                                <Camera size={16} className="text-[#103B40]" />
+                                                Change Image
+                                            </button>
+                                            <button 
+                                                onClick={() => {
+                                                    setIsMenuOpen(false);
+                                                    setIsPreviewModalOpen(true);
+                                                }}
+                                                className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium border-b border-gray-50 last:border-0"
+                                            >
+                                                <Eye size={16} className="text-[#103B40]" />
+                                                Preview Image
+                                            </button>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
                         </div>
 
                         <p className="text-xs text-center text-gray-400 mb-8 font-medium">
@@ -367,7 +435,7 @@ function ChangePassword({ onSave, onCancel }: { onSave: () => void; onCancel: ()
 
             <motion.div variants={itemVariants} className="mb-6 mt-4">
                 <label className="block text-xs font-semibold text-gray-700 mb-2">Enter your Email</label>
-                <Input defaultValue="maherkojan@gmail.com" className="bg-white border-none shadow-sm h-11 text-gray-500" />
+                <Input defaultValue="[EMAIL_ADDRESS]" className="bg-white border-none shadow-sm h-11 text-gray-500" />
             </motion.div>
 
             <motion.div variants={itemVariants} className="mb-6 mt-2 relative">

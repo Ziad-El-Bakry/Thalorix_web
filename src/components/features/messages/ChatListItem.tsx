@@ -13,6 +13,7 @@ const AVATAR_COLORS = [
   "bg-amber-600",
   "bg-cyan-600",
   "bg-emerald-600",
+  "bg-red-600",
 ];
 
 function getAvatarColor(name: string): string {
@@ -69,7 +70,7 @@ export default function ChatListItem({
           </span>
           {last && (
             <span className={`text-[11px] flex-shrink-0 ${unread ? "text-teal-600 font-medium" : "text-gray-400"}`}>
-              {new Date(last.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+              {new Date(last.timestamp).toLocaleTimeString([], { hour: "numeric", minute: "2-digit", hour12: true })}
             </span>
           )}
         </div>

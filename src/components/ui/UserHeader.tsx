@@ -1,5 +1,7 @@
 import Image from "next/image";
-import { Bell, Code } from "lucide-react";
+import { Code } from "lucide-react";
+import Notifications from "@/components/shared/Notification";
+import { usePathname } from "next/navigation";
 import { Button } from "./button";
 import { motion } from "framer-motion";
 
@@ -13,6 +15,8 @@ interface UserHeaderProps {
 export default function UserHeader({ name, avatar, badge, badgeIcon }: UserHeaderProps) {
   // Fallback avatar if none provided
   const avatarSrc = avatar || "/images/avatar.png";
+  const pathname = usePathname();
+  const isMessagesPage = pathname?.includes("/messages");
   return (
     <motion.div
       initial={{ opacity: 0, y: -10 }}
@@ -38,10 +42,7 @@ export default function UserHeader({ name, avatar, badge, badgeIcon }: UserHeade
       </div>
 
       <div className="flex gap-4 items-center">
-        <button className="relative p-2 text-gray-600 hover:text-gray-900 transition-colors">
-          <Bell size={24} />
-          <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
-        </button>
+        {!isMessagesPage && <Notifications />}
 
         {badge && (
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
