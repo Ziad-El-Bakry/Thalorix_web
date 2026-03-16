@@ -224,7 +224,7 @@ export default function MessageBubble({ message, isOwn = false, onImageClick, on
           {renderContent()}
 
           <div className="flex items-center gap-1 absolute bottom-1.5 right-2.5">
-            <span className={`text-[10px] ${isOwn && message.status !== "failed" ? "text-white/60" : "text-gray-400"}`}>
+            <span suppressHydrationWarning className={`text-[10px] ${isOwn && message.status !== "failed" ? "text-white/60" : "text-gray-400"}`}>
               {new Date(message.timestamp).toLocaleTimeString([], {
                 hour: "numeric",
                 minute: "2-digit",

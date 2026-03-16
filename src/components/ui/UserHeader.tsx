@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import { Code } from "lucide-react";
 import Notifications from "@/components/shared/Notification";

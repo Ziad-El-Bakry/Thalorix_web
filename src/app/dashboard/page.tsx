@@ -36,7 +36,7 @@ export default function DashboardPage() {
           title="Upload Template"
           description="Share templates"
           icon="⬆️"
-          href="/dashboard/marketplace"
+          href="/dashboard/marketplace/upload"
         />
         <QuickAccessCard
           title="Community"

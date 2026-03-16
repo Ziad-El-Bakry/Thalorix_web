@@ -69,7 +69,7 @@ export default function ChatListItem({
             {other.name}
           </span>
           {last && (
-            <span className={`text-[11px] flex-shrink-0 ${unread ? "text-teal-600 font-medium" : "text-gray-400"}`}>
+            <span suppressHydrationWarning className={`text-[11px] flex-shrink-0 ${unread ? "text-teal-600 font-medium" : "text-gray-400"}`}>
               {new Date(last.timestamp).toLocaleTimeString([], { hour: "numeric", minute: "2-digit", hour12: true })}
             </span>
           )}
@@ -87,7 +87,7 @@ export default function ChatListItem({
               <p className={`text-xs truncate ${unread ? "text-gray-700 font-medium" : "text-gray-500"}`}>
                 {last.text}
               </p>
-            </div>
+            </div>  
             {unread > 0 && (
               <span className="flex-shrink-0 w-5 h-5 rounded-full bg-teal-600 text-white text-[10px] font-semibold flex items-center justify-center">
                 {unread}
