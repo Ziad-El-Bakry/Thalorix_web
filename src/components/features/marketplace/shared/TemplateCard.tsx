@@ -34,7 +34,7 @@ export default function TemplateCard({ id, title, price, imageSrc }: TemplateCar
       </div>
       <Link href={`/dashboard/marketplace/${id}`} className="block w-full">
         <button className="w-full bg-[#123E41] text-white py-3 rounded-xl hover:bg-[#0d2c2e] transition-colors font-medium">
-          view Template
+          View Template
         </button>
       </Link>
     </motion.div>
