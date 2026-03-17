@@ -18,7 +18,7 @@ const itemVariants = {
 
 export default function TemplateCard({ id, title, price, imageSrc }: TemplateCardProps) {
   return (
-    <motion.div variants={itemVariants} className="bg-white rounded-[20px] overflow-hidden p-4 shadow-sm">
+    <motion.div variants={itemVariants} className="bg-white rounded-[20px] overflow-hidden p-4 shadow-xl hover:shadow-2xl transition-shadow duration-300">
       <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden mb-4 bg-gray-100">
         {imageSrc ? (
           <Image src={imageSrc} alt={title} fill className="object-cover" />

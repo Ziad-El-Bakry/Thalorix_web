@@ -12,9 +12,10 @@ interface UserHeaderProps {
   avatar?: string;
   badge?: string;
   badgeIcon?: string;
+  compact?: boolean;
 }
 
-export default function UserHeader({ name, avatar, badge, badgeIcon }: UserHeaderProps) {
+export default function UserHeader({ name, avatar, badge, badgeIcon, compact = false }: UserHeaderProps) {
   // Fallback avatar if none provided
   const avatarSrc = avatar || "/images/avatar.png";
   const pathname = usePathname();
@@ -24,7 +25,7 @@ export default function UserHeader({ name, avatar, badge, badgeIcon }: UserHeade
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="flex items-center justify-between mb-6 md:mb-8 mt-2 md:mt-0"
+      className={`flex items-center justify-between mt-2 md:mt-0 ${compact ? 'mb-2 md:mb-3' : 'mb-6 md:mb-8'}`}
     >
       <div className="flex items-center gap-3 md:gap-4">
         <div className="flex flex-shrink-0">
@@ -32,24 +33,28 @@ export default function UserHeader({ name, avatar, badge, badgeIcon }: UserHeade
             src={avatarSrc}
             alt="User Avatar"
             width={70}
-            height={50}
-            className="w-12 h-12 md:w-[70px] md:h-[70px] rounded-full object-cover shadow-sm"
+            height={70}
+            className={`${compact ? 'w-10 h-10 md:w-[45px] md:h-[45px]' : 'w-12 h-12 md:w-[70px] md:h-[70px]'} rounded-full object-cover shadow-sm`}
           />
         </div>
         <div>
-          <h1 className="text-xl md:text-[22px] font-bold text-[#103B40] mb-0.5 md:mb-1">
+          <h1 className={`${compact ? 'text-lg md:text-[18px]' : 'text-xl md:text-[22px]'} font-bold text-[#103B40] mb-0.5 md:mb-1`}>
             Welcome {name}
           </h1>
         </div>
       </div>
 
       <div className="flex gap-4 items-center">
-        {!isMessagesPage && <Notifications />}
+        {!isMessagesPage && (
+          <div className={compact ? 'scale-90' : ''}>
+            <Notifications />
+          </div>
+        )}
 
         {badge && (
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Button variant="primary" className="rounded-full px-5 py-2 h-10 gap-2 text-sm shadow-sm">
-              <Code size={16} />
+            <Button variant="primary" className={`rounded-full gap-2 shadow-sm flex items-center ${compact ? 'px-4 py-1.5 h-8 text-xs' : 'px-5 py-2 h-10 text-sm'}`}>
+              <Code size={compact ? 14 : 16} />
               {badge}
             </Button>
           </motion.div>
