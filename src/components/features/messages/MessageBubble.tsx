@@ -144,7 +144,7 @@ export default function MessageBubble({ message, isOwn = false, onImageClick, on
               href={href}
               target="_blank"
               rel="noopener noreferrer"
-              className={`underline hover:opacity-80 transition-opacity break-all font-medium ${isOwn ? (message.status === "failed" ? "text-red-700" : "text-white") : "text-teal-600"}`}
+              className={`underline hover:opacity-80 transition-opacity break-all font-medium ${isOwn ? (message.status === "failed" ? "text-red-700" : "text-white") : "text-[#6FA5A9]"}`}
               onClick={(e) => e.stopPropagation()}
             >
               {part}
@@ -181,7 +181,7 @@ export default function MessageBubble({ message, isOwn = false, onImageClick, on
         <img
           src={message.sender?.avatarUrl || "/images/avatar.png"}
           alt={message.sender?.name || "User"}
-          className="w-7 h-7 rounded-full object-cover flex-shrink-0 mt-auto mb-1 ring-1 ring-black/5 z-10"
+          className="w-7 h-7 rounded-full object-cover flex-shrink-0 mt-auto mb-1 ring-1 ring-black/5 z-10 shadow-md"
         />
       )}
 
@@ -202,14 +202,14 @@ export default function MessageBubble({ message, isOwn = false, onImageClick, on
           className={`w-fit min-w-[100px] p-3 pb-5 relative shadow-sm cursor-pointer hover:brightness-[0.98] transition-all ${isOwn
               ? message.status === "failed"
                 ? "bg-red-50 text-black rounded-2xl rounded-tr-sm"
-                : "bg-[#005c4b] text-white rounded-2xl rounded-tr-sm"
+                : "bg-[#103B40] text-white rounded-2xl rounded-tr-sm"
               : "bg-white text-gray-800 rounded-2xl rounded-tl-sm"
             }`}
         >
           {/* Quoted Reply Block */}
           {message.replyToMessage && (
-            <div className={`mb-2 p-2 rounded-lg border-l-4 text-xs ${isOwn ? 'bg-black/10 border-white/50' : 'bg-gray-100 border-teal-500'}`}>
-              <span className={`font-semibold block mb-0.5 ${isOwn ? 'text-teal-100' : 'text-teal-700'}`}>
+            <div className={`mb-2 p-2 rounded-lg border-l-4 text-xs ${isOwn ? 'bg-black/10 border-white/50' : 'bg-gray-100 border-[#6FA5A9]'}`}>
+              <span className={`font-semibold block mb-0.5 ${isOwn ? 'text-[#9EC8FF]' : 'text-[#103B40]'}`}>
                 {message.replyToMessage.sender?.id === "1" ? "You" : message.replyToMessage.sender?.name}
               </span>
               <p className={`truncate opacity-90 ${isOwn ? 'text-white' : 'text-gray-600'}`}>
@@ -245,7 +245,7 @@ export default function MessageBubble({ message, isOwn = false, onImageClick, on
         {isOwn && message.status === "failed" && (
           <div className="flex items-center gap-1 justify-end mt-1 text-[11px] font-medium">
             <span className="text-red-500">Failed to send</span>
-            <button className="flex items-center gap-1 text-teal-700 hover:text-teal-900 transition-colors ml-1">
+            <button className="flex items-center gap-1 text-[#103B40] hover:text-[#0d2e32] transition-colors ml-1">
               <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /></svg>
               Retry
             </button>
@@ -257,7 +257,7 @@ export default function MessageBubble({ message, isOwn = false, onImageClick, on
         <img
           src={message.sender?.avatarUrl || "/images/avatar.png"}
           alt="Me"
-          className="w-7 h-7 rounded-full object-cover flex-shrink-0 mt-auto mb-1 ring-1 ring-black/5"
+          className="w-7 h-7 rounded-full object-cover flex-shrink-0 mt-auto mb-1 ring-1 ring-black/5 shadow-md"
         />
       )}
     </div>
@@ -317,7 +317,7 @@ function CustomAudioPlayer({ src, isOwn }: { src: string; isOwn?: boolean }) {
       <audio ref={audioRef} src={src} preload="metadata" />
       <button
         onClick={toggle}
-        className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-colors ${isOwn ? "bg-white/20 hover:bg-white/30 text-white" : "bg-teal-600 hover:bg-teal-700 text-white"
+        className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-colors ${isOwn ? "bg-white/20 hover:bg-white/30 text-white" : "bg-[#103B40] hover:bg-[#0d2e32] text-white"
           }`}
       >
         {isPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current ml-0.5" />}
@@ -325,7 +325,7 @@ function CustomAudioPlayer({ src, isOwn }: { src: string; isOwn?: boolean }) {
       <div className="flex-1 flex flex-col gap-1.5">
         <div className={`w-full rounded-full h-1.5 relative cursor-pointer overflow-hidden ${isOwn ? "bg-white/20" : "bg-gray-300"}`}>
           <div
-            className={`h-full rounded-full transition-all ${isOwn ? "bg-white/80" : "bg-teal-600"}`}
+            className={`h-full rounded-full transition-all ${isOwn ? "bg-white/80" : "bg-[#103B40]"}`}
             style={{ width: `${progress}%` }}
           />
         </div>

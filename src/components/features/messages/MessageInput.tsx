@@ -75,12 +75,12 @@ export default function MessageInput({ value, onChange, onSend, replyingTo, onCa
     `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 
   return (
-    <div className="flex items-end px-3 py-2.5 bg-[#00695c] sticky bottom-0 z-10 w-full border-t border-teal-900/40 gap-2 relative">
+    <div className="flex items-end px-3 py-2.5 bg-[#103B40] sticky bottom-0 z-10 w-full border-t border-white/10 gap-2 relative" style={{ boxShadow: "0 -8px 24px rgba(0,0,0,0.3)" }}>
 
       {/* Replying To Preview */}
       {replyingTo && (
-        <div className="absolute bottom-full left-0 right-0 bg-[#00695c] px-3 pb-2 pt-1 border-t border-teal-500/30 animate-in slide-in-from-bottom-2 fade-in">
-          <div className="bg-[#00796b] rounded-xl p-2.5 flex items-center gap-3 border-l-4 border-l-teal-300">
+        <div className="absolute bottom-full left-0 right-0 bg-[#103B40] px-3 pb-2 pt-1 border-t border-white/10 animate-in slide-in-from-bottom-2 fade-in">
+          <div className="bg-[#1a4f55] rounded-xl p-2.5 flex items-center gap-3 border-l-4 border-l-[#9EC8FF]">
             <div className="flex-1 min-w-0">
               <span className="text-teal-200 text-xs font-semibold">Replying to {replyingTo.sender?.name || "User"}</span>
               <p className="text-white text-sm truncate opacity-90 mt-0.5">
@@ -111,7 +111,7 @@ export default function MessageInput({ value, onChange, onSend, replyingTo, onCa
       )}
 
       {/* Input Area */}
-      <div className="flex-1 flex items-center rounded-2xl bg-[#00796b] border border-teal-500/30 px-3 py-2 gap-2 min-h-[44px]">
+      <div className="flex-1 flex items-center rounded-2xl bg-[#1a4f55] border border-white/10 px-3 py-2 gap-2 min-h-[44px]">
         {!isRecording ? (
           <>
             <button
@@ -162,7 +162,7 @@ export default function MessageInput({ value, onChange, onSend, replyingTo, onCa
             {value.trim() && (
               <button
                 onClick={() => onSend(value, "text")}
-                className="w-10 h-10 bg-white text-teal-700 hover:bg-gray-100 rounded-full flex items-center justify-center transition-colors shadow-sm"
+                className="w-10 h-10 bg-white text-[#103B40] hover:bg-gray-100 rounded-full flex items-center justify-center transition-colors shadow-sm"
               >
                 <Send className="w-4.5 h-4.5" />
               </button>

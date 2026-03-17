@@ -7,7 +7,7 @@ export default function ChatHeader({ user, onBack, onSearch }: ChatHeaderProps &
   const [searchQuery, setSearchQuery] = useState("");
 
   return (
-    <div className="flex items-center justify-between px-3 py-2 border-b bg-[#00695c] sticky top-0 z-10 shadow-sm h-[56px] min-h-[56px]">
+    <div className="flex items-center justify-between px-3 py-2 border-b bg-[#103B40] sticky top-0 z-10 shadow-lg shadow-black/20 h-[56px] min-h-[56px]">
       {isSearching ? (
         <div className="flex items-center w-full gap-2 animate-in fade-in slide-in-from-right-4 duration-200">
           <div className="relative flex-1 flex items-center">
@@ -58,15 +58,12 @@ export default function ChatHeader({ user, onBack, onSearch }: ChatHeaderProps &
               {user.name.charAt(0).toUpperCase()}
             </div>
           )}
-          {user.online && (
-            <span className="absolute bottom-0.5 right-0.5 w-2.5 h-2.5 bg-green-400 rounded-full border-2 border-[#00695c]" />
-          )}
         </div>
         <div>
           <h2 className="font-semibold text-white text-sm leading-tight">{user.name}</h2>
           {user.online ? (
-            <span className="text-xs text-green-300 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 bg-green-400 rounded-full inline-block animate-pulse" />
+            <span className="text-xs text-white flex items-center gap-1">
+              <span className="w-1.5 h-1.5 bg-[#9EC8FF] rounded-full inline-block animate-pulse" />
               Online
             </span>
           ) : (

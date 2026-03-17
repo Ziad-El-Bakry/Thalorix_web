@@ -87,10 +87,10 @@ export default function ChatList({
   return (
     <div
       ref={listRef}
-      className="w-full md:w-[40%] md:min-w-[340px] md:max-w-[420px] border-r overflow-hidden bg-white h-full flex-shrink-0 flex flex-col"
+      className="w-full h-full overflow-hidden bg-white flex flex-col"
     >
       {/* Header */}
-      <div className="px-4 py-3 flex justify-between items-center bg-[#00695c] sticky top-0 z-10">
+      <div className="px-4 py-3 flex justify-between items-center bg-[#103B40] sticky top-0 z-10 shadow-lg shadow-black/20">
         <span className="font-semibold text-white text-base">Messages</span>
         <div className="flex gap-1 text-white">
           <button className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/15 transition-colors">

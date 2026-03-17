@@ -39,7 +39,7 @@ export default function ChatListItem({
       {...rest}
       className={`flex items-center px-3 py-2.5 cursor-pointer transition-colors relative border-b border-gray-50 ${
         selected
-          ? "bg-teal-50 border-l-[3px] border-l-teal-600"
+          ? "bg-[#103B40]/5 border-l-[3px] border-l-[#103B40]"
           : "hover:bg-gray-50 border-l-[3px] border-l-transparent"
       }`}
       onClick={onClick}
@@ -50,10 +50,10 @@ export default function ChatListItem({
           <img
             src={other.avatarUrl}
             alt={other.name}
-            className="w-11 h-11 rounded-full object-cover"
+            className="w-11 h-11 rounded-full object-cover shadow-md"
           />
         ) : (
-          <div className={`w-11 h-11 rounded-full flex items-center justify-center text-white font-semibold text-base ${colorClass}`}>
+          <div className={`w-11 h-11 rounded-full flex items-center justify-center text-white font-semibold text-base shadow-md ${colorClass}`}>
             {other.name.charAt(0).toUpperCase()}
           </div>
         )}
@@ -69,7 +69,7 @@ export default function ChatListItem({
             {other.name}
           </span>
           {last && (
-            <span suppressHydrationWarning className={`text-[11px] flex-shrink-0 ${unread ? "text-teal-600 font-medium" : "text-gray-400"}`}>
+            <span suppressHydrationWarning className={`text-[11px] flex-shrink-0 ${unread ? "text-[#103B40] font-medium" : "text-gray-400"}`}>
               {new Date(last.timestamp).toLocaleTimeString([], { hour: "numeric", minute: "2-digit", hour12: true })}
             </span>
           )}
@@ -89,7 +89,7 @@ export default function ChatListItem({
               </p>
             </div>  
             {unread > 0 && (
-              <span className="flex-shrink-0 w-5 h-5 rounded-full bg-teal-600 text-white text-[10px] font-semibold flex items-center justify-center">
+              <span className="flex-shrink-0 w-5 h-5 rounded-full bg-[#103B40] text-white text-[10px] font-semibold flex items-center justify-center">
                 {unread}
               </span>
             )}
