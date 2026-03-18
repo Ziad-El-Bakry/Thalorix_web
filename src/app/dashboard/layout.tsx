@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 //import { motion, AnimatePresence } from "framer-motion";
 import Sidebar from "@/components/layout/Sidebar";
 import MobileNavbar from "@/components/layout/MobileNavbar";
+import NavigationLoader from "@/components/layout/NavigationLoader";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -28,7 +29,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               // exit={{ opacity: 0, y: -15 }}
               // transition={{ duration: 0.3 }}
             > */}
-          {children}
+          <NavigationLoader>
+            {children}
+          </NavigationLoader>
           {/* </motion.div>
           </AnimatePresence> */}
         </div>

@@ -11,6 +11,7 @@ import {
   Store,
   User,
 } from "lucide-react";
+import { useNotifications } from "@/components/shared/useNotifications";
 
 const NAV = [
   { label: "Home", href: "/dashboard", icon: Home },
@@ -23,6 +24,7 @@ const NAV = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const { hasUnreadMessages, markMessagesRead } = useNotifications();
 
   return (
     <motion.aside
@@ -32,17 +34,51 @@ export default function Sidebar() {
       className="fixed left-0 top-0 h-screen w-64 bg-[#103B40] text-white p-6 hidden lg:flex flex-col z-50"
       style={{
         backgroundColor: "#103B40",
-        //border: "4px solid #6FA5A9",
-        borderRadius: "8px",
+        borderRadius: "0px",
       }}
     >
       {/* Logo */}
 
       <div className="mb-10 text-center">
-        <h1 className="text-white text-2xl font-semibold tracking-widest">
-          THALORIX
-        </h1>
-        <div className="h-px bg-[#6FA5A9] mt-3 opacity-60"></div>
+        <motion.h1
+          className="text-white text-2xl font-semibold tracking-widest flex justify-center"
+          initial="hidden"
+          animate="visible"
+          variants={{
+            hidden: { opacity: 0 },
+            visible: {
+              opacity: 1,
+              transition: { staggerChildren: 0.1, delayChildren: 0.2 },
+            },
+          }}
+        >
+          {"THALORIX".split("").map((char, index) => (
+            <motion.span
+              key={index}
+              variants={{
+                hidden: { color: "#ffffff", opacity: 0, y: -10 },
+                visible: {
+                  color: ["#ffffff", "#9EC8FF", "#ffffff"],
+                  opacity: 1,
+                  y: 0,
+                  transition: {
+                    color: { duration: 2, repeat: Infinity, delay: index * 0.2 },
+                    y: { duration: 0.4 },
+                    opacity: { duration: 0.4 }
+                  },
+                },
+              }}
+            >
+              {char}
+            </motion.span>
+          ))}
+        </motion.h1>
+        <motion.div
+          initial={{ width: 0, opacity: 0 }}
+          animate={{ width: "100%", opacity: 0.6 }}
+          transition={{ duration: 1, delay: 1 }}
+          className="h-px bg-[#6FA5A9] mt-3 mx-auto"
+        ></motion.div>
       </div>
 
       {/* Navigation */}
@@ -54,7 +90,14 @@ export default function Sidebar() {
 
             return (
               <li key={item.href}>
-                <Link href={item.href}>
+                <Link 
+                  href={item.href}
+                  onClick={() => {
+                    if (item.label === "Message") {
+                      markMessagesRead();
+                    }
+                  }}
+                >
                   <motion.div
                     whileHover={{ x: 4 }}
                     transition={{ type: "spring", stiffness: 300 }}
@@ -64,8 +107,11 @@ export default function Sidebar() {
                       color: isActive ? "#103B40" : "rgba(255,255,255,0.85)",
                     }}
                   >
-                    <Icon size={16} />
+                    <Icon size={18} />
                     {item.label}
+                    {item.label === "Message" && hasUnreadMessages && (
+                      <span className="ml-auto w-2 h-2 bg-red-500 rounded-full border border-transparent shadow-[0_0_8px_rgba(239,68,68,0.8)]"></span>
+                    )}
                   </motion.div>
                 </Link>
               </li>

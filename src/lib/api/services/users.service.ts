@@ -52,7 +52,7 @@ export const usersService = {
    */
   async updateProfile(id: string, dto: UpdateProfileDto): Promise<User> {
     const formData = new FormData();
-    
+
     if (dto.username) formData.append('username', dto.username);
     if (dto.bio) formData.append('bio', dto.bio);
     if (dto.avatar) formData.append('avatar', dto.avatar);

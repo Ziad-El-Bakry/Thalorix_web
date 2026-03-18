@@ -125,7 +125,7 @@ api.interceptors.response.use(
       hint: isNetworkError ? '🔧 Backend might be down or unreachable. Check API_BASE_URL and ensure backend is running.' : undefined,
     };
 
-    console.error('🔴 API Error:', errorDetails);
+    console.error('🔴 API Error:', JSON.stringify(errorDetails, null, 2));
 
     // Token refresh logic (only for 401 errors)
     if (error.response?.status === 401 && !originalRequest._retry) {

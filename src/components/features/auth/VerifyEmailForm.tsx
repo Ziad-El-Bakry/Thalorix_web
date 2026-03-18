@@ -1,8 +1,13 @@
 "use client";
 
 import { useState, useRef, KeyboardEvent } from "react";
+import { useSearchParams } from "next/navigation";
+import { motion } from "framer-motion";
 
 export default function VerifyEmailForm() {
+    const searchParams = useSearchParams();
+    const email = searchParams?.get("email") || "a*********@g****.com";
+
     const [otp, setOtp] = useState(["", "", "", "", ""]);
     const inputRefs = [
         useRef<HTMLInputElement>(null),
@@ -49,24 +54,44 @@ export default function VerifyEmailForm() {
         }
     };
 
+    const containerVariants = {
+        hidden: { opacity: 0, y: 20 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: { duration: 0.5, staggerChildren: 0.1 },
+        },
+    };
+
+    const itemVariants = {
+        hidden: { opacity: 0, y: 10 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+    };
+
     return (
-        <div className="space-y-8 flex flex-col items-center max-w-[320px] mx-auto">
-            <div className="text-center space-y-4">
-                <h2 className="text-2xl font-bold text-[#103B40]">
+        <motion.div 
+            initial="hidden"
+            animate="visible"
+            variants={containerVariants}
+            className="space-y-12 flex flex-col items-center w-full"
+        >
+            <motion.div variants={itemVariants} className="text-center space-y-6">
+                <h2 className="text-[32px] font-bold text-[#103B40] tracking-tight">
                     Check your email
                 </h2>
-                <div className="text-sm font-medium text-[#103B40] leading-relaxed">
+                <div className="text-base font-medium text-[#103B40]/80 leading-relaxed max-w-[280px] mx-auto">
                     <p>We&apos;ve sent you a passcode.</p>
                     <p>
                         Please check your inbox at{" "}
-                        <span className="font-semibold text-gray-800">a*********@g****.com</span>.
+                        <span className="font-semibold text-[#103B40]">{email}</span>.
                     </p>
                 </div>
-            </div>
+            </motion.div>
 
-            <div className="flex justify-center gap-3 md:gap-4 mt-6">
+            <div className="flex justify-center gap-2 sm:gap-3 md:gap-4 mt-2">
                 {otp.map((digit, index) => (
-                    <input
+                    <motion.input
+                        variants={itemVariants}
                         key={index}
                         ref={inputRefs[index]}
                         type="text"
@@ -76,17 +101,18 @@ export default function VerifyEmailForm() {
                         onChange={(e) => handleChange(index, e.target.value)}
                         onKeyDown={(e) => handleKeyDown(index, e)}
                         onPaste={handlePaste}
-                        className="w-12 h-14 text-center text-xl font-bold text-[#103B40] bg-[#a8ccce] rounded-lg border-2 border-transparent focus:bg-white focus:border-[#4285F4] focus:outline-none transition-all shadow-sm shadow-[#a8ccce]/50"
+                        className="w-[45px] h-[55px] sm:w-[50px] sm:h-[60px] md:w-[54px] md:h-[64px] text-center text-xl sm:text-2xl font-bold text-[#103B40] bg-[#a8ccce] rounded-xl border-2 border-transparent focus:bg-white focus:border-[#103B40]/20 focus:outline-none transition-all shadow-sm"
                     />
                 ))}
             </div>
 
-            <button
+            <motion.button
+                variants={itemVariants}
                 type="button"
-                className="text-sm font-medium text-[#103B40] hover:text-[#0c2f33] hover:underline transition-colors mt-8"
+                className="text-base font-semibold text-[#103B40] hover:text-[#0c2f33] transition-colors mt-4"
             >
                 Resend code
-            </button>
-        </div>
+            </motion.button>
+        </motion.div>
     );
 }

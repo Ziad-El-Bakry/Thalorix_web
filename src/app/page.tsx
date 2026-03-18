@@ -116,11 +116,62 @@ export default function Page() {
             style={{ borderColor: "rgba(255,255,255,0.5)" }}
           >
             <div className="flex flex-col gap-6 md:gap-8">
-              <h1 className="font-black leading-[1.1] text-3xl md:text-6xl lg:text-7xl text-[#103B40]">
-                <div>Launch your</div>
-                <span className="text-transparent bg-clip-text bg-linear-to-r from-teal-700 to-cyan-600">
-                  Startup Now!
-                </span>
+              <h1 className="font-black leading-[1.1] text-3xl md:text-6xl lg:text-7xl">
+                <motion.div
+                  initial="hidden"
+                  animate="visible"
+                  variants={{
+                    visible: { transition: { staggerChildren: 0.1 } },
+                  }}
+                  className="flex flex-col items-start"
+                >
+                  <div className="flex flex-wrap text-[#103B40]">
+                    {"Launch your".split("").map((char, i) =>
+                      char === " " ? (
+                        <span key={`ly-${i}`} className="w-3 md:w-5"></span>
+                      ) : (
+                        <motion.span
+                          key={`ly-${i}`}
+                          variants={{
+                            hidden: { opacity: 0, y: 10 },
+                            visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+                          }}
+                          className="inline-block"
+                        >
+                          {char}
+                        </motion.span>
+                      )
+                    )}
+                  </div>
+                  <div className="flex flex-wrap mt-1 pb-2">
+                    {"Startup Now!".split("").map((char, i) =>
+                      char === " " ? (
+                        <span key={`sn-${i}`} className="w-3 md:w-5"></span>
+                      ) : (
+                        <motion.span
+                          key={`sn-${i}`}
+                          variants={{
+                            hidden: { opacity: 0, scale: 0.8 },
+                            visible: { opacity: 1, scale: 1, transition: { duration: 0.5 } },
+                          }}
+                          animate={{
+                            color: ["#0f766e", "#0891b2", "#10b981", "#0f766e"],
+                          }}
+                          transition={{
+                            duration: 3,
+                            repeat: Infinity,
+                            repeatType: "mirror",
+                            ease: "linear",
+                            delay: i * 0.15,
+                          }}
+                          className="inline-block font-black hover:scale-110 transition-transform"
+                        >
+                          {char}
+                        </motion.span>
+                      )
+                    )}
+                  </div>
+                </motion.div>
               </h1>
               <p className="font-medium text-base md:text-2xl text-[#346C73]">
                 Code, preview, manage. Everything in one flow. Built for

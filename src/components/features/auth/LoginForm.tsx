@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 
 export function LoginForm() {
     const [email, setEmail] = useState("");
@@ -13,15 +14,34 @@ export function LoginForm() {
         e.preventDefault();
     };
 
+    const containerVariants = {
+        hidden: { opacity: 0, y: 20 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: { duration: 0.5, staggerChildren: 0.1 },
+        },
+    };
+
+    const itemVariants = {
+        hidden: { opacity: 0, y: 10 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+    };
+
     return (
-        <div className="space-y-6">
-            <h2 className="text-2xl font-semibold text-[#103B40]">
+        <motion.div 
+            initial="hidden"
+            animate="visible"
+            variants={containerVariants}
+            className="space-y-6"
+        >
+            <motion.h2 variants={itemVariants} className="text-2xl font-semibold text-[#103B40]">
                 Login to your Account
-            </h2>
+            </motion.h2>
 
             <form onSubmit={handleSubmit} className="space-y-5">
                 {/* Email */}
-                <div className="space-y-1.5">
+                <motion.div variants={itemVariants} className="space-y-1.5">
                     <label className="block text-xs font-semibold text-gray-700 tracking-wide">
                         Email
                     </label>
@@ -35,10 +55,10 @@ export function LoginForm() {
                         title="Enter a valid email address (e.g. user@example.com)"
                         className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-300 transition"
                     />
-                </div>
+                </motion.div>
 
                 {/* Password */}
-                <div className="space-y-1.5">
+                <motion.div variants={itemVariants} className="space-y-1.5">
                     <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide">
                         Password
                     </label>
@@ -79,10 +99,10 @@ export function LoginForm() {
                             Forget Password?
                         </Link>
                     </div>
-                </div>
+                </motion.div>
 
                 {/* Remember me */}
-                <label className="flex items-center gap-2 cursor-pointer select-none">
+                <motion.label variants={itemVariants} className="flex items-center gap-2 cursor-pointer select-none">
                     <input
                         type="checkbox"
                         checked={remember}
@@ -92,18 +112,20 @@ export function LoginForm() {
                     <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
                         Remember me
                     </span>
-                </label>
+                </motion.label>
 
                 {/* Sign In */}
-                <button
+                <motion.button
+                    variants={itemVariants}
                     type="submit"
                     className="w-full bg-[#103B40] hover:bg-[#0c2f33] text-white font-bold text-sm tracking-wider py-3 rounded-lg transition-colors cursor-pointer"
                 >
                     SIGN IN
-                </button>
+                </motion.button>
 
                 {/* Google */}
-                <button
+                <motion.button
+                    variants={itemVariants}
                     type="button"
                     className="w-full flex items-center justify-center gap-2 bg-[#1a6b5a] hover:bg-[#15594b] text-white font-medium text-sm py-3 rounded-full transition-colors cursor-pointer"
                 >
@@ -126,10 +148,10 @@ export function LoginForm() {
                         />
                     </svg>
                     Continue with Google
-                </button>
+                </motion.button>
 
                 {/* Sign Up */}
-                <p className="text-center text-sm text-gray-500">
+                <motion.p variants={itemVariants} className="text-center text-sm text-gray-500">
                     Don&apos;t have an account?{" "}
                     <Link
                         href="/register"
@@ -137,8 +159,8 @@ export function LoginForm() {
                     >
                         Sign Up
                     </Link>
-                </p>
+                </motion.p>
             </form>
-        </div>
+        </motion.div>
     );
 }
