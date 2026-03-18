@@ -61,8 +61,8 @@ export default function Messages() {
     >
       {/* Chat List Panel */}
       <div
-        className={`h-full flex-shrink-0 ${selectedChatId ? "hidden md:block" : "block"}`}
-        style={{ width: listWidth }}
+        className={`h-full flex-shrink-0 ${selectedChatId ? "hidden md:block md:w-[var(--list-width)]" : "w-full md:w-[var(--list-width)]"}`}
+        style={{ "--list-width": `${listWidth}px` } as React.CSSProperties}
       >
         <ChatList
           selectedId={selectedChatId}

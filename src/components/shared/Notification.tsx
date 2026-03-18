@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+
 import { Bell, CheckCircle, Info, ShieldX, CircleX, MessageCircle } from "lucide-react";
 import { useNotifications } from "./useNotifications";
 
