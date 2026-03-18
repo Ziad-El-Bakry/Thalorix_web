@@ -2,16 +2,32 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { authService } from "@/lib/api/services/auth.service";
 
 export function LoginForm() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [remember, setRemember] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+    const router = useRouter();
 
-    const handleSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
+    const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (e) => {
         e.preventDefault();
+        setError("");
+        setLoading(true);
+        
+        try {
+            await authService.login({ email, password });
+            router.push("/dashboard");
+        } catch (err: any) {
+            setError(err?.response?.data?.message || err?.message || "Invalid credentials");
+        } finally {
+            setLoading(false);
+        }
     };
 
     const containerVariants = {
@@ -114,13 +130,19 @@ export function LoginForm() {
                     </span>
                 </motion.label>
 
+                {/* Error */}
+                {error && (
+                    <motion.p variants={itemVariants} className="text-sm text-red-600 font-medium">{error}</motion.p>
+                )}
+
                 {/* Sign In */}
                 <motion.button
                     variants={itemVariants}
                     type="submit"
-                    className="w-full bg-[#103B40] hover:bg-[#0c2f33] text-white font-bold text-sm tracking-wider py-3 rounded-lg transition-colors cursor-pointer"
+                    disabled={loading}
+                    className="w-full bg-[#103B40] hover:bg-[#0c2f33] disabled:opacity-70 disabled:cursor-not-allowed text-white font-bold text-sm tracking-wider py-3 rounded-lg transition-colors cursor-pointer"
                 >
-                    SIGN IN
+                    {loading ? "SIGNING IN..." : "SIGN IN"}
                 </motion.button>
 
                 {/* Google */}

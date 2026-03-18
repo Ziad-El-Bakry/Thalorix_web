@@ -1,14 +1,18 @@
 "use client";
 
 import { useState, useRef, KeyboardEvent } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { authService } from "@/lib/api/services/auth.service";
 
 export default function VerifyEmailForm() {
+    const router = useRouter();
     const searchParams = useSearchParams();
     const email = searchParams?.get("email") || "a*********@g****.com";
 
     const [otp, setOtp] = useState(["", "", "", "", ""]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
     const inputRefs = [
         useRef<HTMLInputElement>(null),
         useRef<HTMLInputElement>(null),
@@ -16,6 +20,22 @@ export default function VerifyEmailForm() {
         useRef<HTMLInputElement>(null),
         useRef<HTMLInputElement>(null),
     ];
+
+    const verifyOtp = async () => {
+        const code = otp.join("");
+        if (code.length !== 5) return;
+        
+        setError("");
+        setLoading(true);
+        try {
+            await authService.verifyEmail(code);
+            router.push("/login"); // or dashboard based on your logic
+        } catch (err: any) {
+            setError(err?.response?.data?.message || err?.message || "Failed to verify email");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleChange = (index: number, value: string) => {
         // Only allow numbers
@@ -106,13 +126,27 @@ export default function VerifyEmailForm() {
                 ))}
             </div>
 
-            <motion.button
-                variants={itemVariants}
-                type="button"
-                className="text-base font-semibold text-[#103B40] hover:text-[#0c2f33] transition-colors mt-4"
-            >
-                Resend code
-            </motion.button>
+            {error && (
+                <motion.p variants={itemVariants} className="text-sm text-red-600 font-medium">{error}</motion.p>
+            )}
+
+            <motion.div variants={itemVariants} className="w-full flex flex-col items-center gap-4 mt-6">
+                <button
+                    type="button"
+                    onClick={verifyOtp}
+                    disabled={loading || otp.join("").length !== 5}
+                    className="w-full max-w-[280px] bg-[#103B40] hover:bg-[#0c2f33] disabled:opacity-70 disabled:cursor-not-allowed text-white font-bold text-sm tracking-wider py-3 rounded-lg transition-colors cursor-pointer"
+                >
+                    {loading ? "VERIFYING..." : "VERIFY"}
+                </button>
+                
+                <button
+                    type="button"
+                    className="text-base font-semibold text-[#103B40] hover:text-[#0c2f33] transition-colors"
+                >
+                    Resend code
+                </button>
+            </motion.div>
         </motion.div>
     );
 }

@@ -1,17 +1,23 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Bell, Code, Camera, Copy, Lock, Trash2, CheckCircle, AlertCircle, Eye, EyeOff, ArrowLeft, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Bell, Code, Camera, Copy, Lock, Trash2, CheckCircle, AlertCircle, Eye, EyeOff, ArrowLeft, X, LogOut } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Notifications from "@/components/shared/Notification";
+import { authService } from "@/lib/api/services/auth.service";
+import { usersService } from "@/lib/api/services/users.service";
 
 type Tab = "personal" | "password";
 
 export default function ProfilePage() {
+    const router = useRouter();
+    const [user, setUser] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<Tab>("personal");
     const [showToast, setShowToast] = useState(false);
     const [copied, setCopied] = useState(false);
@@ -20,7 +26,25 @@ export default function ProfilePage() {
     const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const userId = "user001_1sunx...";
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                const storedUser = authService.getStoredUser();
+                if (storedUser?.id) {
+                    const data = await usersService.getUserById(storedUser.id);
+                    setUser(data);
+                    if (data.avatar) setPreviewImage(data.avatar);
+                }
+            } catch (error) {
+                console.error("Failed to fetch user data:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchUserData();
+    }, []);
+
+    const userId = user?.id || "N/A";
 
     const handleCopy = () => {
         navigator.clipboard.writeText(userId);
@@ -49,6 +73,27 @@ export default function ProfilePage() {
         setShowToast(true);
         setTimeout(() => setShowToast(false), 3000);
     };
+
+    const handleLogout = async () => {
+        await authService.logout();
+        router.push("/login");
+    };
+
+    const handleDeleteAccount = async () => {
+        if (!user?.id) return;
+        const confirmDelete = window.confirm("Are you sure you want to delete your account? This action cannot be undone.");
+        if (confirmDelete) {
+            try {
+                await usersService.deleteUser(user.id);
+                await authService.logout();
+                router.push("/login");
+            } catch (error) {
+                console.error("Failed to delete account", error);
+                alert("Failed to delete account");
+            }
+        }
+    };
+
 
     return (
         <div className="w-full flex flex-col gap-6 relative">
@@ -256,11 +301,20 @@ export default function ProfilePage() {
                             </motion.button>
 
                             <motion.button
+                                onClick={handleDeleteAccount}
                                 whileHover={{ x: 5, backgroundColor: "#fef2f2" }}
                                 className="w-full flex items-center gap-3 px-4 py-3 rounded-md text-red-500 transition-colors mt-2"
                             >
                                 <Trash2 size={16} />
                                 <span className="text-sm font-semibold">Delete User</span>
+                            </motion.button>
+                            <motion.button
+                                onClick={handleLogout}
+                                whileHover={{ x: 5, backgroundColor: "#fef2f2" }}
+                                className="w-full flex items-center gap-3 px-4 py-3 rounded-md text-red-500 transition-colors mt-2"
+                            >
+                                <LogOut size={16} />
+                                <span className="text-sm font-semibold">Logout</span>
                             </motion.button>
                         </div>
                     </motion.div>
@@ -274,8 +328,12 @@ export default function ProfilePage() {
                             transition={{ duration: 0.4 }}
                             className="mt-16 w-full pr-10"
                         >
-                            {activeTab === "personal" ? (
-                                <PersonalDetails onSave={handleSave} />
+                            {loading ? (
+                                <div className="flex items-center justify-center py-20">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#103B40]"></div>
+                                </div>
+                            ) : activeTab === "personal" ? (
+                                <PersonalDetails user={user} onSave={handleSave} />
                             ) : (
                                 <ChangePassword onSave={handleSave} onCancel={() => setActiveTab("personal")} />
                             )}
@@ -302,17 +360,26 @@ const itemVariants = {
     visible: { opacity: 1, y: 0 }
 };
 
-function PersonalDetails({ onSave }: { onSave: () => void }) {
-    const [email, setEmail] = useState("maherkojan75othdeinabrav@gmail.com");
+function PersonalDetails({ user, onSave }: { user: any, onSave: () => void }) {
+    const [username, setUsername] = useState(user?.username || "");
+    const [email, setEmail] = useState(user?.email || "");
+    const [bio, setBio] = useState(user?.bio || "");
     const [emailError, setEmailError] = useState("");
+    const [isSaving, setIsSaving] = useState(false);
 
-    const handleSave = () => {
-        if (email === "taken@gmail.com") {
-            setEmailError("Email already in use. Please choose a different email address.");
-            return;
-        }
+    const handleSave = async () => {
         setEmailError("");
-        onSave();
+        if (!user?.id) return;
+        setIsSaving(true);
+        try {
+            await usersService.updateProfile(user.id, { username, bio });
+            onSave();
+        } catch (error: any) {
+            console.error("Failed to update profile", error);
+            setEmailError(error?.response?.data?.message || "Failed to update profile");
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     return (
@@ -326,12 +393,8 @@ function PersonalDetails({ onSave }: { onSave: () => void }) {
 
             <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-2">First Name</label>
-                    <Input defaultValue="" className="bg-white border-none shadow-sm h-11" />
-                </div>
-                <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-2">Last Name</label>
-                    <Input defaultValue="" className="bg-white border-none shadow-sm h-11" />
+                    <label className="block text-xs font-semibold text-gray-700 mb-2">Username</label>
+                    <Input value={username} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUsername(e.target.value)} className="bg-white border-none shadow-sm h-11" />
                 </div>
             </motion.div>
 
@@ -339,8 +402,8 @@ function PersonalDetails({ onSave }: { onSave: () => void }) {
                 <label className="block text-xs font-semibold text-gray-700 mb-2">Email Address</label>
                 <Input
                     value={email}
-                    onChange={(e: any) => setEmail(e.target.value)}
-                    className={`bg-white shadow-sm h-11 transition-all ${emailError ? "border border-red-400 focus:ring-red-200 text-red-500" : "border-none"}`}
+                    disabled
+                    className="bg-gray-100 shadow-sm h-11 border-none text-gray-500 cursor-not-allowed"
                 />
                 <AnimatePresence>
                     {emailError && (
@@ -357,14 +420,11 @@ function PersonalDetails({ onSave }: { onSave: () => void }) {
                 </AnimatePresence>
             </motion.div>
 
-            <motion.div variants={itemVariants} className="mb-6">
-                <label className="block text-xs font-semibold text-gray-700 mb-2">Phone Number</label>
-                <Input defaultValue="" className="bg-white border-none shadow-sm h-11" />
-            </motion.div>
-
-            <motion.div variants={itemVariants} className="mb-8 border-b border-[#D3E0E2] pb-10">
+            <motion.div variants={itemVariants} className="mb-8 border-b border-[#D3E0E2] pb-10 mt-6">
                 <label className="block text-xs font-semibold text-gray-700 mb-2">Bio</label>
                 <textarea
+                    value={bio}
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setBio(e.target.value)}
                     className="w-full border-none shadow-sm rounded-md p-3 h-28 resize-none focus:outline-none focus:ring-2 focus:ring-teal-200 bg-white transition-all"
                 ></textarea>
             </motion.div>
@@ -384,8 +444,8 @@ function PersonalDetails({ onSave }: { onSave: () => void }) {
             </motion.div>
 
             <motion.div variants={itemVariants} className="mt-8 flex justify-end">
-                <Button onClick={handleSave} variant="primary" className="bg-[#103B40] hover:bg-[#0c2e32] h-10 shadow-md font-medium px-8 transition-transform hover:scale-105 active:scale-95">
-                    Save Changes
+                <Button onClick={handleSave} disabled={isSaving} variant="primary" className="bg-[#103B40] hover:bg-[#0c2e32] h-10 shadow-md font-medium px-8 transition-transform hover:scale-105 active:scale-95 disabled:opacity-70">
+                    {isSaving ? "Saving..." : "Save Changes"}
                 </Button>
             </motion.div>
         </motion.div>
