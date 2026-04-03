@@ -20,8 +20,8 @@ export default function MarketplaceDetails() {
 
       {/* Header */}
       <div className="flex items-center mb-6 mt-2 relative justify-center">
-        <Link 
-          href="/dashboard/marketplace" 
+        <Link
+          href="/dashboard/marketplace"
           className="absolute left-0 w-10 h-10 bg-[#123E41] text-white rounded-full flex items-center justify-center hover:bg-[#0d2c2e] transition-colors"
         >
           <ChevronLeft size={20} />
@@ -33,7 +33,7 @@ export default function MarketplaceDetails() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column - Details */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}

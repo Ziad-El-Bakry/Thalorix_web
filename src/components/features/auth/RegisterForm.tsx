@@ -2,24 +2,38 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { authService } from "@/lib/api/services/auth.service";
 
 export default function RegisterForm() {
+    const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const router = useRouter();
 
-    const handleSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
+    const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (e) => {
         e.preventDefault();
         if (password !== confirmPassword) {
             setError("Passwords do not match.");
             return;
         }
         setError("");
-        // proceed with registration
+        setLoading(true);
+        
+        try {
+            await authService.register({ username, email, password, confirmPassword });
+            router.push(`/verify-email?email=${encodeURIComponent(email)}`);
+        } catch (err: any) {
+            setError(err?.response?.data?.message || err?.message || "Registration failed");
+        } finally {
+            setLoading(false);
+        }
     };
 
     const containerVariants = {
@@ -48,6 +62,21 @@ export default function RegisterForm() {
             </motion.h2>
 
             <form onSubmit={handleSubmit} className="space-y-5">
+                {/* Username */}
+                <motion.div variants={itemVariants} className="space-y-1.5">
+                    <label className="block text-xs font-semibold text-gray-700 tracking-wide">
+                        Username
+                    </label>
+                    <input
+                        type="text"
+                        placeholder="Choose a username"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        required
+                        className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-300 transition"
+                    />
+                </motion.div>
+
                 {/* Email */}
                 <motion.div variants={itemVariants} className="space-y-1.5">
                     <label className="block text-xs font-semibold text-gray-700 tracking-wide">
@@ -160,9 +189,10 @@ export default function RegisterForm() {
                 <motion.button
                     variants={itemVariants}
                     type="submit"
-                    className="w-full bg-[#103B40] hover:bg-[#0c2f33] text-white font-bold text-sm tracking-wider py-3 rounded-lg transition-colors cursor-pointer"
+                    disabled={loading}
+                    className="w-full bg-[#103B40] hover:bg-[#0c2f33] disabled:opacity-70 disabled:cursor-not-allowed text-white font-bold text-sm tracking-wider py-3 rounded-lg transition-colors cursor-pointer"
                 >
-                    Register
+                    {loading ? "REGISTERING..." : "REGISTER"}
                 </motion.button>
 
                 {/* Sign In link */}
