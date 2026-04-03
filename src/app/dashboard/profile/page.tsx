@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import Notifications from "@/components/shared/Notification";
 import { authService } from "@/lib/api/services/auth.service";
 import { usersService } from "@/lib/api/services/users.service";
+import { useAvatar } from "@/store/useAvatarStore";
 
 type Tab = "personal" | "password";
 
@@ -21,7 +22,7 @@ export default function ProfilePage() {
     const [activeTab, setActiveTab] = useState<Tab>("personal");
     const [showToast, setShowToast] = useState(false);
     const [copied, setCopied] = useState(false);
-    const [previewImage, setPreviewImage] = useState("/images/avatar.png");
+    const { avatar: previewImage, setAvatar: setPreviewImage } = useAvatar();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);

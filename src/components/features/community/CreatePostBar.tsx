@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Video, ImageIcon, FileText } from "lucide-react";
 import { motion } from "framer-motion";
 import CreatePostModal from "./CreatePostModal";
+import { useAvatar } from "@/store/useAvatarStore";
 
 interface CreatePostBarProps {
   userName?: string;
@@ -14,8 +15,9 @@ interface CreatePostBarProps {
 export default function CreatePostBar({ userName = "User", userAvatar }: CreatePostBarProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [initialTab, setInitialTab] = useState<"text" | "video" | "photo" | "article">("text");
+  const { avatar: globalAvatar } = useAvatar();
 
-  const avatarSrc = userAvatar || "/images/avatar.png";
+  const avatarSrc = userAvatar || globalAvatar || "/images/avatar.png";
 
   const openModal = (tab: "text" | "video" | "photo" | "article") => {
     setInitialTab(tab);

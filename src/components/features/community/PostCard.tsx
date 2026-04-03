@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { ThumbsUp, MessageCircle, Share2, MoreHorizontal, Send } from "lucide-react";
+import { ThumbsUp, MessageCircle, Share2, MoreHorizontal, Send, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAvatar } from "@/store/useAvatarStore";
+import { authService } from "@/lib/api/services/auth.service";
 
 export interface PostData {
   id: string;
@@ -38,6 +40,8 @@ export default function PostCard({ post }: { post: PostData }) {
   const [commentText, setCommentText] = useState("");
   const [comments, setComments] = useState<CommentData[]>([]);
   const [showMore, setShowMore] = useState(false);
+  const [isShared, setIsShared] = useState(false);
+  const { avatar: globalAvatar } = useAvatar();
 
   const CONTENT_LIMIT = 200;
   const isLongContent = post.content.length > CONTENT_LIMIT;
@@ -49,16 +53,28 @@ export default function PostCard({ post }: { post: PostData }) {
 
   const handleAddComment = () => {
     if (!commentText.trim()) return;
+    const currentUser = authService.getStoredUser();
+    
     const newComment: CommentData = {
       id: Date.now().toString(),
-      author: "You",
-      avatar: "/images/avatar.png",
+      author: currentUser?.username || "User",
+      avatar: globalAvatar || "/images/avatar.png",
       text: commentText,
       time: "Just now",
     };
     setComments((prev) => [...prev, newComment]);
     setCommentCount((prev) => prev + 1);
     setCommentText("");
+  };
+
+  const handleShare = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setIsShared(true);
+      setTimeout(() => setIsShared(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy link:", err);
+    }
   };
 
   return (
@@ -167,10 +183,13 @@ export default function PostCard({ post }: { post: PostData }) {
 
         <motion.button
           whileTap={{ scale: 0.93 }}
-          className="flex items-center gap-2 flex-1 justify-center py-2.5 rounded-lg text-sm font-medium text-gray-500 transition-all duration-200 hover:bg-gray-50"
+          onClick={handleShare}
+          className={`flex items-center gap-2 flex-1 justify-center py-2.5 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-gray-50 ${
+            isShared ? "text-teal-600" : "text-gray-500"
+          }`}
         >
-          <Share2 size={18} />
-          <span className="hidden sm:inline">Share</span>
+          {isShared ? <Check size={18} /> : <Share2 size={18} />}
+          <span className="hidden sm:inline">{isShared ? "Copied Link" : "Share"}</span>
         </motion.button>
       </div>
 
@@ -213,7 +232,7 @@ export default function PostCard({ post }: { post: PostData }) {
               {/* Comment input */}
               <div className="flex items-center gap-2">
                 <Image
-                  src="/images/avatar.png"
+                  src={globalAvatar || "/images/avatar.png"}
                   alt="You"
                   width={32}
                   height={32}
