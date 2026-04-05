@@ -6,6 +6,7 @@ import Notifications from "@/components/shared/Notification";
 import { usePathname } from "next/navigation";
 import { Button } from "./button";
 import { motion } from "framer-motion";
+import { useAvatar } from "@/store/useAvatarStore";
 
 interface UserHeaderProps {
   name?: string;
@@ -16,8 +17,9 @@ interface UserHeaderProps {
 }
 
 export default function UserHeader({ name, avatar, badge, badgeIcon, compact = false }: UserHeaderProps) {
-  // Fallback avatar if none provided
-  const avatarSrc = avatar || "/images/avatar.png";
+  const { avatar: globalAvatar } = useAvatar();
+  // Use prop avatar first, then global avatar from store
+  const avatarSrc = avatar || globalAvatar || "/images/avatar.png";
   const pathname = usePathname();
   const isMessagesPage = pathname?.includes("/messages");
   return (
