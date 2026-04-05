@@ -9,6 +9,7 @@ import { authService } from "@/lib/api/services/auth.service";
 export default function RegisterForm() {
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
+    const [phone, setPhone] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [error, setError] = useState("");
@@ -27,8 +28,11 @@ export default function RegisterForm() {
         setLoading(true);
         
         try {
-            await authService.register({ username, email, password, confirmPassword });
-            router.push(`/verify-email?email=${encodeURIComponent(email)}`);
+            await authService.register({ username, email, phone, password, confirmPassword });
+            const params = new URLSearchParams({ email });
+            if (phone) params.set("phone", phone);
+            if (username) params.set("name", username);
+            router.push(`/choose-verification?${params.toString()}`);
         } catch (err: any) {
             setError(err?.response?.data?.message || err?.message || "Registration failed");
         } finally {
@@ -90,6 +94,20 @@ export default function RegisterForm() {
                         required
                         pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"
                         title="Enter a valid email address (e.g. user@example.com)"
+                        className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-300 transition"
+                    />
+                </motion.div>
+
+                {/* Phone */}
+                <motion.div variants={itemVariants} className="space-y-1.5">
+                    <label className="block text-xs font-semibold text-gray-700 tracking-wide">
+                        Phone Number (Optional)
+                    </label>
+                    <input
+                        type="tel"
+                        placeholder="Phone number"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
                         className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-300 transition"
                     />
                 </motion.div>

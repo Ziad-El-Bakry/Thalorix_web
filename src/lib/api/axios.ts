@@ -21,14 +21,16 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ||
 const API_VERSION = process.env.NEXT_PUBLIC_API_VERSION || 'v1';
 
 // Construct full API URL
-// If API_BASE_URL already contains /api, don't add it again
 let API_URL: string;
 
-if (API_BASE_URL.includes('/api')) {
-  // Already has /api in the URL
+if (API_BASE_URL.includes(`/${API_VERSION}`)) {
+  // Already has the version in the URL
+  API_URL = API_BASE_URL;
+} else if (API_BASE_URL.includes('/api')) {
+  // Already has /api in the URL, but missing version
   API_URL = `${API_BASE_URL}/${API_VERSION}`;
 } else {
-  // Add /api to the URL
+  // Add /api and version to the URL
   API_URL = `${API_BASE_URL}/api/${API_VERSION}`;
 }
 
@@ -142,7 +144,7 @@ api.interceptors.response.use(
         console.log('🔄 Attempting to refresh token...');
 
         const { data } = await axios.post(`${API_URL}/auth/refresh`, {
-          refresh_token: refreshToken,
+          refreshToken: refreshToken,
         });
 
         console.log('✅ Token refreshed successfully');

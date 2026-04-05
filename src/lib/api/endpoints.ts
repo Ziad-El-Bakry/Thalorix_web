@@ -6,7 +6,7 @@ export const ENDPOINTS = {
   // APP
   // ============================================
   APP: {
-    INFO: '', // Will become: /api/v1
+    INFO: '/', // Will become: /api/v1
   },
 
   // ============================================
@@ -33,10 +33,19 @@ export const ENDPOINTS = {
     UPDATE: (id: string) => `/users/${id}`,
     DELETE: (id: string) => `/users/${id}`,
     ME: '/users/me',
-    UPDATE_PROFILE: '/users/profile',
+    UPDATE_PROFILE: (id: string) => `/users/${id}`,
     CHANGE_PASSWORD: '/users/change-password',
-    UPLOAD_AVATAR: '/users/avatar',
+    UPLOAD_AVATAR: '/users/upload/avatars',
     GET_CREDITS: '/users/credits',
+  },
+
+  // ============================================
+  // OTP
+  // ============================================
+  OTP: {
+    SEND:   '/otp/send',
+    VERIFY: '/otp/verify',
+    RESEND: '/otp/resend',
   },
 
   // ... rest of endpoints
