@@ -39,7 +39,7 @@ export default function MobileNavbar() {
   }
 
   return (
-    <div className="lg:hidden">
+    <div className="lg:hidden sticky top-0 z-[60]">
       {/* Top Bar */}
       <div className="flex items-center justify-between bg-[#103B40] text-white px-4 py-4 relative z-50 shadow-md">
         

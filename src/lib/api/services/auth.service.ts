@@ -13,6 +13,7 @@ export interface LoginDto {
 export interface RegisterDto {
   username: string;
   email: string;
+  phone?: string;
   password: string;
   confirmPassword?: string;
 }
@@ -69,7 +70,20 @@ export const authService = {
       ? ENDPOINTS.AUTH.WEB_REGISTER 
       : ENDPOINTS.AUTH.MOB_REGISTER;
 
-    const { data } = await api.post<AuthResponse>(endpoint, dto);
+    // Map frontend DTO to backend DTO expected fields
+    const backendPayload: any = {
+      name: dto.username,
+      email: dto.email,
+      password: dto.password,
+      cPassword: dto.confirmPassword,
+    };
+    
+    // Only send phone if it has a non-empty value
+    if (dto.phone && dto.phone.trim() !== "") {
+      backendPayload.phone = dto.phone.trim();
+    }
+
+    const { data } = await api.post<AuthResponse>(endpoint, backendPayload);
 
     return data;
   },
@@ -92,7 +106,7 @@ export const authService = {
    */
   async refresh(refreshToken: string): Promise<AuthResponse> {
     const { data } = await api.post<AuthResponse>(ENDPOINTS.AUTH.REFRESH, {
-      refresh_token: refreshToken,
+      refreshToken: refreshToken,
     });
 
     // Update tokens

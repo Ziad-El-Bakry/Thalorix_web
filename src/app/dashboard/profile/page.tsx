@@ -53,16 +53,24 @@ export default function ProfilePage() {
         setTimeout(() => setCopied(false), 2000);
     };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
             const reader = new FileReader();
             reader.onloadend = () => {
                 setPreviewImage(reader.result as string);
-                setShowToast(true);
-                setTimeout(() => setShowToast(false), 3000);
             };
             reader.readAsDataURL(file);
+
+            // Upload to backend
+            try {
+                const { avatarUrl } = await usersService.uploadAvatar(file);
+                if (avatarUrl) setPreviewImage(avatarUrl);
+                setShowToast(true);
+                setTimeout(() => setShowToast(false), 3000);
+            } catch (error) {
+                console.error('Failed to upload avatar:', error);
+            }
         }
     };
 
@@ -312,7 +320,7 @@ export default function ProfilePage() {
                             <motion.button
                                 onClick={handleLogout}
                                 whileHover={{ x: 5, backgroundColor: "#fef2f2" }}
-                                className="w-full flex items-center gap-3 px-4 py-3 rounded-md text-red-500 transition-colors mt-2"
+                                className="w-full flex items-center gap-3 px-4 py-3 rounded-md text-black-500 transition-colors mt-2"
                             >
                                 <LogOut size={16} />
                                 <span className="text-sm font-semibold">Logout</span>
@@ -336,7 +344,7 @@ export default function ProfilePage() {
                             ) : activeTab === "personal" ? (
                                 <PersonalDetails user={user} onSave={handleSave} />
                             ) : (
-                                <ChangePassword onSave={handleSave} onCancel={() => setActiveTab("personal")} />
+                                <ChangePassword user={user} onSave={handleSave} onCancel={() => setActiveTab("personal")} />
                             )}
                         </motion.div>
                     </div>
@@ -453,18 +461,19 @@ function PersonalDetails({ user, onSave }: { user: any, onSave: () => void }) {
     );
 }
 
-function ChangePassword({ onSave, onCancel }: { onSave: () => void; onCancel: () => void }) {
+function ChangePassword({ user, onSave, onCancel }: { user: any; onSave: () => void; onCancel: () => void }) {
     const [showOldPassword, setShowOldPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [oldPassword, setOldPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [confirmNewPassword, setConfirmNewPassword] = useState("");
+    const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState("");
 
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
-    const handleSave = () => {
+    const handleSave = async () => {
         setError("");
         if (!oldPassword) {
             setError("Please enter your current password.");
@@ -482,7 +491,19 @@ function ChangePassword({ onSave, onCancel }: { onSave: () => void; onCancel: ()
             setError("New passwords do not match.");
             return;
         }
-        onSave();
+        setIsSaving(true);
+        try {
+            await usersService.changePassword({
+                currentPassword: oldPassword,
+                newPassword,
+                confirmPassword: confirmNewPassword,
+            });
+            onSave();
+        } catch (err: any) {
+            setError(err?.response?.data?.message || 'Failed to change password.');
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     return (
@@ -496,7 +517,7 @@ function ChangePassword({ onSave, onCancel }: { onSave: () => void; onCancel: ()
 
             <motion.div variants={itemVariants} className="mb-6 mt-4">
                 <label className="block text-xs font-semibold text-gray-700 mb-2">Enter your Email</label>
-                <Input defaultValue="[EMAIL_ADDRESS]" className="bg-white border-none shadow-sm h-11 text-gray-500" />
+                <Input value={user?.email || ''} disabled className="bg-white border-none shadow-sm h-11 text-gray-500" />
             </motion.div>
 
             <motion.div variants={itemVariants} className="mb-6 mt-2 relative">
@@ -590,8 +611,8 @@ function ChangePassword({ onSave, onCancel }: { onSave: () => void; onCancel: ()
                     <ArrowLeft size={16} />
                     Cancel
                 </Button>
-                <Button onClick={handleSave} variant="primary" className="flex-1 bg-[#103B40] hover:bg-[#0c2e32] h-10 shadow-md font-medium transition-transform hover:scale-105 active:scale-95">
-                    Save
+                <Button onClick={handleSave} disabled={isSaving} variant="primary" className="flex-1 bg-[#103B40] hover:bg-[#0c2e32] h-10 shadow-md font-medium transition-transform hover:scale-105 active:scale-95 disabled:opacity-70">
+                    {isSaving ? 'Saving...' : 'Save'}
                 </Button>
             </motion.div>
         </motion.div>

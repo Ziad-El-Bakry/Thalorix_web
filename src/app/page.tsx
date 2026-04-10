@@ -174,8 +174,7 @@ export default function Page() {
                 </motion.div>
               </h1>
               <p className="font-medium text-base md:text-2xl text-[#346C73]">
-                Code, preview, manage. Everything in one flow. Built for
-                founders.
+                Code, preview, manage. Everything in one flow   
               </p>
               <div className="flex flex-col sm:flex-row items-center gap-4 md:gap-6 pt-4">
                 <motion.button

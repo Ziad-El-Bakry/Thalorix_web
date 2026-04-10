@@ -58,7 +58,7 @@ export const usersService = {
     if (dto.avatar) formData.append('avatar', dto.avatar);
 
     const { data } = await api.patch<User>(
-      ENDPOINTS.USERS.UPDATE(id),
+      ENDPOINTS.USERS.UPDATE_PROFILE(id),
       formData,
       {
         headers: {
@@ -88,7 +88,7 @@ export const usersService = {
    */
   async uploadAvatar(file: File): Promise<{ avatarUrl: string }> {
     const formData = new FormData();
-    formData.append('avatar', file);
+    formData.append('file', file);
 
     const { data } = await api.post(
       ENDPOINTS.USERS.UPLOAD_AVATAR,
@@ -99,7 +99,7 @@ export const usersService = {
         },
       }
     );
-    return data;
+    return data.avatarUrl ? data : { avatarUrl: data.secure_url || data.url || data };
   },
 
   /**
