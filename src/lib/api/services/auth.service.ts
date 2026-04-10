@@ -112,6 +112,24 @@ export const authService = {
   },
 
   /**
+   * Verify OTP code
+   */
+  async verifyOtp(data: { email: string; otp: string }): Promise<AuthResponse> {
+    const response = await api.post<AuthResponse>(ENDPOINTS.AUTH.VERIFY_OTP, data);
+    
+    // If verification returns tokens, save them
+    if (response.data?.access_token) {
+      localStorage.setItem('access_token', response.data.access_token);
+      localStorage.setItem('refresh_token', response.data.refresh_token);
+      if (response.data.user) {
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+      }
+    }
+    
+    return response.data;
+  },
+
+  /**
    * Request password reset
    */
   async forgotPassword(email: string): Promise<void> {
