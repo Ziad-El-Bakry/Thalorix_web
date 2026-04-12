@@ -6,6 +6,7 @@ import { Search, SlidersHorizontal, WifiOff, X, Loader2 } from "lucide-react";
 import UserHeader from "@/components/ui/UserHeader";
 import CreatePostBar from "@/components/features/community/CreatePostBar";
 import PostCard, { PostData } from "@/components/features/community/PostCard";
+import { useAvatar } from "@/store/useAvatarStore";
 
 // Sample posts data
 const SAMPLE_POSTS: PostData[] = [
@@ -71,6 +72,7 @@ const SAMPLE_POSTS: PostData[] = [
 export default function Community() {
   const [searchQuery, setSearchQuery] = useState("");
   const [posts, setPosts] = useState<PostData[]>(SAMPLE_POSTS);
+  const { avatar: globalAvatar } = useAvatar();
   const [showConnectionToast, setShowConnectionToast] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [pullDistance, setPullDistance] = useState(0);
@@ -163,7 +165,7 @@ export default function Community() {
       id: Date.now().toString(),
       author: {
         name: "Emad",
-        avatar: "/images/avatar.png",
+        avatar: globalAvatar || "/images/avatar.png",
         title: "Developer",
       },
       content: postData.content,

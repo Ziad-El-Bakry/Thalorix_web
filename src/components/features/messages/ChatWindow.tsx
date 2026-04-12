@@ -6,6 +6,7 @@ import ChatHeader from "./ChatHeader";
 import MessageBubble from "./MessageBubble";
 import MessageInput from "./MessageInput";
 import { X } from "lucide-react";
+import { useAvatar } from "@/store/useAvatarStore";
 
 export default function ChatWindow({ 
   conversation,
@@ -20,6 +21,7 @@ export default function ChatWindow({
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { avatar: globalAvatar } = useAvatar();
 
   useEffect(() => {
     if (conversation) {
@@ -34,7 +36,7 @@ export default function ChatWindow({
 
     const newMsg: Message = {
       id: String(Date.now()),
-      sender: { id: "1", name: "Emad", avatarUrl: "/images/avatar.png" },
+      sender: { id: "1", name: "Emad", avatarUrl: globalAvatar || "/images/avatar.png" },
       text: type === "text" ? content : undefined,
       audioUrl: type === "audio" ? content : undefined,
       imageUrl: type === "image" ? content : undefined,

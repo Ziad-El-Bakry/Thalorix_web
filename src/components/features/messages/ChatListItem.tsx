@@ -46,17 +46,11 @@ export default function ChatListItem({
     >
       {/* Avatar */}
       <div className="relative flex-shrink-0">
-        {other.avatarUrl ? (
-          <img
-            src={other.avatarUrl}
-            alt={other.name}
-            className="w-11 h-11 rounded-full object-cover shadow-md"
-          />
-        ) : (
-          <div className={`w-11 h-11 rounded-full flex items-center justify-center text-white font-semibold text-base shadow-md ${colorClass}`}>
-            {other.name.charAt(0).toUpperCase()}
-          </div>
-        )}
+        <img
+          src={other.avatarUrl || "/images/avatar.png"}
+          alt={other.name}
+          className="w-11 h-11 rounded-full object-cover shadow-md"
+        />
         {other.online && (
           <span className="absolute bottom-0.5 right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white" />
         )}

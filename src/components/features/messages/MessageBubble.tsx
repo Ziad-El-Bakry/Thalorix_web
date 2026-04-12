@@ -2,8 +2,11 @@ import React, { useState, useRef, useEffect } from "react";
 import { motion, useAnimation } from "framer-motion";
 import { CheckCheck, FileText, Archive, Download, Play, Pause, Volume2, Reply } from "lucide-react";
 import MessageContextMenu from "./MessageContextMenu";
+import { useAvatar } from "@/store/useAvatarStore";
 
 export default function MessageBubble({ message, isOwn = false, onImageClick, onReply }: any) {
+  const { avatar: globalAvatar } = useAvatar();
+
   const handleFileDownload = () => {
     if (!message.fileUrl) return;
     const a = document.createElement("a");
@@ -255,7 +258,7 @@ export default function MessageBubble({ message, isOwn = false, onImageClick, on
 
       {isOwn && (
         <img
-          src={message.sender?.avatarUrl || "/images/avatar.png"}
+          src={globalAvatar || message.sender?.avatarUrl || "/images/avatar.png"}
           alt="Me"
           className="w-7 h-7 rounded-full object-cover flex-shrink-0 mt-auto mb-1 ring-1 ring-black/5 shadow-md"
         />

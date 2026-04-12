@@ -10,7 +10,10 @@ export default function DashboardPage() {
   return (
     <div className="max-w-7xl mx-auto">
       {/* Header */}
-      <UserHeader name="User" badge="Developer" />
+      <UserHeader name="User" badge="Developer" compact />
+
+      {/* Divider */}
+      <div className="h-px bg-gray-300 mb-6 md:mb-8" />
 
       {/* Quick Access */}
       <SectionHeader title="Quick Access" />

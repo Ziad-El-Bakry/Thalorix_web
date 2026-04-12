@@ -20,7 +20,7 @@ export const dummyConversations: Conversation[] = Array.from({ length: 12 }).map
     {
       id: String(i + 2),
       name: names[i],
-      avatarUrl: "",
+      avatarUrl: "/images/avatar.png",
       online: i >= 0 && i <= 3,
     },
   ],
@@ -30,7 +30,7 @@ export const dummyConversations: Conversation[] = Array.from({ length: 12 }).map
       sender: {
         id: "2",
         name: names[i],
-        avatarUrl: "",
+        avatarUrl: "/images/avatar.png",
       },
       text: i % 3 === 0
         ? "Hey, I think there's a mistake on my Code..."
@@ -46,7 +46,7 @@ export const dummyConversations: Conversation[] = Array.from({ length: 12 }).map
     sender: {
       id: "2",
       name: names[i],
-      avatarUrl: "",
+      avatarUrl: "/images/avatar.png",
     },
     text: i % 3 === 0
       ? "Hey, I think there's a mistake on my Code..."

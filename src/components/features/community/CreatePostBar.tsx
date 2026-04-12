@@ -58,9 +58,9 @@ export default function CreatePostBar({ userName = "User", userAvatar }: CreateP
             whileHover={{ backgroundColor: "rgba(0,0,0,0.04)" }}
             whileTap={{ scale: 0.97 }}
             onClick={() => openModal("video")}
-            className="flex items-center gap-2.5 px-5 py-3 rounded-lg text-[14px] font-semibold text-gray-600 transition-colors duration-200 cursor-pointer"
+            className="flex items-center gap-1.5 px-2 py-3 rounded-lg text-xs font-semibold text-gray-600 transition-colors duration-200 cursor-pointer whitespace-nowrap"
           >
-            <Video size={24} className="text-red-500" strokeWidth={2.2} />
+            <Video size={20} className="text-red-500" strokeWidth={2.2} />
             Video
           </motion.button>
 
@@ -68,9 +68,9 @@ export default function CreatePostBar({ userName = "User", userAvatar }: CreateP
             whileHover={{ backgroundColor: "rgba(0,0,0,0.04)" }}
             whileTap={{ scale: 0.97 }}
             onClick={() => openModal("photo")}
-            className="flex items-center gap-2.5 px-5 py-3 rounded-lg text-[14px] font-semibold text-gray-600 transition-colors duration-200 cursor-pointer"
+            className="flex items-center gap-1.5 px-2 py-3 rounded-lg text-xs font-semibold text-gray-600 transition-colors duration-200 cursor-pointer whitespace-nowrap"
           >
-            <ImageIcon size={24} className="text-blue-500" strokeWidth={2.2} />
+            <ImageIcon size={20} className="text-blue-500" strokeWidth={2.2} />
             Photo
           </motion.button>
 
@@ -78,9 +78,9 @@ export default function CreatePostBar({ userName = "User", userAvatar }: CreateP
             whileHover={{ backgroundColor: "rgba(0,0,0,0.04)" }}
             whileTap={{ scale: 0.97 }}
             onClick={() => openModal("article")}
-            className="flex items-center gap-2.5 px-5 py-3 rounded-lg text-[14px] font-semibold text-gray-600 transition-colors duration-200 cursor-pointer"
+            className="flex items-center gap-1.5 px-2 py-3 rounded-lg text-xs font-semibold text-gray-600 transition-colors duration-200 cursor-pointer whitespace-nowrap"
           >
-            <FileText size={24} className="text-orange-500" strokeWidth={2.2} />
+            <FileText size={20} className="text-orange-500" strokeWidth={2.2} />
             Write article
           </motion.button>
         </div>
