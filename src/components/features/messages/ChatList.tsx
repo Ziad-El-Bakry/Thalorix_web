@@ -59,9 +59,11 @@ export const dummyConversations: Conversation[] = Array.from({ length: 12 }).map
 }));
 
 export default function ChatList({
+  conversations,
   selectedId,
   onSelect,
 }: {
+  conversations: Conversation[];
   selectedId: string | null;
   onSelect: (id: string) => void;
 }) {
@@ -77,11 +79,11 @@ export default function ChatList({
 
   const filtered = useMemo(() =>
     search.trim()
-      ? dummyConversations.filter((c) =>
-          c.participants[0].name.toLowerCase().includes(search.toLowerCase())
+      ? conversations.filter((c) =>
+          c.participants[0]?.name.toLowerCase().includes(search.toLowerCase())
         )
-      : dummyConversations,
-    [search]
+      : conversations,
+    [search, conversations]
   );
 
   return (

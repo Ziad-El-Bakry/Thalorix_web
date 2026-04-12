@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { ThumbsUp, MessageCircle, Share2, MoreHorizontal, Send, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAvatar } from "@/store/useAvatarStore";
@@ -10,6 +11,7 @@ import { authService } from "@/lib/api/services/auth.service";
 export interface PostData {
   id: string;
   author: {
+    id?: string;
     name: string;
     avatar: string;
     title?: string;
@@ -86,16 +88,16 @@ export default function PostCard({ post }: { post: PostData }) {
     >
       {/* Author row */}
       <div className="flex items-start justify-between px-4 pt-4 pb-2">
-        <div className="flex items-center gap-3">
+        <Link href={post.author.id ? `/dashboard/profile/${post.author.id}` : "#"} className="flex flex-1 items-center gap-3 group">
           <Image
             src={post.author.avatar}
             alt={post.author.name}
             width={44}
             height={44}
-            className="w-10 h-10 rounded-full object-cover shadow-sm flex-shrink-0"
+            className="w-10 h-10 rounded-full object-cover shadow-sm flex-shrink-0 group-hover:ring-2 ring-teal-500/50 transition-all"
           />
           <div>
-            <h4 className="text-sm font-semibold text-gray-900 leading-tight">
+            <h4 className="text-sm font-semibold text-gray-900 leading-tight group-hover:text-teal-700 transition-colors">
               {post.author.name}
             </h4>
             {post.author.title && (
@@ -103,7 +105,7 @@ export default function PostCard({ post }: { post: PostData }) {
             )}
             <p className="text-[11px] text-gray-400 mt-0.5">{post.timestamp}</p>
           </div>
-        </div>
+        </Link>
         <button className="p-1.5 rounded-full hover:bg-gray-100 transition-colors text-gray-400">
           <MoreHorizontal size={18} />
         </button>

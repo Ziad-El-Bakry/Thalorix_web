@@ -85,7 +85,14 @@ export default function Sidebar() {
       <nav className="flex-1">
         <ul className="space-y-3">
           {NAV.map((item) => {
-            const isActive = pathname === item.href;
+            let isActive = pathname === item.href;
+            
+            // If viewing another person's profile, highlight Community instead of Profile
+            if (pathname?.startsWith("/dashboard/profile/") && pathname !== "/dashboard/profile") {
+              if (item.label === "Community") isActive = true;
+              if (item.label === "Profile") isActive = false;
+            }
+
             const Icon = item.icon;
 
             return (

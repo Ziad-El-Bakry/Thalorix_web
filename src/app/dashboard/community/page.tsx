@@ -13,8 +13,9 @@ const SAMPLE_POSTS: PostData[] = [
   {
     id: "1",
     author: {
+      id: "1",
       name: "Adel Ghamri",
-      avatar: "/images/avatar.png",
+      avatar: "/images/profile1.png",
       title: "Full-Stack Developer",
     },
     content:
@@ -28,8 +29,9 @@ const SAMPLE_POSTS: PostData[] = [
   {
     id: "2",
     author: {
+      id: "2",
       name: "Sara",
-      avatar: "/images/avatar.png",
+      avatar: "/images/profile2.png",
       title: "UI/UX Designer",
     },
     content:
@@ -42,6 +44,7 @@ const SAMPLE_POSTS: PostData[] = [
   {
     id: "3",
     author: {
+      id: "3",
       name: "Parker",
       avatar: "/images/avatar.png",
       title: "Frontend Engineer",
@@ -56,6 +59,7 @@ const SAMPLE_POSTS: PostData[] = [
   {
     id: "4",
     author: {
+      id: "4",
       name: "William",
       avatar: "/images/avatar.png",
       title: "Product Manager",
