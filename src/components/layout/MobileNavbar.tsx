@@ -107,7 +107,12 @@ export default function MobileNavbar() {
           >
             <nav className="flex flex-col px-4 py-4 space-y-2 text-white">
               {NAV.map((item) => {
-                const isActive = pathname === item.href;
+                let isActive = pathname === item.href;
+                
+                // If viewing marketplace related pages, highlight Marketplace
+                if (pathname?.startsWith("/dashboard/marketplace")) {
+                  if (item.label === "Marketplace") isActive = true;
+                }
                 const Icon = item.icon;
                 return (
                   <Link

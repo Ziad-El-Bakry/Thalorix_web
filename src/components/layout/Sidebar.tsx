@@ -93,6 +93,11 @@ export default function Sidebar() {
               if (item.label === "Profile") isActive = false;
             }
 
+            // If viewing marketplace related pages, highlight Marketplace
+            if (pathname?.startsWith("/dashboard/marketplace")) {
+              if (item.label === "Marketplace") isActive = true;
+            }
+
             const Icon = item.icon;
 
             return (
