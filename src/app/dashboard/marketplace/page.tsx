@@ -46,7 +46,7 @@ export default function MarketplacePage() {
           <div className="flex items-center gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className={`p-3.5 rounded-xl flex-shrink-0 flex items-center justify-center transition-colors focus:ring-2 focus:ring-teal-500/50 outline-none ${category !== "All Categories" ? "bg-teal-600 text-white" : "bg-[#123E41] text-white hover:bg-[#0d2c2e]"}`} title="Categories">
+                <button suppressHydrationWarning className={`p-3.5 rounded-xl flex-shrink-0 flex items-center justify-center transition-colors focus:ring-2 focus:ring-teal-500/50 outline-none ${category !== "All Categories" ? "bg-teal-600 text-white" : "bg-[#123E41] text-white hover:bg-[#0d2c2e]"}`} title="Categories">
                   <LayoutGrid size={20} />
                 </button>
               </DropdownMenuTrigger>
@@ -64,7 +64,7 @@ export default function MarketplacePage() {
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className={`p-3.5 rounded-xl flex-shrink-0 flex items-center justify-center transition-colors focus:ring-2 focus:ring-teal-500/50 outline-none ${sortBy !== "Newest First" ? "bg-teal-600 text-white" : "bg-[#123E41] text-white hover:bg-[#0d2c2e]"}`} title="Filter/Sort">
+                <button suppressHydrationWarning className={`p-3.5 rounded-xl flex-shrink-0 flex items-center justify-center transition-colors focus:ring-2 focus:ring-teal-500/50 outline-none ${sortBy !== "Newest First" ? "bg-teal-600 text-white" : "bg-[#123E41] text-white hover:bg-[#0d2c2e]"}`} title="Filter/Sort">
                   <Filter size={20} />
                 </button>
               </DropdownMenuTrigger>
