@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -44,7 +45,16 @@ export default function MobileNavbar() {
       <div className="flex items-center justify-between bg-[#103B40] text-white px-4 py-4 relative z-50 shadow-md">
         
         {/* Animated Logo for Mobile */}
-        <motion.h1 
+        <div className="flex items-center gap-3">
+          <Image
+            src="/images/logoSM.png"
+            alt="Thalorix Logo"
+            width={45}
+            height={47}
+            className="object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]"
+            priority
+          />
+          <motion.h1 
           className="text-xl font-semibold tracking-widest flex"
           initial="hidden"
           animate="visible"
@@ -79,6 +89,7 @@ export default function MobileNavbar() {
             </motion.span>
           ))}
         </motion.h1>
+        </div>
 
         <div className="flex items-center gap-2">
           {isMessagesPage && (

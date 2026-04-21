@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import {
@@ -39,7 +40,15 @@ export default function Sidebar() {
     >
       {/* Logo */}
 
-      <div className="mb-10 text-center">
+      <div className="mb-10 text-center flex flex-col items-center">
+        <Image
+          src="/images/logoSM.png"
+          alt="Thalorix Logo"
+          width={70}
+          height={60}
+          className="object-contain mb-3 drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]"
+          priority
+        />
         <motion.h1
           className="text-white text-2xl font-semibold tracking-widest flex justify-center"
           initial="hidden"
