@@ -127,10 +127,19 @@ api.interceptors.response.use(
       hint: isNetworkError ? '🔧 Backend might be down or unreachable. Check API_BASE_URL and ensure backend is running.' : undefined,
     };
 
-    console.error('🔴 API Error:', JSON.stringify(errorDetails, null, 2));
+    // Only use console.error for true network errors or 500s to avoid triggering the Next.js Error Overlay for normal validations.
+    if (isNetworkError || error.response?.status && error.response.status >= 500) {
+      console.error('🔴 API Error:', JSON.stringify(errorDetails, null, 2));
+    } else {
+      console.warn('🟡 API Warning (Handled):', JSON.stringify(errorDetails, null, 2));
+    }
 
-    // Token refresh logic (only for 401 errors)
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Token refresh logic (only for 401 errors, ignoring login endpoints)
+    if (
+      error.response?.status === 401 && 
+      !originalRequest._retry &&
+      !originalRequest.url?.includes('/login')
+    ) {
       originalRequest._retry = true;
 
       try {
@@ -149,11 +158,15 @@ api.interceptors.response.use(
 
         console.log('✅ Token refreshed successfully');
 
+        const newToken = data.access_token || data.accessToken;
+        
         // Save new token
-        localStorage.setItem('access_token', data.access_token);
+        if (newToken) {
+            localStorage.setItem('access_token', newToken);
+        }
         
         // Retry original request
-        originalRequest.headers.Authorization = `Bearer ${data.access_token}`;
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return api(originalRequest);
         
       } catch (refreshError) {

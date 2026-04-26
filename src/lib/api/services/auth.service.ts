@@ -30,8 +30,10 @@ export interface User {
 }
 
 export interface AuthResponse {
-  access_token: string;
-  refresh_token: string;
+  access_token?: string;
+  refresh_token?: string;
+  accessToken?: string;
+  refreshToken?: string;
   user: User;
 }
 
@@ -55,8 +57,11 @@ export const authService = {
     const { data } = await api.post<AuthResponse>(endpoint, dto);
 
     // Save tokens
-    localStorage.setItem('access_token', data.access_token);
-    localStorage.setItem('refresh_token', data.refresh_token);
+    const token = data.access_token || data.accessToken;
+    const refresh = data.refresh_token || data.refreshToken;
+    
+    if (token) localStorage.setItem('access_token', token);
+    if (refresh) localStorage.setItem('refresh_token', refresh);
     localStorage.setItem('user', JSON.stringify(data.user));
 
     return data;
@@ -108,10 +113,11 @@ export const authService = {
     });
 
     // Update tokens
-    localStorage.setItem('access_token', data.access_token);
-    if (data.refresh_token) {
-      localStorage.setItem('refresh_token', data.refresh_token);
-    }
+    const token = data.access_token || data.accessToken;
+    const refresh = data.refresh_token || data.refreshToken;
+    
+    if (token) localStorage.setItem('access_token', token);
+    if (refresh) localStorage.setItem('refresh_token', refresh);
 
     return data;
   },
@@ -130,9 +136,12 @@ export const authService = {
     const response = await api.post<AuthResponse>(ENDPOINTS.AUTH.VERIFY_OTP, data);
     
     // If verification returns tokens, save them
-    if (response.data?.access_token) {
-      localStorage.setItem('access_token', response.data.access_token);
-      localStorage.setItem('refresh_token', response.data.refresh_token);
+    const token = response.data?.access_token || response.data?.accessToken;
+    const refresh = response.data?.refresh_token || response.data?.refreshToken;
+    
+    if (token) {
+      localStorage.setItem('access_token', token);
+      if (refresh) localStorage.setItem('refresh_token', refresh);
       if (response.data.user) {
         localStorage.setItem('user', JSON.stringify(response.data.user));
       }

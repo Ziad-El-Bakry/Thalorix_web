@@ -33,23 +33,20 @@ function ChooseVerificationInner() {
         setError("");
         setLoading(method);
         try {
+            // Simulate a short network delay for better UX
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // The backend currently returns the OTP immediately in the /register response,
+            // and the /otp/send endpoint returns 404. 
+            // So we bypass the explicit send request and just navigate to the verification page.
+
             if (method === "email") {
-                await otpService.sendOtp({
-                    type: "email_verification",
-                    email,
-                    name,
-                });
                 router.push(`/verify-email?method=email&email=${encodeURIComponent(email)}`);
             } else {
-                await otpService.sendOtp({
-                    type: "phone_verification",
-                    phone,
-                    name,
-                });
                 router.push(`/verify-email?method=sms&phone=${encodeURIComponent(phone)}&email=${encodeURIComponent(email)}`);
             }
         } catch (err: any) {
-            setError(err?.response?.data?.message || "Failed to send code. Please try again.");
+            setError(err?.response?.data?.message || "Failed to proceed to verification. Please try again.");
         } finally {
             setLoading(null);
         }

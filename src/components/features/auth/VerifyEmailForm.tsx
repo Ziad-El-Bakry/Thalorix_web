@@ -53,14 +53,14 @@ export default function VerifyEmailForm() {
         setResending(true);
         setResent(false);
         try {
-            await otpService.resendOtp({
-                type: otpType,
-                ...(isSms ? { phone } : { email }),
-            });
-            setOtp(Array(OTP_LENGTH).fill(""));
-            inputRefs[0].current?.focus();
-            setResent(true);
-            setTimeout(() => setResent(false), 4000);
+            // Simulate a short delay
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // The backend /otp/resend endpoint returns 404 because it is not implemented.
+            // Since the OTP is only generated and returned during the initial /register call,
+            // we cannot request a new one here.
+            setError("Resend is currently unavailable. Please register again to get a new code.");
+            
         } catch (err: any) {
             setError(err?.response?.data?.message || "Failed to resend code.");
         } finally {
