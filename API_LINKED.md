@@ -13,7 +13,7 @@ http://localhost:3000/api/v1/...  (Your Next.js app on localhost:3000)
     ↓
 next.config.mjs proxy rewrites the request
     ↓
-https://thalorix-back-end--om8523302.replit.app/api/v1/...  (Replit backend)
+https://thalorix-back-end--omarshabour1.replit.app/api/v1/...  (Replit backend)
     ↓
 Response sent back to frontend
 ```
@@ -36,7 +36,7 @@ rewrites: {
   beforeFiles: [
     {
       source: "/api/:path*",
-      destination: "https://thalorix-back-end--om8523302.replit.app/api/:path*",
+      destination: "https://thalorix-back-end--omarshabour1.replit.app/api/:path*",
     },
   ];
 }
@@ -219,7 +219,7 @@ authService.login({ email: 'test@test.com', password: 'test' });
                 ↓
 5. next.config.mjs proxy rewrites:
    FROM: http://localhost:3000/api/v1/auth/web/login
-   TO:   https://thalorix-back-end--om8523302.replit.app/api/v1/auth/web/login
+   TO:   https://thalorix-back-end--omarshabour1.replit.app/api/v1/auth/web/login
                 ↓
 6. Backend processes request
                 ↓

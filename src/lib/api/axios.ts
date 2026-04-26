@@ -14,9 +14,11 @@ declare module 'axios' {
 // ============================================
 // Configuration
 // ============================================
+const isProd = typeof window !== 'undefined' ? window.location.hostname !== 'localhost' : process.env.NODE_ENV === 'production';
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 
                      process.env.NEXT_PUBLIC_API_URL || 
-                     'http://localhost:3001';
+                     (isProd ? '/api' : 'http://localhost:3000/api');
 
 const API_VERSION = process.env.NEXT_PUBLIC_API_VERSION || 'v1';
 
