@@ -124,7 +124,9 @@ export const usersService = {
 // ✅ POST /api/v1/auth/mob/login
 // ✅ POST /api/v1/auth/refresh
 // ✅ POST /api/v1/auth/logout
-// ✅ POST /api/v1/users/forgot-password
+// ✅ POST /api/v1/auth/forgot-password
+// ✅ POST /api/v1/auth/verify-otp
+// ✅ POST /api/v1/auth/reset-password
 // ✅ GET  /api/v1/users
 // ✅ GET  /api/v1/users/{id}
 // ✅ PATCH /api/v1/users/{id}

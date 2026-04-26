@@ -60,11 +60,10 @@ rewrites: {
 
 | Method | Endpoint                 | Configuration           | Service            |
 | ------ | ------------------------ | ----------------------- | ------------------ |
-| POST   | `/users/forgot-password` | `USERS.FORGOT_PASSWORD` | `users.service.ts` |
 | GET    | `/users`                 | `USERS.GET_ALL`         | `users.service.ts` |
 | GET    | `/users/{id}`            | `USERS.GET_BY_ID(id)`   | `users.service.ts` |
 | PATCH  | `/users/{id}`            | `USERS.UPDATE(id)`      | `users.service.ts` |
-| DELETE | `/users/{id}`            | `USERS.DELETE(id)`      | `users.service.ts` |
+| DELETE | `/users/{id}`            S.DELETE(id)`      | `users.service.ts` |
 | GET    | `/users/me`              | `USERS.ME`              | `users.service.ts` |
 | PATCH  | `/users/profile`         | `USERS.UPDATE_PROFILE`  | `users.service.ts` |
 | PATCH  | `/users/change-password` | `USERS.CHANGE_PASSWORD` | `users.service.ts` |
@@ -85,7 +84,9 @@ rewrites: {
 | POST   | `/auth/mob/login`      | `AUTH.MOB_LOGIN`      | `auth.service.ts` |
 | POST   | `/auth/refresh`        | `AUTH.REFRESH`        | `auth.service.ts` |
 | POST   | `/auth/logout`         | `AUTH.LOGOUT`         | `auth.service.ts` |
+| POST   | `/auth/forgot-password`| `AUTH.FORGOT_PASSWORD`| `auth.service.ts` |
 | POST   | `/auth/verify-email`   | `AUTH.VERIFY_EMAIL`   | `auth.service.ts` |
+| POST   | `/auth/verify-otp`     | `AUTH.VERIFY_OTP`     | `auth.service.ts` |
 | POST   | `/auth/reset-password` | `AUTH.RESET_PASSWORD` | `auth.service.ts` |
 
 **Service File:** `src/lib/api/services/auth.service.ts`

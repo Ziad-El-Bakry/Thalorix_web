@@ -17,6 +17,7 @@ export function VerifyOtpForm() {
     
     // Create an array of refs
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+    const type = searchParams?.get("type") || "";
 
     const verifyOtp = async () => {
         const code = otp.join("");
@@ -31,7 +32,11 @@ export function VerifyOtpForm() {
         setLoading(true);
         try {
             await authService.verifyOtp({ email, otp: code });
-            router.push("/dashboard"); // Redirect on success
+            if (type === "reset") {
+                router.push(`/reset-password?token=${code}`);
+            } else {
+                router.push("/dashboard"); // Redirect on success
+            }
         } catch (err: any) {
             setError(err?.response?.data?.message || err?.message || "Failed to verify OTP");
         } finally {

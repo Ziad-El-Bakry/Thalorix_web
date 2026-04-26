@@ -18,7 +18,7 @@ export default function ForgetPasswordForm() {
         setLoading(true);
         try {
             await authService.forgotPassword(email);
-            router.push(`/verify-email?email=${encodeURIComponent(email)}`);
+            router.push(`/verify-otp?email=${encodeURIComponent(email)}&type=reset`);
         } catch (err: any) {
             setError(err?.response?.data?.message || err?.message || "Failed to process request");
         } finally {

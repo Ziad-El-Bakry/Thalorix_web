@@ -22,13 +22,13 @@ export const ENDPOINTS = {
     VERIFY_EMAIL: '/auth/verify-email',
     VERIFY_OTP: '/auth/verify-otp',
     RESET_PASSWORD: '/auth/reset-password',
+    FORGOT_PASSWORD: '/auth/forgot-password',
   },
 
   // ============================================
   // USERS
   // ============================================
   USERS: {
-    FORGOT_PASSWORD: '/users/forgot-password',
     GET_ALL: '/users',
     GET_BY_ID: (id: string) => `/users/${id}`,
     UPDATE: (id: string) => `/users/${id}`,

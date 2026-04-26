@@ -133,7 +133,10 @@ export const authService = {
    * Verify OTP code
    */
   async verifyOtp(data: { email: string; otp: string }): Promise<AuthResponse> {
-    const response = await api.post<AuthResponse>(ENDPOINTS.AUTH.VERIFY_OTP, data);
+    const response = await api.post<AuthResponse>(ENDPOINTS.AUTH.VERIFY_OTP, {
+      email: data.email,
+      code: data.otp,
+    });
     
     // If verification returns tokens, save them
     const token = response.data?.access_token || response.data?.accessToken;
@@ -154,7 +157,7 @@ export const authService = {
    * Request password reset
    */
   async forgotPassword(email: string): Promise<void> {
-    await api.post(ENDPOINTS.USERS.FORGOT_PASSWORD, { email });
+    await api.post(ENDPOINTS.AUTH.FORGOT_PASSWORD, { email });
   },
 
   /**
