@@ -1,1 +1,0 @@
-export default function MarketplaceDetails(){ return <div>Template Details</div>}
