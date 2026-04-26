@@ -22,7 +22,7 @@ export default function TestConnectionPage() {
       console.log("📍 Testing URL:", `${api.defaults.baseURL}`);
 
       // Try to ping the backend with a health check endpoint
-      const response = await api.get("/users");
+      const response = await api.get("/");
 
       console.log("✅ Connection successful!");
       setStatus("success");

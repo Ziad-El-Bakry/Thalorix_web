@@ -28,7 +28,16 @@ export default function RegisterForm() {
         setLoading(true);
         
         try {
-            await authService.register({ username, email, phone, password, confirmPassword });
+            let formattedPhone = phone;
+            // Automatically convert Egyptian local numbers (01...) to international (+201...)
+            if (formattedPhone.startsWith("01") && formattedPhone.length === 11) {
+                formattedPhone = "+2" + formattedPhone;
+            } else if (!formattedPhone.startsWith("+")) {
+                // Prepend + if the user forgot it for other international numbers
+                formattedPhone = "+" + formattedPhone;
+            }
+
+            await authService.register({ username, email, phone: formattedPhone, password, confirmPassword });
             const params = new URLSearchParams({ email });
             if (phone) params.set("phone", phone);
             if (username) params.set("name", username);
@@ -69,14 +78,16 @@ export default function RegisterForm() {
                 {/* Username */}
                 <motion.div variants={itemVariants} className="space-y-1.5">
                     <label className="block text-xs font-semibold text-gray-700 tracking-wide">
-                        Username
+                        Full Name
                     </label>
                     <input
                         type="text"
-                        placeholder="Choose a username"
+                        placeholder="John Doe"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         required
+                        pattern="^[a-zA-Z\s\u0600-\u06FF]+$"
+                        title="Name must contain only letters (Arabic or English) without numbers or symbols"
                         className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-300 transition"
                     />
                 </motion.div>
@@ -101,13 +112,14 @@ export default function RegisterForm() {
                 {/* Phone */}
                 <motion.div variants={itemVariants} className="space-y-1.5">
                     <label className="block text-xs font-semibold text-gray-700 tracking-wide">
-                        Phone Number (Optional)
+                        Phone Number
                     </label>
                     <input
                         type="tel"
                         placeholder="Phone number"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
+                        required
                         className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-300 transition"
                     />
                 </motion.div>

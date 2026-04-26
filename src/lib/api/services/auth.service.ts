@@ -78,10 +78,8 @@ export const authService = {
       cPassword: dto.confirmPassword,
     };
     
-    // Only send phone if it has a non-empty value
-    if (dto.phone && dto.phone.trim() !== "") {
-      backendPayload.phone = dto.phone.trim();
-    }
+    // Send phone as it is required by the backend
+    backendPayload.phone = dto.phone;
 
     const { data } = await api.post<AuthResponse>(endpoint, backendPayload);
 
