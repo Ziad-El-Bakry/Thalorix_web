@@ -1,1 +1,5 @@
-export default function AIGenerator(){ return <div>AI Generator</div>}
+import { AICodeGenContainer } from '@/components/features/ai-generator';
+
+export default function AIGenerator() {
+  return <AICodeGenContainer />;
+}
