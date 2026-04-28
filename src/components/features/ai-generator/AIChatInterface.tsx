@@ -46,9 +46,9 @@ export function AIChatInterface({
                 </div>
                 <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-2xl rounded-tl-md px-4 py-2.5 shadow-sm">
                   <div className="flex gap-1">
-                    <span className="w-1.5 h-1.5 bg-[#103B40] rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <span className="w-1.5 h-1.5 bg-[#103B40] rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <span className="w-1.5 h-1.5 bg-[#103B40] rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                    <span className="w-1.5 h-1.5 bg-[#103B40] rounded-full animate-bounce" />
+                    <span className="w-1.5 h-1.5 bg-[#103B40] rounded-full animate-bounce [animation-delay:150ms]" />
+                    <span className="w-1.5 h-1.5 bg-[#103B40] rounded-full animate-bounce [animation-delay:300ms]" />
                   </div>
                   <span className="text-xs text-gray-400 ml-1">Generating...</span>
                 </div>

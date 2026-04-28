@@ -114,6 +114,8 @@ export function ChatHistorySidebar({
                 <div className="flex items-center justify-between mt-1.5 ml-6">
                   <span className="text-[10px] text-gray-300">{conv.date}</span>
                   <button
+                    aria-label="Delete conversation"
+                    title="Delete conversation"
                     onClick={(e) => {
                       e.stopPropagation();
                       onDelete(conv.id);
