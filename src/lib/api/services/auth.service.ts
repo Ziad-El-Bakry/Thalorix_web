@@ -25,6 +25,9 @@ export interface User {
   role: 'user' | 'developer' | 'admin';
   credits: number;
   avatar?: string;
+  bio?: string;
+  expertise?: { name: string; percent: number }[];
+  socialLinks?: { facebook: string; instagram: string };
   isVerified: boolean;
   createdAt: string;
 }

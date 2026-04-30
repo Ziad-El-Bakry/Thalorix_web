@@ -10,6 +10,8 @@ export interface UpdateProfileDto {
   username?: string;
   bio?: string;
   avatar?: File;
+  expertise?: { name: string; percent: number }[];
+  socialLinks?: { facebook: string; instagram: string };
 }
 
 export interface ChangePasswordDto {
@@ -48,6 +50,14 @@ export const usersService = {
   },
 
   /**
+   * Update user details (JSON)
+   */
+  async updateUser(id: string, dto: Partial<User>): Promise<User> {
+    const { data } = await api.patch<User>(ENDPOINTS.USERS.UPDATE(id), dto);
+    return data;
+  },
+
+  /**
    * Update user profile
    */
   async updateProfile(id: string, dto: UpdateProfileDto): Promise<User> {
@@ -56,6 +66,8 @@ export const usersService = {
     if (dto.username) formData.append('username', dto.username);
     if (dto.bio) formData.append('bio', dto.bio);
     if (dto.avatar) formData.append('avatar', dto.avatar);
+    if (dto.expertise) formData.append('expertise', JSON.stringify(dto.expertise));
+    if (dto.socialLinks) formData.append('socialLinks', JSON.stringify(dto.socialLinks));
 
     const { data } = await api.patch<User>(
       ENDPOINTS.USERS.UPDATE_PROFILE(id),

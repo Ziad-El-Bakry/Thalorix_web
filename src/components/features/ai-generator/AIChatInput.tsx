@@ -69,7 +69,7 @@ export function AIChatInput({
       />
 
       <div
-        className={`flex items-center justify-between mt-3 pt-3 ${
+        className={`flex flex-wrap items-center justify-between gap-y-3 mt-3 pt-3 ${
           isExpanded ? 'border-t border-gray-100' : ''
         }`}
       >

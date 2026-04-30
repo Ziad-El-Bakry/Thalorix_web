@@ -130,6 +130,18 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
   const coverInputRef = useRef<HTMLInputElement>(null);
   const [coverImage, setCoverImage] = useState<string>("/images/profile-cover.png");
   const [expertiseData, setExpertiseData] = useState(EXPERTISE);
+  const [socialLinksData, setSocialLinksData] = useState({ facebook: "", instagram: "" });
+
+  useEffect(() => {
+    if (user) {
+      if (user.expertise && user.expertise.length > 0) {
+        setExpertiseData(user.expertise);
+      }
+      if (user.socialLinks) {
+        setSocialLinksData(user.socialLinks);
+      }
+    }
+  }, [user]);
 
   useEffect(() => {
     try {
@@ -166,14 +178,25 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
         }
         
         if (idToFetch) {
-          const data = await usersService.getUserById(idToFetch);
+          let data;
+          try {
+            data = await usersService.getUserById(idToFetch);
+          } catch (err: any) {
+            throw err;
+          }
+
           setUser(data);
-          if (data.avatar && !isOwnProfile) {
+          if (data && data.avatar && !isOwnProfile) {
              setDisplayAvatar(data.avatar);
           }
         }
-      } catch (error) {
-        console.error("Failed to fetch user data:", error);
+      } catch (error: any) {
+        if (error?.response?.status === 401) {
+          console.warn("User unauthorized, token might be expired.");
+          // The axios interceptor handles redirecting to login if refresh fails
+        } else {
+          console.warn("Failed to fetch user data:", error?.message || error);
+        }
       } finally {
         setLoading(false);
       }
@@ -203,8 +226,13 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
           setGlobalAvatar(avatarUrl);
         }
         fireToast("Profile photo updated!");
-      } catch (error) {
-        console.error("Failed to upload avatar:", error);
+      } catch (error: any) {
+        if (error?.response?.status === 401) {
+          console.warn("Unauthorized to upload avatar.");
+        } else {
+          console.warn("Failed to upload avatar:", error?.message || error);
+        }
+        fireToast("Failed to upload avatar. Please try again.");
       }
     }
   };
@@ -376,7 +404,17 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
                     transition={{ duration: 0.25 }}
                   >
                     {settingsTab === "personal" ? (
-                      <PersonalDetails user={user} onSave={() => fireToast("Profile updated successfully!")} expertise={expertiseData} setExpertise={setExpertiseData} />
+                      <PersonalDetails 
+                        user={user} 
+                        onSave={(updatedData: any) => {
+                          setUser({ ...user, ...updatedData });
+                          fireToast("Profile updated successfully!");
+                        }} 
+                        expertise={expertiseData} 
+                        setExpertise={setExpertiseData} 
+                        socialLinks={socialLinksData}
+                        setSocialLinks={setSocialLinksData}
+                      />
                     ) : (
                       <ChangePassword user={user} onSave={() => fireToast("Password updated successfully!")} onCancel={() => setSettingsTab("personal")} />
                     )}
@@ -856,7 +894,7 @@ const itemVariants = {
   visible: { opacity: 1, y: 0 },
 };
 
-function PersonalDetails({ user, onSave, expertise, setExpertise }: { user: any; onSave: () => void; expertise: any[]; setExpertise: (e: any[]) => void }) {
+function PersonalDetails({ user, onSave, expertise, setExpertise, socialLinks, setSocialLinks }: { user: any; onSave: (data: any) => void; expertise: any[]; setExpertise: (e: any[]) => void; socialLinks: any; setSocialLinks: (s: any) => void }) {
   const [username, setUsername] = useState(user?.username || "");
   const [email] = useState(user?.email || "");
   const [bio, setBio] = useState(user?.bio || "");
@@ -868,8 +906,9 @@ function PersonalDetails({ user, onSave, expertise, setExpertise }: { user: any;
     if (!user?.id) return;
     setIsSaving(true);
     try {
-      await usersService.updateProfile(user.id, { username, bio });
-      onSave();
+      const updateDto = { username, bio, expertise, socialLinks };
+      await usersService.updateProfile(user.id, updateDto);
+      onSave(updateDto);
     } catch (error: any) {
       console.error("Failed to update profile", error);
       setEmailError(error?.response?.data?.message || "Failed to update profile");
@@ -912,11 +951,11 @@ function PersonalDetails({ user, onSave, expertise, setExpertise }: { user: any;
         <div className="space-y-4">
           <div>
             <label className="block text-xs font-semibold text-gray-700 mb-2">Facebook</label>
-            <Input defaultValue="" className="bg-gray-50 border border-gray-200 shadow-sm h-11" />
+            <Input value={socialLinks.facebook || ""} onChange={(e: any) => setSocialLinks({ ...socialLinks, facebook: e.target.value })} className="bg-gray-50 border border-gray-200 shadow-sm h-11" />
           </div>
           <div>
             <label className="block text-xs font-semibold text-gray-700 mb-2">Instagram</label>
-            <Input defaultValue="" className="bg-gray-50 border border-gray-200 shadow-sm h-11" />
+            <Input value={socialLinks.instagram || ""} onChange={(e: any) => setSocialLinks({ ...socialLinks, instagram: e.target.value })} className="bg-gray-50 border border-gray-200 shadow-sm h-11" />
           </div>
         </div>
       </motion.div>

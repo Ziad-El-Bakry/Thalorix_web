@@ -11,8 +11,11 @@ import {
   Sparkles,
   Store,
   User,
+  Shield,
 } from "lucide-react";
 import { useNotifications } from "@/components/shared/useNotifications";
+import { useEffect, useState } from "react";
+import { authService } from "@/lib/api/services/auth.service";
 
 const NAV = [
   { label: "Home", href: "/dashboard", icon: Home },
@@ -26,7 +29,6 @@ const NAV = [
 export default function Sidebar() {
   const pathname = usePathname();
   const { hasUnreadMessages, markMessagesRead } = useNotifications();
-
   return (
     <motion.aside
       initial={{ x: -60, opacity: 0 }}

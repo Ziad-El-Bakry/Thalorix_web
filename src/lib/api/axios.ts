@@ -129,9 +129,9 @@ api.interceptors.response.use(
       hint: isNetworkError ? '🔧 Backend might be down or unreachable. Check API_BASE_URL and ensure backend is running.' : undefined,
     };
 
-    // Only use console.error for true network errors or 500s to avoid triggering the Next.js Error Overlay for normal validations.
+    // Only use console.warn to avoid triggering the Next.js Error Overlay for normal validations/network errors.
     if (isNetworkError || error.response?.status && error.response.status >= 500) {
-      console.error('🔴 API Error:', JSON.stringify(errorDetails, null, 2));
+      console.warn('🔴 API Error:', JSON.stringify(errorDetails, null, 2));
     } else {
       console.warn('🟡 API Warning (Handled):', JSON.stringify(errorDetails, null, 2));
     }
@@ -172,7 +172,7 @@ api.interceptors.response.use(
         return api(originalRequest);
         
       } catch (refreshError) {
-        console.error('❌ Token refresh failed:', refreshError);
+        console.warn('❌ Token refresh failed:', refreshError);
         
         // Clear storage and redirect
         localStorage.clear();

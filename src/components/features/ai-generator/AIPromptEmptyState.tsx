@@ -129,7 +129,7 @@ export function AIPromptEmptyState({
       <div className="text-center text-xs text-gray-400 mb-4">
         Your code will be generated securely
       </div>
-      <div className="flex items-center justify-center gap-8">
+      <div className="flex items-center justify-center gap-4 sm:gap-8">
         <div className="flex flex-col items-center">
           <span className="text-2xl font-bold text-[#103B40]">24</span>
           <span className="text-xs text-gray-400 mt-1">Generated</span>

@@ -14,10 +14,13 @@ import {
   User,
   Menu,
   X,
+  Shield,
 } from "lucide-react";
 import Notifications from "@/components/shared/Notification";
 import { useNotifications } from "@/components/shared/useNotifications";
 import { useChatState } from "@/components/features/messages/useChatState";
+import { useEffect } from "react";
+import { authService } from "@/lib/api/services/auth.service";
 
 const NAV = [
   { label: "Home", href: "/dashboard", icon: Home },

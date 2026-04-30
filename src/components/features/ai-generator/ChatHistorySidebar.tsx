@@ -38,7 +38,7 @@ export function ChatHistorySidebar({
         opacity: isOpen ? 1 : 0,
         marginRight: isOpen ? 20 : 0,
       }}
-      className="flex-shrink-0 bg-white border border-gray-200 flex flex-col rounded-xl overflow-hidden shadow-sm relative sticky top-6 h-[calc(100vh-120px)]"
+      className={`flex-shrink-0 bg-white border border-gray-200 flex flex-col rounded-xl overflow-hidden shadow-sm absolute md:relative md:sticky md:top-6 z-30 h-[calc(100vh-120px)] ${isOpen ? 'shadow-xl md:shadow-sm' : ''}`}
     >
       <div className="w-[260px] flex flex-col h-full">
         {/* Header */}
