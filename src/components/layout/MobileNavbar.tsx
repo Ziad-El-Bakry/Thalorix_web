@@ -14,13 +14,10 @@ import {
   User,
   Menu,
   X,
-  Shield,
 } from "lucide-react";
 import Notifications from "@/components/shared/Notification";
 import { useNotifications } from "@/components/shared/useNotifications";
 import { useChatState } from "@/components/features/messages/useChatState";
-import { useEffect } from "react";
-import { authService } from "@/lib/api/services/auth.service";
 
 const NAV = [
   { label: "Home", href: "/dashboard", icon: Home },
@@ -47,8 +44,12 @@ export default function MobileNavbar() {
       {/* Top Bar */}
       <div className="flex items-center justify-between bg-[#103B40] text-white px-4 py-4 relative z-50 shadow-md">
         
-        {/* Animated Logo for Mobile */}
-        <div className="flex items-center gap-3">
+        {/* Animated Logo for Mobile - Wrapped with Link to Home */}
+        <Link 
+          href="/dashboard" 
+          className="flex items-center gap-3 cursor-pointer active:scale-95 transition-transform"
+          onClick={() => setIsOpen(false)}
+        >
           <Image
             src="/images/logoSM.png"
             alt="Thalorix Logo"
@@ -58,42 +59,43 @@ export default function MobileNavbar() {
             priority
           />
           <motion.h1 
-          className="text-xl font-semibold tracking-widest flex"
-          initial="hidden"
-          animate="visible"
-          variants={{
-            hidden: { opacity: 0 },
-            visible: {
-              opacity: 1,
-              transition: { staggerChildren: 0.08 }
-            },
-          }}
-        >
-          {"THALORIX".split("").map((char, index) => (
-            <motion.span
-              key={index}
-              variants={{
-                hidden: { color: "#ffffff", opacity: 0 },
-                visible: {
-                  color: ["#ffffff", "#9EC8FF", "#ffffff"],
-                  opacity: 1,
-                  transition: {
-                    color: { 
-                      duration: 2.5, 
-                      repeat: Infinity,   
-                      ease: "linear",
-                      delay: index * 0.15 
+            className="text-xl font-semibold tracking-widest flex"
+            initial="hidden"
+            animate="visible"
+            variants={{
+              hidden: { opacity: 0 },
+              visible: {
+                opacity: 1,
+                transition: { staggerChildren: 0.08 }
+              },
+            }}
+          >
+            {"THALORIX".split("").map((char, index) => (
+              <motion.span
+                key={index}
+                variants={{
+                  hidden: { color: "#ffffff", opacity: 0 },
+                  visible: {
+                    color: ["#ffffff", "#9EC8FF", "#ffffff"],
+                    opacity: 1,
+                    transition: {
+                      color: { 
+                        duration: 2.5, 
+                        repeat: Infinity,   
+                        ease: "linear",
+                        delay: index * 0.15 
+                      },
                     },
                   },
-                },
-              }}
-            >
-              {char}
-            </motion.span>
-          ))}
-        </motion.h1>
-        </div>
+                }}
+              >
+                {char}
+              </motion.span>
+            ))}
+          </motion.h1>
+        </Link>
 
+        {/* Icons & Menu Toggle */}
         <div className="flex items-center gap-2">
           {isMessagesPage && (
             <div className="text-white [&_button]:text-white [&_button]:hover:text-gray-200">
@@ -103,6 +105,7 @@ export default function MobileNavbar() {
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="text-white hover:bg-white/10 p-2 rounded-md transition-colors"
+            aria-label="Toggle Menu"
           >
             {isOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -123,10 +126,10 @@ export default function MobileNavbar() {
               {NAV.map((item) => {
                 let isActive = pathname === item.href;
                 
-                // If viewing marketplace related pages, highlight Marketplace
                 if (pathname?.startsWith("/dashboard/marketplace")) {
                   if (item.label === "Marketplace") isActive = true;
                 }
+                
                 const Icon = item.icon;
                 return (
                   <Link
