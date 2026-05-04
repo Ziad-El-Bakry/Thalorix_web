@@ -20,6 +20,7 @@ export interface RegisterDto {
 
 export interface User {
   id: string;
+  name?: string;
   username: string;
   email: string;
   role: 'user' | 'developer' | 'admin';

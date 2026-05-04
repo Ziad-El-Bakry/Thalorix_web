@@ -6,6 +6,7 @@ import { AIChatInterface } from './AIChatInterface';
 import { ChatHistorySidebar } from './ChatHistorySidebar';
 import { AIMessage, AIModel } from '@/types/ai';
 import UserHeader from '@/components/ui/UserHeader';
+import { authService } from '@/lib/api/services/auth.service';
 
 interface Conversation {
   id: string;
@@ -43,6 +44,14 @@ export function AICodeGenContainer() {
   const [currentMessages, setCurrentMessages] = useState<AIMessage[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedModel, setSelectedModel] = useState<AIModel>('Thalorix-X Vision');
+  const [userName, setUserName] = useState('User');
+
+  useEffect(() => {
+    const user = authService.getStoredUser() as any;
+    if (user) {
+      setUserName((user?.name || user?.username)?.split(' ')[0] || 'User');
+    }
+  }, []);
 
   const handleNewChat = useCallback(() => {
     // Save current conversation if it has messages
@@ -225,7 +234,7 @@ console.log(solution(["apple", null, "banana"]));`;
   return (
     <div className="max-w-7xl mx-auto flex flex-col min-h-[calc(100vh-140px)] relative">
       {/* Header */}
-      <UserHeader name="Emad" badge="Developer" compact />
+      <UserHeader name={userName} badge="Developer" compact />
       <div className="h-px bg-gray-300 mb-6 md:mb-8 flex-shrink-0" />
 
       {/* Main Layout: Sidebar + Content */}

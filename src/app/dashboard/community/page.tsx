@@ -7,6 +7,7 @@ import UserHeader from "@/components/ui/UserHeader";
 import CreatePostBar from "@/components/features/community/CreatePostBar";
 import PostCard, { PostData } from "@/components/features/community/PostCard";
 import { useAvatar } from "@/store/useAvatarStore";
+import { authService } from "@/lib/api/services/auth.service";
 
 // Sample posts data
 const SAMPLE_POSTS: PostData[] = [
@@ -77,6 +78,14 @@ export default function Community() {
   const [searchQuery, setSearchQuery] = useState("");
   const [posts, setPosts] = useState<PostData[]>(SAMPLE_POSTS);
   const { avatar: globalAvatar } = useAvatar();
+  const [userName, setUserName] = useState("User");
+
+  useEffect(() => {
+    const user = authService.getStoredUser() as any;
+    if (user) {
+      setUserName((user?.name || user?.username)?.split(' ')[0] || "User");
+    }
+  }, []);
   const [showConnectionToast, setShowConnectionToast] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [pullDistance, setPullDistance] = useState(0);
@@ -195,7 +204,7 @@ export default function Community() {
       onTouchEnd={handleTouchEnd}
     >
       {/* Header */}
-      <UserHeader name="Emad" badge="Developer" compact />
+      <UserHeader name={userName} badge="Developer" compact />
 
       {/* Poor Connection Toast */}
       <AnimatePresence>
@@ -258,7 +267,7 @@ export default function Community() {
         </motion.div>
 
         {/* Create Post Bar */}
-        <CreatePostBar userName="Emad" />
+        <CreatePostBar userName={userName} />
 
         {/* Pull-to-refresh indicator */}
         <AnimatePresence>

@@ -12,18 +12,27 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { authService } from "@/lib/api/services/auth.service";
 
 export default function MarketplacePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [category, setCategory] = useState("All Categories");
   const [sortBy, setSortBy] = useState("Newest First");
+  const [userName, setUserName] = useState("User");
+
+  useEffect(() => {
+    const user = authService.getStoredUser() as any;
+    if (user) {
+      setUserName((user?.name || user?.username)?.split(' ')[0] || "User");
+    }
+  }, []);
 
   return (
     <div className="-m-4 md:-m-6 lg:-m-10 p-4 md:p-6 lg:p-10 bg-[#E2E3EA] min-h-[calc(100vh-60px)]">
       <div className="w-full max-w-[1200px] mx-auto flex flex-col h-full">
         <div className="border-b-2 border-[#b0c4c4] pb-2 mb-4 relative z-50">
-          <UserHeader name="User" badge="Developer" compact={true} />
+          <UserHeader name={userName} badge="Developer" compact={true} />
         </div>
 
         {/* Search Bar */}
