@@ -1,7 +1,7 @@
 // lib/api/services/users.service.ts
 import { api } from '../axios';
 import { ENDPOINTS } from '../endpoints';
-import type { User } from './auth.service';
+import { authService, type User } from './auth.service';
 
 // ============================================
 // TYPES
@@ -45,7 +45,9 @@ export const usersService = {
    * Get user by ID
    */
   async getUserById(id: string): Promise<User> {
-    const { data } = await api.get<User>(ENDPOINTS.USERS.GET_BY_ID(id));
+    const storedUser = authService.getStoredUser();
+    const endpoint = storedUser?.role === 'admin' ? ENDPOINTS.ADMINS.GET_BY_ID(id) : ENDPOINTS.USERS.GET_BY_ID(id);
+    const { data } = await api.get<User>(endpoint);
     return data;
   },
 
@@ -61,16 +63,17 @@ export const usersService = {
    * Update user profile
    */
   async updateProfile(id: string, dto: UpdateProfileDto): Promise<User> {
-    // Backend expects JSON with 'name' instead of 'username', and 'bio'.
-    // It doesn't support expertise or socialLinks yet.
+    // Backend expects JSON with 'name' instead of 'username', and 'bio', 'expertise', 'socialLinks'.
     const payload: any = {};
     if (dto.username) payload.name = dto.username;
-    if (dto.bio) payload.bio = dto.bio;
+    if (dto.bio !== undefined) payload.bio = dto.bio;
+    if (dto.expertise) payload.expertise = dto.expertise;
+    if (dto.socialLinks) payload.socialLinks = dto.socialLinks;
 
-    const { data } = await api.patch<User>(
-      ENDPOINTS.USERS.UPDATE(id),
-      payload
-    );
+    const storedUser = authService.getStoredUser();
+    const endpoint = storedUser?.role === 'admin' ? ENDPOINTS.ADMINS.UPDATE(id) : ENDPOINTS.USERS.UPDATE(id);
+
+    const { data } = await api.patch<User>(endpoint, payload);
     return data;
   },
 
