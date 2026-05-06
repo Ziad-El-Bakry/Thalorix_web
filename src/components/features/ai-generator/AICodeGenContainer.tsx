@@ -253,13 +253,15 @@ console.log(solution(["apple", null, "banana"]));`;
         {/* Chat / Empty State */}
         <div className="flex-1 min-w-0 flex flex-col relative min-h-[calc(100vh-200px)]">
           {!isSidebarOpen && (
-            <button
-              onClick={() => setIsSidebarOpen(true)}
-              className="absolute top-0 left-0 md:-left-5 z-20 p-1.5 text-gray-400 hover:text-[#103B40] hover:bg-gray-100 rounded-r-lg border border-l-0 border-gray-200 bg-white transition-colors shadow-sm"
-              title="Open sidebar"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-panel-left-open"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m14 9 3 3-3 3"/></svg>
-            </button>
+            <div className="sticky top-6 z-20 w-0 h-0">
+              <button
+                onClick={() => setIsSidebarOpen(true)}
+                className="absolute top-0 left-0 md:-left-5 p-1.5 text-gray-400 hover:text-[#103B40] hover:bg-gray-100 rounded-r-lg border border-l-0 border-gray-200 bg-white transition-colors shadow-sm"
+                title="Open sidebar"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-panel-left-open"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m14 9 3 3-3 3"/></svg>
+              </button>
+            </div>
           )}
           
           <div className="flex-1 w-full flex flex-col">
