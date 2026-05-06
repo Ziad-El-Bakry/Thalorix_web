@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -14,10 +14,13 @@ import {
   User,
   Menu,
   X,
+  Shield,
 } from "lucide-react";
 import Notifications from "@/components/shared/Notification";
 import { useNotifications } from "@/components/shared/useNotifications";
 import { useChatState } from "@/components/features/messages/useChatState";
+
+import { authService } from "@/lib/api/services/auth.service";
 
 const NAV = [
   { label: "Home", href: "/dashboard", icon: Home },
@@ -34,6 +37,12 @@ export default function MobileNavbar() {
   const isMessagesPage = pathname?.includes("/messages");
   const { hasUnreadMessages, markMessagesRead } = useNotifications();
   const { isChatOpen } = useChatState();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const user = authService.getStoredUser();
+    setIsAdmin(user?.role === "admin");
+  }, []);
 
   if (isMessagesPage && isChatOpen) {
     return null;
@@ -159,6 +168,28 @@ export default function MobileNavbar() {
                   </Link>
                 );
               })}
+              {/* Admin Link (conditional) */}
+              {isAdmin && (
+                <Link
+                  href="/dashboard/admin"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <motion.div
+                    whileTap={{ scale: 0.98 }}
+                    className={`flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                      pathname?.startsWith("/dashboard/admin")
+                        ? "bg-[#6FA5A9] text-white shadow-inner"
+                        : "text-white/80 hover:bg-white/5 border border-transparent hover:border-white/10"
+                    }`}
+                  >
+                    <Shield size={20} className={pathname?.startsWith("/dashboard/admin") ? "text-white" : "text-[#6FA5A9]"} />
+                    Admin
+                    <span className="ml-auto px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500 text-white uppercase">
+                      New
+                    </span>
+                  </motion.div>
+                </Link>
+              )}
             </nav>
           </motion.div>
         )}

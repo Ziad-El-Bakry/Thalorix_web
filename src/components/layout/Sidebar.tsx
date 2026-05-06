@@ -29,6 +29,12 @@ const NAV = [
 export default function Sidebar() {
   const pathname = usePathname();
   const { hasUnreadMessages, markMessagesRead } = useNotifications();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const user = authService.getStoredUser();
+    setIsAdmin(user?.role === "admin");
+  }, []);
   return (
     <motion.aside
       initial={{ x: -60, opacity: 0 }}
@@ -142,6 +148,31 @@ export default function Sidebar() {
             );
           })}
         </ul>
+        {/* Admin Link (conditional) */}
+        {isAdmin && (
+          <div className="mt-3">
+            <Link
+              href="/dashboard/admin"
+              className="block focus:outline-none focus-visible:outline-none outline-none"
+            >
+              <motion.div
+                whileHover={{ x: 4 }}
+                transition={{ type: "spring", stiffness: 300 }}
+                className="flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-all"
+                style={{
+                  backgroundColor: pathname?.startsWith("/dashboard/admin") ? "#E5E7EB" : "transparent",
+                  color: pathname?.startsWith("/dashboard/admin") ? "#103B40" : "rgba(255,255,255,0.85)",
+                }}
+              >
+                <Shield size={18} />
+                Admin
+                <span className="ml-auto px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500 text-white uppercase">
+                  New
+                </span>
+              </motion.div>
+            </Link>
+          </div>
+        )}
       </nav>
     </motion.aside>
   );
