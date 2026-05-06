@@ -20,6 +20,7 @@ export interface RegisterDto {
 
 export interface User {
   id: string;
+  name?: string;
   username: string;
   email: string;
   role: 'user' | 'developer' | 'admin';
@@ -100,8 +101,11 @@ export const authService = {
   async logout(): Promise<void> {
     try {
       await api.post(ENDPOINTS.AUTH.LOGOUT);
-    } catch (error) {
-      console.error('Logout error:', error);
+    } catch (error: any) {
+      // It's normal to get a 401 here if the session is already expired
+      if (error?.response?.status !== 401) {
+        console.warn('Logout warning:', error?.message || 'Failed to logout from server');
+      }
     } finally {
       localStorage.clear();
     }

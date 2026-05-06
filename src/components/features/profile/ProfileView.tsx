@@ -284,7 +284,7 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
     }
   };
 
-  const userName = user?.username || "User";
+  const userName = user?.name || user?.username || "User";
   const userBio = user?.bio || "Passionate Full Stack Developer with 6+ years building scalable apps and APIs. Open source contributor, tech speaker, lifelong learner. Currently building developer tools at Thalorix to empower the next generation of engineers. 🚀";
 
   const activeAvatar = isOwnProfile ? globalAvatar : displayAvatar;
@@ -407,7 +407,9 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
                       <PersonalDetails 
                         user={user} 
                         onSave={(updatedData: any) => {
-                          setUser({ ...user, ...updatedData });
+                          const newUser = { ...user, ...updatedData };
+                          setUser(newUser);
+                          localStorage.setItem('user', JSON.stringify(newUser));
                           fireToast("Profile updated successfully!");
                         }} 
                         expertise={expertiseData} 
@@ -895,7 +897,7 @@ const itemVariants = {
 };
 
 function PersonalDetails({ user, onSave, expertise, setExpertise, socialLinks, setSocialLinks }: { user: any; onSave: (data: any) => void; expertise: any[]; setExpertise: (e: any[]) => void; socialLinks: any; setSocialLinks: (s: any) => void }) {
-  const [username, setUsername] = useState(user?.username || "");
+  const [username, setUsername] = useState(user?.name || user?.username || "");
   const [email] = useState(user?.email || "");
   const [bio, setBio] = useState(user?.bio || "");
   const [emailError, setEmailError] = useState("");
@@ -903,12 +905,14 @@ function PersonalDetails({ user, onSave, expertise, setExpertise, socialLinks, s
 
   const handleSave = async () => {
     setEmailError("");
-    if (!user?.id) return;
+    const userId = user?.id || user?._id;
+    if (!userId) return;
     setIsSaving(true);
     try {
       const updateDto = { username, bio, expertise, socialLinks };
-      await usersService.updateProfile(user.id, updateDto);
-      onSave(updateDto);
+      await usersService.updateProfile(userId, updateDto);
+      // Pass 'name' as well so the local state updates correctly
+      onSave({ ...updateDto, name: username });
     } catch (error: any) {
       console.error("Failed to update profile", error);
       setEmailError(error?.response?.data?.message || "Failed to update profile");
