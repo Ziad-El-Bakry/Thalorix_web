@@ -115,6 +115,7 @@ export default function Sidebar() {
               <li key={item.href}>
                 <Link 
                   href={item.href}
+                  className="block focus:outline-none focus-visible:outline-none outline-none"
                   onClick={() => {
                     if (item.label === "Message") {
                       markMessagesRead();

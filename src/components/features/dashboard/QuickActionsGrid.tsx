@@ -69,12 +69,12 @@ function ActionItem({ icon, label, isActive, href, color = "#103B40", delay = 0 
 
 export default function QuickActionsGrid() {
   const actions = [
-    { icon: <Plus size={22} />, label: "New Post", href: "/dashboard/community", color: "#43B0B5" },
+    { icon: <Plus size={22} />, label: "New Post", href: "/dashboard/community?post=new", color: "#43B0B5" },
     { icon: <BarChart2 size={22} />, label: "Analytics", href: "/dashboard/analytics", color: "#3B82F6" },
     { icon: <Upload size={22} />, label: "Upload", href: "/dashboard/marketplace/upload", color: "#103B40" },
     { icon: <Briefcase size={22} />, label: "Jobs", href: "/dashboard/marketplace", color: "#F59E0B" },
     { icon: <Sparkles size={22} />, label: "AI Write", href: "/dashboard/ai-generator", color: "#8B5CF6" },
-    { icon: <Settings size={22} />, label: "Settings", href: "/dashboard/profile", color: "#EC4899" },
+    { icon: <Settings size={22} />, label: "Settings", href: "/dashboard/profile?settings=open", color: "#EC4899" },
   ];
 
   return (

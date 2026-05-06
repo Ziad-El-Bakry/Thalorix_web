@@ -17,7 +17,7 @@ function MessagesContent() {
 
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
   const { setIsChatOpen } = useChatState();
-  const [conversations, setConversations] = useState<Conversation[]>(dummyConversations);
+  const [conversations, setConversations] = useState<Conversation[]>(() => [...dummyConversations]);
   const [listWidth, setListWidth] = useState(DEFAULT_LIST_WIDTH);
   const isDragging = useRef(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -66,7 +66,10 @@ function MessagesContent() {
             dummyConversations.unshift(newConversation);
           }
           
-          return [newConversation, ...prev];
+          if (!prev.find(c => c.id === newConversation.id)) {
+            return [newConversation, ...prev];
+          }
+          return prev;
         }
       });
     }

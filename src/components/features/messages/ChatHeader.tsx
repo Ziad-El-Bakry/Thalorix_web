@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { ChatHeaderProps } from "../../../types/message";
-import { Search, Phone, Video, MoreHorizontal, ArrowLeft, X } from "lucide-react";
+import { Search, MoreHorizontal, ArrowLeft, X } from "lucide-react";
 
 export default function ChatHeader({ user, onBack, onSearch }: ChatHeaderProps & { onBack?: () => void; onSearch?: (query: string) => void }) {
   const [isSearching, setIsSearching] = useState(false);
@@ -69,8 +69,6 @@ export default function ChatHeader({ user, onBack, onSearch }: ChatHeaderProps &
       <div className="flex items-center gap-0.5">
         {[
           { icon: <Search className="w-4.5 h-4.5" />, label: "Search", action: () => setIsSearching(true) },
-          { icon: <Phone className="w-4.5 h-4.5" />, label: "Call" },
-          { icon: <Video className="w-4.5 h-4.5" />, label: "Video" },
           { icon: <MoreHorizontal className="w-4.5 h-4.5" />, label: "More" },
         ].map(({ icon, label, action }) => (
           <button
