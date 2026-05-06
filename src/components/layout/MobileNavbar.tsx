@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -39,47 +40,62 @@ export default function MobileNavbar() {
   }
 
   return (
-    <div className="lg:hidden">
+    <div className="lg:hidden sticky top-0 z-[60]">
       {/* Top Bar */}
       <div className="flex items-center justify-between bg-[#103B40] text-white px-4 py-4 relative z-50 shadow-md">
         
-        {/* Animated Logo for Mobile */}
-        <motion.h1 
-          className="text-xl font-semibold tracking-widest flex"
-          initial="hidden"
-          animate="visible"
-          variants={{
-            hidden: { opacity: 0 },
-            visible: {
-              opacity: 1,
-              transition: { staggerChildren: 0.08 }
-            },
-          }}
+        {/* Animated Logo for Mobile - Wrapped with Link to Home */}
+        <Link 
+          href="/dashboard" 
+          className="flex items-center gap-3 cursor-pointer active:scale-95 transition-transform"
+          onClick={() => setIsOpen(false)}
         >
-          {"THALORIX".split("").map((char, index) => (
-            <motion.span
-              key={index}
-              variants={{
-                hidden: { color: "#ffffff", opacity: 0 },
-                visible: {
-                  color: ["#ffffff", "#9EC8FF", "#ffffff"],
-                  opacity: 1,
-                  transition: {
-                    color: { 
-                      duration: 2.5, 
-                      repeat: Infinity,   
-                      ease: "linear",
-                      delay: index * 0.15 
+          <Image
+            src="/images/logoSM.png"
+            alt="Thalorix Logo"
+            width={45}
+            height={47}
+            className="object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]"
+            priority
+          />
+          <motion.h1 
+            className="text-xl font-semibold tracking-widest flex"
+            initial="hidden"
+            animate="visible"
+            variants={{
+              hidden: { opacity: 0 },
+              visible: {
+                opacity: 1,
+                transition: { staggerChildren: 0.08 }
+              },
+            }}
+          >
+            {"THALORIX".split("").map((char, index) => (
+              <motion.span
+                key={index}
+                variants={{
+                  hidden: { color: "#ffffff", opacity: 0 },
+                  visible: {
+                    color: ["#ffffff", "#9EC8FF", "#ffffff"],
+                    opacity: 1,
+                    transition: {
+                      color: { 
+                        duration: 2.5, 
+                        repeat: Infinity,   
+                        ease: "linear",
+                        delay: index * 0.15 
+                      },
                     },
                   },
-                },
-              }}
-            >
-              {char}
-            </motion.span>
-          ))}
-        </motion.h1>
+                }}
+              >
+                {char}
+              </motion.span>
+            ))}
+          </motion.h1>
+        </Link>
 
+        {/* Icons & Menu Toggle */}
         <div className="flex items-center gap-2">
           {isMessagesPage && (
             <div className="text-white [&_button]:text-white [&_button]:hover:text-gray-200">
@@ -89,6 +105,7 @@ export default function MobileNavbar() {
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="text-white hover:bg-white/10 p-2 rounded-md transition-colors"
+            aria-label="Toggle Menu"
           >
             {isOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -107,7 +124,12 @@ export default function MobileNavbar() {
           >
             <nav className="flex flex-col px-4 py-4 space-y-2 text-white">
               {NAV.map((item) => {
-                const isActive = pathname === item.href;
+                let isActive = pathname === item.href;
+                
+                if (pathname?.startsWith("/dashboard/marketplace")) {
+                  if (item.label === "Marketplace") isActive = true;
+                }
+                
                 const Icon = item.icon;
                 return (
                   <Link

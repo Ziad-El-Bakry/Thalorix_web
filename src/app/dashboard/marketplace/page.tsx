@@ -12,18 +12,27 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { authService } from "@/lib/api/services/auth.service";
 
 export default function MarketplacePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [category, setCategory] = useState("All Categories");
   const [sortBy, setSortBy] = useState("Newest First");
+  const [userName, setUserName] = useState("User");
+
+  useEffect(() => {
+    const user = authService.getStoredUser() as any;
+    if (user) {
+      setUserName((user?.name || user?.username)?.split(' ')[0] || "User");
+    }
+  }, []);
 
   return (
     <div className="-m-4 md:-m-6 lg:-m-10 p-4 md:p-6 lg:p-10 bg-[#E2E3EA] min-h-[calc(100vh-60px)]">
       <div className="w-full max-w-[1200px] mx-auto flex flex-col h-full">
-        <div className="border-b-2 border-[#b0c4c4] pb-2 mb-4">
-          <UserHeader name="User" badge="Developer" compact={true} />
+        <div className="border-b-2 border-[#b0c4c4] pb-2 mb-4 relative z-50">
+          <UserHeader name={userName} badge="Developer" compact={true} />
         </div>
 
         {/* Search Bar */}
@@ -46,7 +55,7 @@ export default function MarketplacePage() {
           <div className="flex items-center gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className={`p-3.5 rounded-xl flex-shrink-0 flex items-center justify-center transition-colors focus:ring-2 focus:ring-teal-500/50 outline-none ${category !== "All Categories" ? "bg-teal-600 text-white" : "bg-[#123E41] text-white hover:bg-[#0d2c2e]"}`} title="Categories">
+                <button suppressHydrationWarning className={`p-3.5 rounded-xl flex-shrink-0 flex items-center justify-center transition-colors focus:ring-2 focus:ring-teal-500/50 outline-none ${category !== "All Categories" ? "bg-teal-600 text-white" : "bg-[#123E41] text-white hover:bg-[#0d2c2e]"}`} title="Categories">
                   <LayoutGrid size={20} />
                 </button>
               </DropdownMenuTrigger>
@@ -64,7 +73,7 @@ export default function MarketplacePage() {
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className={`p-3.5 rounded-xl flex-shrink-0 flex items-center justify-center transition-colors focus:ring-2 focus:ring-teal-500/50 outline-none ${sortBy !== "Newest First" ? "bg-teal-600 text-white" : "bg-[#123E41] text-white hover:bg-[#0d2c2e]"}`} title="Filter/Sort">
+                <button suppressHydrationWarning className={`p-3.5 rounded-xl flex-shrink-0 flex items-center justify-center transition-colors focus:ring-2 focus:ring-teal-500/50 outline-none ${sortBy !== "Newest First" ? "bg-teal-600 text-white" : "bg-[#123E41] text-white hover:bg-[#0d2c2e]"}`} title="Filter/Sort">
                   <Filter size={20} />
                 </button>
               </DropdownMenuTrigger>

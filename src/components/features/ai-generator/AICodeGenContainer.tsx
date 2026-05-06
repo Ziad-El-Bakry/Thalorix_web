@@ -1,0 +1,291 @@
+'use client';
+
+import React, { useState, useCallback, useEffect } from 'react';
+import { AIPromptEmptyState } from './AIPromptEmptyState';
+import { AIChatInterface } from './AIChatInterface';
+import { ChatHistorySidebar } from './ChatHistorySidebar';
+import { AIMessage, AIModel } from '@/types/ai';
+import UserHeader from '@/components/ui/UserHeader';
+import { authService } from '@/lib/api/services/auth.service';
+
+interface Conversation {
+  id: string;
+  title: string;
+  preview: string;
+  date: string;
+  messages: AIMessage[];
+}
+
+export function AICodeGenContainer() {
+  const [conversations, setConversations] = useState<Conversation[]>([
+    {
+      id: 'demo-1',
+      title: 'Python Email Validator',
+      preview: 'Build a Python function that validates...',
+      date: 'Today',
+      messages: [],
+    },
+    {
+      id: 'demo-2',
+      title: 'REST API Handler',
+      preview: 'Create a Node.js Express route handler...',
+      date: 'Yesterday',
+      messages: [],
+    },
+    {
+      id: 'demo-3',
+      title: 'Responsive Navbar',
+      preview: 'Create a responsive navigation bar...',
+      date: '2 days ago',
+      messages: [],
+    },
+  ]);
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+  const [currentMessages, setCurrentMessages] = useState<AIMessage[]>([]);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [selectedModel, setSelectedModel] = useState<AIModel>('Thalorix-X Vision');
+  const [userName, setUserName] = useState('User');
+
+  useEffect(() => {
+    const user = authService.getStoredUser() as any;
+    if (user) {
+      setUserName((user?.name || user?.username)?.split(' ')[0] || 'User');
+    }
+  }, []);
+
+  const handleNewChat = useCallback(() => {
+    // Save current conversation if it has messages
+    if (currentMessages.length > 0 && activeConversationId) {
+      setConversations((prev) =>
+        prev.map((c) =>
+          c.id === activeConversationId ? { ...c, messages: currentMessages } : c
+        )
+      );
+    }
+    setActiveConversationId(null);
+    setCurrentMessages([]);
+  }, [currentMessages, activeConversationId]);
+
+  const handleSelectConversation = useCallback(
+    (id: string) => {
+      // Save current before switching
+      if (currentMessages.length > 0 && activeConversationId) {
+        setConversations((prev) =>
+          prev.map((c) =>
+            c.id === activeConversationId ? { ...c, messages: currentMessages } : c
+          )
+        );
+      }
+      const found = conversations.find((c) => c.id === id);
+      setActiveConversationId(id);
+      setCurrentMessages(found?.messages || []);
+    },
+    [conversations, currentMessages, activeConversationId]
+  );
+
+  const handleDeleteConversation = useCallback(
+    (id: string) => {
+      setConversations((prev) => prev.filter((c) => c.id !== id));
+      if (activeConversationId === id) {
+        setActiveConversationId(null);
+        setCurrentMessages([]);
+      }
+    },
+    [activeConversationId]
+  );
+
+  const handleGenerate = async (prompt: string, model: AIModel) => {
+    const userMessage: AIMessage = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: prompt,
+      timestamp: new Date(),
+    };
+
+    const newMessages = [...currentMessages, userMessage];
+    setCurrentMessages(newMessages);
+    setSelectedModel(model);
+    setIsGenerating(true);
+
+    // Create a new conversation entry if this is a fresh chat
+    if (!activeConversationId) {
+      const newId = `conv-${Date.now()}`;
+      const title = prompt.length > 40 ? prompt.substring(0, 40) + '...' : prompt;
+      setConversations((prev) => [
+        {
+          id: newId,
+          title,
+          preview: prompt.substring(0, 60),
+          date: 'Just now',
+          messages: newMessages,
+        },
+        ...prev,
+      ]);
+      setActiveConversationId(newId);
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+
+    let responseContent = '';
+    let isCode = false;
+    let language = 'javascript';
+    const lowerPrompt = prompt.toLowerCase();
+
+    if (lowerPrompt.includes('python') || lowerPrompt.includes('email validator')) {
+      isCode = true;
+      language = 'python';
+      responseContent = `import re
+
+def is_valid_email(email):
+    """
+    Validates an email address using regex.
+    """
+    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$'
+    return bool(re.match(pattern, email))
+
+# Example usage
+print(is_valid_email("test@example.com")) # True
+print(is_valid_email("invalid-email")) # False`;
+    } else if (lowerPrompt.includes('html') || lowerPrompt.includes('navbar')) {
+      isCode = true;
+      language = 'html';
+      responseContent = `<nav class="navbar">
+  <div class="container">
+    <div class="brand">Brand</div>
+    <button class="menu-toggle">☰</button>
+    <div class="nav-links">
+      <a href="#">Home</a>
+      <a href="#">About</a>
+      <a href="#">Contact</a>
+    </div>
+  </div>
+</nav>`;
+    } else {
+      isCode = true;
+      language = 'javascript';
+      responseContent = `// Generated by Thalorix-X Vision
+
+function solution(input) {
+  // Parsing and validation
+  if (!input) throw new Error("Input required");
+  
+  const items = Array.isArray(input) ? input : [input];
+  
+  return items
+    .filter(Boolean)
+    .map((item, i) => ({
+      id: i + 1,
+      value: item
+    }));
+}
+
+console.log(solution(["apple", null, "banana"]));`;
+    }
+
+    const textMessage: AIMessage = {
+      id: (Date.now() + 1).toString(),
+      role: 'assistant',
+      content: `Here's a classic solution for your request using **${model}**:`,
+      timestamp: new Date(),
+    };
+
+    setCurrentMessages((prev) => [...prev, textMessage]);
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    const codeMessage: AIMessage = {
+      id: (Date.now() + 2).toString(),
+      role: 'assistant',
+      content: responseContent,
+      isCode: true,
+      language: language,
+      timestamp: new Date(),
+    };
+
+    setCurrentMessages((prev) => {
+      const updated = [...prev, codeMessage];
+      // Also update conversation store
+      setConversations((convs) =>
+        convs.map((c) =>
+          c.id === activeConversationId ? { ...c, messages: updated } : c
+        )
+      );
+      return updated;
+    });
+    setIsGenerating(false);
+  };
+
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setIsSidebarOpen(false);
+      } else {
+        setIsSidebarOpen(true);
+      }
+    };
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      setIsSidebarOpen(false);
+    }
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return (
+    <div className="max-w-7xl mx-auto flex flex-col min-h-[calc(100vh-140px)] relative">
+      {/* Header */}
+      <UserHeader name={userName} badge="Developer" compact />
+      <div className="h-px bg-gray-300 mb-6 md:mb-8 flex-shrink-0" />
+
+      {/* Main Layout: Sidebar + Content */}
+      <div className="flex flex-1 relative gap-0 md:gap-5 pb-6">
+        {/* History Sidebar */}
+        <ChatHistorySidebar
+          conversations={conversations}
+          activeId={activeConversationId}
+          onSelect={handleSelectConversation}
+          onNewChat={handleNewChat}
+          onDelete={handleDeleteConversation}
+          isOpen={isSidebarOpen}
+          onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+        />
+
+        {/* Chat / Empty State */}
+        <div className="flex-1 min-w-0 flex flex-col relative min-h-[calc(100vh-200px)]">
+          {!isSidebarOpen && (
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="absolute top-0 left-0 md:-left-5 z-20 p-1.5 text-gray-400 hover:text-[#103B40] hover:bg-gray-100 rounded-r-lg border border-l-0 border-gray-200 bg-white transition-colors shadow-sm"
+              title="Open sidebar"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-panel-left-open"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m14 9 3 3-3 3"/></svg>
+            </button>
+          )}
+          
+          <div className="flex-1 w-full flex flex-col">
+            {currentMessages.length === 0 ? (
+              <div className="flex-1 flex items-center justify-center py-10">
+                <AIPromptEmptyState
+                  onGenerate={handleGenerate}
+                  selectedModel={selectedModel}
+                  onModelSelect={setSelectedModel}
+                />
+              </div>
+            ) : (
+              <div className="flex-1 flex flex-col">
+                <AIChatInterface
+                  messages={currentMessages}
+                  isGenerating={isGenerating}
+                  onGenerate={handleGenerate}
+                  selectedModel={selectedModel}
+                  onModelSelect={setSelectedModel}
+                  onReset={handleNewChat}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

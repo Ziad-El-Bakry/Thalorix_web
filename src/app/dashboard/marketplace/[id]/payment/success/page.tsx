@@ -8,11 +8,13 @@ import { motion } from "framer-motion";
 
 export default function PaymentSuccessPage() {
   const params = useParams();
-  const id = params?.id || "1";
+  const id = Array.isArray(params?.id) ? params.id[0] : (params?.id || "1");
 
   return (
     <div className="w-full max-w-[1200px] mx-auto flex flex-col h-full overflow-y-auto custom-scrollbar pb-10">
-      <UserHeader name="User" badge="Developer" />
+      <div className="border-b-2 border-[#b0c4c4] pb-2 mb-4 relative z-50">
+        <UserHeader name="User" badge="Developer" compact />
+      </div>
 
       {/* Header */}
       <div className="flex items-center mb-8 relative justify-center">
@@ -82,15 +84,11 @@ export default function PaymentSuccessPage() {
         </motion.div>
 
         <div className="w-full max-w-[460px] space-y-3">
-          <Link href="/dashboard/marketplace" className="block w-full">
-            <button className="w-full bg-[#123E41] text-white font-bold py-3.5 rounded-xl hover:bg-[#0d2c2e] transition-colors shadow-sm">
-              Go to My Library
-            </button>
+          <Link href="/dashboard/marketplace" className="block w-full bg-[#123E41] text-white font-bold py-3.5 rounded-xl hover:bg-[#0d2c2e] transition-colors shadow-sm text-center">
+            Go to My Library
           </Link>
-          <Link href={`/dashboard/marketplace/${id}`} className="block w-full">
-            <button className="w-full bg-[#A5C9D3]/70 text-[#123E41] font-bold py-3.5 rounded-xl hover:bg-[#A5C9D3] transition-colors shadow-sm">
-              View Template
-            </button>
+          <Link href={`/dashboard/marketplace/${id}`} className="block w-full bg-[#A5C9D3]/70 text-[#123E41] font-bold py-3.5 rounded-xl hover:bg-[#A5C9D3] transition-colors shadow-sm text-center">
+            View Template
           </Link>
         </div>
       </div>

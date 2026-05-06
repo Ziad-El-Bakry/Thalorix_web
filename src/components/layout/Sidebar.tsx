@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import {
@@ -10,8 +11,11 @@ import {
   Sparkles,
   Store,
   User,
+  Shield,
 } from "lucide-react";
 import { useNotifications } from "@/components/shared/useNotifications";
+import { useEffect, useState } from "react";
+import { authService } from "@/lib/api/services/auth.service";
 
 const NAV = [
   { label: "Home", href: "/dashboard", icon: Home },
@@ -25,7 +29,6 @@ const NAV = [
 export default function Sidebar() {
   const pathname = usePathname();
   const { hasUnreadMessages, markMessagesRead } = useNotifications();
-
   return (
     <motion.aside
       initial={{ x: -60, opacity: 0 }}
@@ -38,54 +41,74 @@ export default function Sidebar() {
       }}
     >
       {/* Logo */}
-
-      <div className="mb-10 text-center">
-        <motion.h1
-          className="text-white text-2xl font-semibold tracking-widest flex justify-center"
-          initial="hidden"
-          animate="visible"
+<Link href="/dashboard" className="block cursor-pointer group"> 
+  <div className="mb-10 text-center flex flex-col items-center">
+    <Image
+      src="/images/logoSM.png"
+      alt="Thalorix Logo"
+      width={70}
+      height={60}
+      className="object-contain mb-3 drop-shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-transform group-hover:scale-105"
+      priority
+    />
+    <motion.h1
+      className="text-white text-2xl font-semibold tracking-widest flex justify-center"
+      initial="hidden"
+      animate="visible"
+      variants={{
+        hidden: { opacity: 0 },
+        visible: {
+          opacity: 1,
+          transition: { staggerChildren: 0.1, delayChildren: 0.2 },
+        },
+      }}
+    >
+      {"THALORIX".split("").map((char, index) => (
+        <motion.span
+          key={index}
           variants={{
-            hidden: { opacity: 0 },
+            hidden: { color: "#ffffff", opacity: 0, y: -10 },
             visible: {
+              color: ["#ffffff", "#9EC8FF", "#ffffff"],
               opacity: 1,
-              transition: { staggerChildren: 0.1, delayChildren: 0.2 },
+              y: 0,
+              transition: {
+                color: { duration: 2, repeat: Infinity, delay: index * 0.2 },
+                y: { duration: 0.4 },
+                opacity: { duration: 0.4 }
+              },
             },
           }}
         >
-          {"THALORIX".split("").map((char, index) => (
-            <motion.span
-              key={index}
-              variants={{
-                hidden: { color: "#ffffff", opacity: 0, y: -10 },
-                visible: {
-                  color: ["#ffffff", "#9EC8FF", "#ffffff"],
-                  opacity: 1,
-                  y: 0,
-                  transition: {
-                    color: { duration: 2, repeat: Infinity, delay: index * 0.2 },
-                    y: { duration: 0.4 },
-                    opacity: { duration: 0.4 }
-                  },
-                },
-              }}
-            >
-              {char}
-            </motion.span>
-          ))}
-        </motion.h1>
-        <motion.div
-          initial={{ width: 0, opacity: 0 }}
-          animate={{ width: "100%", opacity: 0.6 }}
-          transition={{ duration: 1, delay: 1 }}
-          className="h-px bg-[#6FA5A9] mt-3 mx-auto"
-        ></motion.div>
-      </div>
-
+          {char}
+        </motion.span>
+      ))}
+    </motion.h1>
+    <motion.div
+      initial={{ width: 0, opacity: 0 }}
+      animate={{ width: "100%", opacity: 0.6 }}
+      transition={{ duration: 1, delay: 1 }}
+      className="h-px bg-[#6FA5A9] mt-3 mx-auto"
+    ></motion.div>
+  </div>
+</Link>
       {/* Navigation */}
       <nav className="flex-1">
         <ul className="space-y-3">
           {NAV.map((item) => {
-            const isActive = pathname === item.href;
+            let isActive = pathname === item.href;
+            
+            // If viewing another person's profile, highlight Community instead of Profile
+            if (pathname?.startsWith("/dashboard/profile/") && pathname !== "/dashboard/profile") {
+              if (item.label === "Community") isActive = true;
+              if (item.label === "Profile") isActive = false;
+            }
+
+            // If viewing marketplace related pages, highlight Marketplace
+            if (pathname?.startsWith("/dashboard/marketplace")) {
+              if (item.label === "Marketplace") isActive = true;
+            }
+
             const Icon = item.icon;
 
             return (

@@ -13,7 +13,7 @@ http://localhost:3000/api/v1/...  (Your Next.js app on localhost:3000)
     ↓
 next.config.mjs proxy rewrites the request
     ↓
-https://thalorix-back-end--om8523302.replit.app/api/v1/...  (Replit backend)
+https://thalorix-back-end--omarshabour1.replit.app/api/v1/...  (Replit backend)
     ↓
 Response sent back to frontend
 ```
@@ -36,7 +36,7 @@ rewrites: {
   beforeFiles: [
     {
       source: "/api/:path*",
-      destination: "https://thalorix-back-end--om8523302.replit.app/api/:path*",
+      destination: "https://thalorix-back-end--omarshabour1.replit.app/api/:path*",
     },
   ];
 }
@@ -60,11 +60,10 @@ rewrites: {
 
 | Method | Endpoint                 | Configuration           | Service            |
 | ------ | ------------------------ | ----------------------- | ------------------ |
-| POST   | `/users/forgot-password` | `USERS.FORGOT_PASSWORD` | `users.service.ts` |
 | GET    | `/users`                 | `USERS.GET_ALL`         | `users.service.ts` |
 | GET    | `/users/{id}`            | `USERS.GET_BY_ID(id)`   | `users.service.ts` |
 | PATCH  | `/users/{id}`            | `USERS.UPDATE(id)`      | `users.service.ts` |
-| DELETE | `/users/{id}`            | `USERS.DELETE(id)`      | `users.service.ts` |
+| DELETE | `/users/{id}`            S.DELETE(id)`      | `users.service.ts` |
 | GET    | `/users/me`              | `USERS.ME`              | `users.service.ts` |
 | PATCH  | `/users/profile`         | `USERS.UPDATE_PROFILE`  | `users.service.ts` |
 | PATCH  | `/users/change-password` | `USERS.CHANGE_PASSWORD` | `users.service.ts` |
@@ -85,7 +84,9 @@ rewrites: {
 | POST   | `/auth/mob/login`      | `AUTH.MOB_LOGIN`      | `auth.service.ts` |
 | POST   | `/auth/refresh`        | `AUTH.REFRESH`        | `auth.service.ts` |
 | POST   | `/auth/logout`         | `AUTH.LOGOUT`         | `auth.service.ts` |
+| POST   | `/auth/forgot-password`| `AUTH.FORGOT_PASSWORD`| `auth.service.ts` |
 | POST   | `/auth/verify-email`   | `AUTH.VERIFY_EMAIL`   | `auth.service.ts` |
+| POST   | `/auth/verify-otp`     | `AUTH.VERIFY_OTP`     | `auth.service.ts` |
 | POST   | `/auth/reset-password` | `AUTH.RESET_PASSWORD` | `auth.service.ts` |
 
 **Service File:** `src/lib/api/services/auth.service.ts`
@@ -219,7 +220,7 @@ authService.login({ email: 'test@test.com', password: 'test' });
                 ↓
 5. next.config.mjs proxy rewrites:
    FROM: http://localhost:3000/api/v1/auth/web/login
-   TO:   https://thalorix-back-end--om8523302.replit.app/api/v1/auth/web/login
+   TO:   https://thalorix-back-end--omarshabour1.replit.app/api/v1/auth/web/login
                 ↓
 6. Backend processes request
                 ↓

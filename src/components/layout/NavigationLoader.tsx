@@ -28,12 +28,13 @@ export default function NavigationLoader({ children }: { children: React.ReactNo
       <Suspense fallback={null}>
         <NavigationEvents setIsLoading={setIsLoading} />
       </Suspense>
-      {isLoading ? (
+      <div style={{ display: isLoading ? 'none' : 'block' }} className="w-full h-full">
+        {children}
+      </div>
+      {isLoading && (
         <div className="flex-1 flex items-center justify-center min-h-[80vh] w-full">
           <LoadingSpinner />
         </div>
-      ) : (
-        children
       )}
     </>
   );

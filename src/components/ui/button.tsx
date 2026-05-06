@@ -6,10 +6,11 @@ type Props = {
 	className?: string;
 	type?: 'button' | 'submit' | 'reset';
 	onClick?: () => void;
+	disabled?: boolean;
 };
 
-export const Button = ({ children, variant = 'primary', className = '', type = 'button', onClick }: Props) => {
-	const base = 'inline-flex items-center justify-center px-6 py-3 rounded shadow-md transition';
+export const Button = ({ children, variant = 'primary', className = '', type = 'button', onClick, disabled }: Props) => {
+	const base = 'inline-flex items-center justify-center px-6 py-3 rounded shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed';
 	const styles =
 		variant === 'primary'
 			? 'bg-teal-800 text-white hover:bg-teal-700 active:translate-y-0.5'
@@ -18,7 +19,7 @@ export const Button = ({ children, variant = 'primary', className = '', type = '
 				: 'bg-transparent text-teal-800 underline';
 
 	return (
-		<button type={type} onClick={onClick} className={`${base} ${styles} ${className}`}>
+		<button type={type} onClick={onClick} disabled={disabled} className={`${base} ${styles} ${className}`}>
 			{children}
 		</button>
 	);

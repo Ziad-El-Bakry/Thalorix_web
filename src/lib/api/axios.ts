@@ -14,21 +14,25 @@ declare module 'axios' {
 // ============================================
 // Configuration
 // ============================================
+const isProd = typeof window !== 'undefined' ? window.location.hostname !== 'localhost' : process.env.NODE_ENV === 'production';
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 
                      process.env.NEXT_PUBLIC_API_URL || 
-                     'http://localhost:3001';
+                     (isProd ? '/api' : 'http://localhost:3000/api');
 
 const API_VERSION = process.env.NEXT_PUBLIC_API_VERSION || 'v1';
 
 // Construct full API URL
-// If API_BASE_URL already contains /api, don't add it again
 let API_URL: string;
 
-if (API_BASE_URL.includes('/api')) {
-  // Already has /api in the URL
+if (API_BASE_URL.includes(`/${API_VERSION}`)) {
+  // Already has the version in the URL
+  API_URL = API_BASE_URL;
+} else if (API_BASE_URL.includes('/api')) {
+  // Already has /api in the URL, but missing version
   API_URL = `${API_BASE_URL}/${API_VERSION}`;
 } else {
-  // Add /api to the URL
+  // Add /api and version to the URL
   API_URL = `${API_BASE_URL}/api/${API_VERSION}`;
 }
 
@@ -125,10 +129,19 @@ api.interceptors.response.use(
       hint: isNetworkError ? '🔧 Backend might be down or unreachable. Check API_BASE_URL and ensure backend is running.' : undefined,
     };
 
-    console.error('🔴 API Error:', JSON.stringify(errorDetails, null, 2));
+    // Only use console.warn to avoid triggering the Next.js Error Overlay for normal validations/network errors.
+    if (isNetworkError || error.response?.status && error.response.status >= 500) {
+      console.warn('🔴 API Error:', JSON.stringify(errorDetails, null, 2));
+    } else {
+      console.warn('🟡 API Warning (Handled):', JSON.stringify(errorDetails, null, 2));
+    }
 
-    // Token refresh logic (only for 401 errors)
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Token refresh logic (only for 401 errors, ignoring login endpoints)
+    if (
+      error.response?.status === 401 && 
+      !originalRequest._retry &&
+      !originalRequest.url?.includes('/login')
+    ) {
       originalRequest._retry = true;
 
       try {
@@ -142,20 +155,24 @@ api.interceptors.response.use(
         console.log('🔄 Attempting to refresh token...');
 
         const { data } = await axios.post(`${API_URL}/auth/refresh`, {
-          refresh_token: refreshToken,
+          refreshToken: refreshToken,
         });
 
         console.log('✅ Token refreshed successfully');
 
+        const newToken = data.access_token || data.accessToken;
+        
         // Save new token
-        localStorage.setItem('access_token', data.access_token);
+        if (newToken) {
+            localStorage.setItem('access_token', newToken);
+        }
         
         // Retry original request
-        originalRequest.headers.Authorization = `Bearer ${data.access_token}`;
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return api(originalRequest);
         
       } catch (refreshError) {
-        console.error('❌ Token refresh failed:', refreshError);
+        console.warn('❌ Token refresh failed:', refreshError);
         
         // Clear storage and redirect
         localStorage.clear();

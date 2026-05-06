@@ -47,17 +47,11 @@ export default function ChatHeader({ user, onBack, onSearch }: ChatHeaderProps &
           </button>
         )}
         <div className="relative">
-          {user.avatarUrl ? (
-            <img
-              src={user.avatarUrl}
-              alt={user.name}
-              className="w-10 h-10 rounded-full object-cover ring-2 ring-white/20"
-            />
-          ) : (
-            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white font-semibold text-base">
-              {user.name.charAt(0).toUpperCase()}
-            </div>
-          )}
+          <img
+            src={user.avatarUrl || "/images/avatar.png"}
+            alt={user.name}
+            className="w-10 h-10 rounded-full object-cover ring-2 ring-white/20"
+          />
         </div>
         <div>
           <h2 className="font-semibold text-white text-sm leading-tight">{user.name}</h2>

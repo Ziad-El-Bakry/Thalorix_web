@@ -16,7 +16,7 @@ NEXT_PUBLIC_DEBUG_MODE=true
 ```
 http://localhost:3000/api/v1
 ↓ (via proxy)
-https://thalorix-back-end--om8523302.replit.app/api/v1
+https://thalorix-back-end--omarshabour1.replit.app/api/v1
 ```
 
 ---

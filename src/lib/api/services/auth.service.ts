@@ -13,24 +13,31 @@ export interface LoginDto {
 export interface RegisterDto {
   username: string;
   email: string;
+  phone?: string;
   password: string;
   confirmPassword?: string;
 }
 
 export interface User {
   id: string;
+  name?: string;
   username: string;
   email: string;
   role: 'user' | 'developer' | 'admin';
   credits: number;
   avatar?: string;
+  bio?: string;
+  expertise?: { name: string; percent: number }[];
+  socialLinks?: { facebook: string; instagram: string };
   isVerified: boolean;
   createdAt: string;
 }
 
 export interface AuthResponse {
-  access_token: string;
-  refresh_token: string;
+  access_token?: string;
+  refresh_token?: string;
+  accessToken?: string;
+  refreshToken?: string;
   user: User;
 }
 
@@ -54,8 +61,11 @@ export const authService = {
     const { data } = await api.post<AuthResponse>(endpoint, dto);
 
     // Save tokens
-    localStorage.setItem('access_token', data.access_token);
-    localStorage.setItem('refresh_token', data.refresh_token);
+    const token = data.access_token || data.accessToken;
+    const refresh = data.refresh_token || data.refreshToken;
+    
+    if (token) localStorage.setItem('access_token', token);
+    if (refresh) localStorage.setItem('refresh_token', refresh);
     localStorage.setItem('user', JSON.stringify(data.user));
 
     return data;
@@ -69,7 +79,18 @@ export const authService = {
       ? ENDPOINTS.AUTH.WEB_REGISTER 
       : ENDPOINTS.AUTH.MOB_REGISTER;
 
-    const { data } = await api.post<AuthResponse>(endpoint, dto);
+    // Map frontend DTO to backend DTO expected fields
+    const backendPayload: any = {
+      name: dto.username,
+      email: dto.email,
+      password: dto.password,
+      cPassword: dto.confirmPassword,
+    };
+    
+    // Send phone as it is required by the backend
+    backendPayload.phone = dto.phone;
+
+    const { data } = await api.post<AuthResponse>(endpoint, backendPayload);
 
     return data;
   },
@@ -80,8 +101,11 @@ export const authService = {
   async logout(): Promise<void> {
     try {
       await api.post(ENDPOINTS.AUTH.LOGOUT);
-    } catch (error) {
-      console.error('Logout error:', error);
+    } catch (error: any) {
+      // It's normal to get a 401 here if the session is already expired
+      if (error?.response?.status !== 401) {
+        console.warn('Logout warning:', error?.message || 'Failed to logout from server');
+      }
     } finally {
       localStorage.clear();
     }
@@ -92,14 +116,15 @@ export const authService = {
    */
   async refresh(refreshToken: string): Promise<AuthResponse> {
     const { data } = await api.post<AuthResponse>(ENDPOINTS.AUTH.REFRESH, {
-      refresh_token: refreshToken,
+      refreshToken: refreshToken,
     });
 
     // Update tokens
-    localStorage.setItem('access_token', data.access_token);
-    if (data.refresh_token) {
-      localStorage.setItem('refresh_token', data.refresh_token);
-    }
+    const token = data.access_token || data.accessToken;
+    const refresh = data.refresh_token || data.refreshToken;
+    
+    if (token) localStorage.setItem('access_token', token);
+    if (refresh) localStorage.setItem('refresh_token', refresh);
 
     return data;
   },
@@ -112,10 +137,34 @@ export const authService = {
   },
 
   /**
+   * Verify OTP code
+   */
+  async verifyOtp(data: { email: string; otp: string }): Promise<AuthResponse> {
+    const response = await api.post<AuthResponse>(ENDPOINTS.AUTH.VERIFY_OTP, {
+      email: data.email,
+      code: data.otp,
+    });
+    
+    // If verification returns tokens, save them
+    const token = response.data?.access_token || response.data?.accessToken;
+    const refresh = response.data?.refresh_token || response.data?.refreshToken;
+    
+    if (token) {
+      localStorage.setItem('access_token', token);
+      if (refresh) localStorage.setItem('refresh_token', refresh);
+      if (response.data.user) {
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+      }
+    }
+    
+    return response.data;
+  },
+
+  /**
    * Request password reset
    */
   async forgotPassword(email: string): Promise<void> {
-    await api.post(ENDPOINTS.USERS.FORGOT_PASSWORD, { email });
+    await api.post(ENDPOINTS.AUTH.FORGOT_PASSWORD, { email });
   },
 
   /**

@@ -6,7 +6,7 @@ export const ENDPOINTS = {
   // APP
   // ============================================
   APP: {
-    INFO: '', // Will become: /api/v1
+    INFO: '/', // Will become: /api/v1
   },
 
   // ============================================
@@ -20,23 +20,42 @@ export const ENDPOINTS = {
     REFRESH: '/auth/refresh',
     LOGOUT: '/auth/logout',
     VERIFY_EMAIL: '/auth/verify-email',
+    VERIFY_OTP: '/auth/verify-otp',
     RESET_PASSWORD: '/auth/reset-password',
+    FORGOT_PASSWORD: '/auth/forgot-password',
   },
 
   // ============================================
   // USERS
   // ============================================
   USERS: {
-    FORGOT_PASSWORD: '/users/forgot-password',
     GET_ALL: '/users',
     GET_BY_ID: (id: string) => `/users/${id}`,
     UPDATE: (id: string) => `/users/${id}`,
     DELETE: (id: string) => `/users/${id}`,
     ME: '/users/me',
-    UPDATE_PROFILE: '/users/profile',
+    UPDATE_PROFILE: (id: string) => `/users/${id}`,
     CHANGE_PASSWORD: '/users/change-password',
-    UPLOAD_AVATAR: '/users/avatar',
+    UPLOAD_AVATAR: '/users/upload/avatars',
     GET_CREDITS: '/users/credits',
+  },
+
+  // ============================================
+  // ADMINS
+  // ============================================
+  ADMINS: {
+    GET_BY_ID: (id: string) => `/admins/${id}`,
+    UPDATE: (id: string) => `/admins/${id}`,
+    GET_ALL: '/admins',
+  },
+
+  // ============================================
+  // OTP
+  // ============================================
+  OTP: {
+    SEND:   '/otp/send',
+    VERIFY: '/otp/verify',
+    RESEND: '/otp/resend',
   },
 
   // ... rest of endpoints

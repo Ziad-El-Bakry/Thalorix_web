@@ -4,7 +4,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --webpack",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -25,6 +25,7 @@
     "react-dom": "^19.2.4",
     "react-hook-form": "latest",
     "react-snowfall": "^2.4.0",
+    "recharts": "^3.8.1",
     "shadcn": "^4.0.8",
     "socket.io-client": "latest",
     "stripe": "latest",

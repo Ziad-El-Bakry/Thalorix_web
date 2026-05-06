@@ -20,7 +20,7 @@ export const dummyConversations: Conversation[] = Array.from({ length: 12 }).map
     {
       id: String(i + 2),
       name: names[i],
-      avatarUrl: "",
+      avatarUrl: "/images/avatar.png",
       online: i >= 0 && i <= 3,
     },
   ],
@@ -30,7 +30,7 @@ export const dummyConversations: Conversation[] = Array.from({ length: 12 }).map
       sender: {
         id: "2",
         name: names[i],
-        avatarUrl: "",
+        avatarUrl: "/images/avatar.png",
       },
       text: i % 3 === 0
         ? "Hey, I think there's a mistake on my Code..."
@@ -46,7 +46,7 @@ export const dummyConversations: Conversation[] = Array.from({ length: 12 }).map
     sender: {
       id: "2",
       name: names[i],
-      avatarUrl: "",
+      avatarUrl: "/images/avatar.png",
     },
     text: i % 3 === 0
       ? "Hey, I think there's a mistake on my Code..."
@@ -59,9 +59,11 @@ export const dummyConversations: Conversation[] = Array.from({ length: 12 }).map
 }));
 
 export default function ChatList({
+  conversations,
   selectedId,
   onSelect,
 }: {
+  conversations: Conversation[];
   selectedId: string | null;
   onSelect: (id: string) => void;
 }) {
@@ -77,11 +79,11 @@ export default function ChatList({
 
   const filtered = useMemo(() =>
     search.trim()
-      ? dummyConversations.filter((c) =>
-          c.participants[0].name.toLowerCase().includes(search.toLowerCase())
+      ? conversations.filter((c) =>
+          c.participants[0]?.name.toLowerCase().includes(search.toLowerCase())
         )
-      : dummyConversations,
-    [search]
+      : conversations,
+    [search, conversations]
   );
 
   return (

@@ -2,24 +2,51 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { authService } from "@/lib/api/services/auth.service";
 
 export default function RegisterForm() {
+    const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
+    const [phone, setPhone] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const router = useRouter();
 
-    const handleSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
+    const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (e) => {
         e.preventDefault();
         if (password !== confirmPassword) {
             setError("Passwords do not match.");
             return;
         }
         setError("");
-        // proceed with registration
+        setLoading(true);
+        
+        try {
+            let formattedPhone = phone;
+            // Automatically convert Egyptian local numbers (01...) to international (+201...)
+            if (formattedPhone.startsWith("01") && formattedPhone.length === 11) {
+                formattedPhone = "+2" + formattedPhone;
+            } else if (!formattedPhone.startsWith("+")) {
+                // Prepend + if the user forgot it for other international numbers
+                formattedPhone = "+" + formattedPhone;
+            }
+
+            await authService.register({ username, email, phone: formattedPhone, password, confirmPassword });
+            const params = new URLSearchParams({ email });
+            if (phone) params.set("phone", phone);
+            if (username) params.set("name", username);
+            router.push(`/choose-verification?${params.toString()}`);
+        } catch (err: any) {
+            setError(err?.response?.data?.message || err?.message || "Registration failed");
+        } finally {
+            setLoading(false);
+        }
     };
 
     const containerVariants = {
@@ -48,6 +75,23 @@ export default function RegisterForm() {
             </motion.h2>
 
             <form onSubmit={handleSubmit} className="space-y-5">
+                {/* Username */}
+                <motion.div variants={itemVariants} className="space-y-1.5">
+                    <label className="block text-xs font-semibold text-gray-700 tracking-wide">
+                        Full Name
+                    </label>
+                    <input
+                        type="text"
+                        placeholder="John Doe"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        required
+                        pattern="^[a-zA-Z\s\u0600-\u06FF]+$"
+                        title="Name must contain only letters (Arabic or English) without numbers or symbols"
+                        className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-300 transition"
+                    />
+                </motion.div>
+
                 {/* Email */}
                 <motion.div variants={itemVariants} className="space-y-1.5">
                     <label className="block text-xs font-semibold text-gray-700 tracking-wide">
@@ -61,6 +105,21 @@ export default function RegisterForm() {
                         required
                         pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"
                         title="Enter a valid email address (e.g. user@example.com)"
+                        className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-300 transition"
+                    />
+                </motion.div>
+
+                {/* Phone */}
+                <motion.div variants={itemVariants} className="space-y-1.5">
+                    <label className="block text-xs font-semibold text-gray-700 tracking-wide">
+                        Phone Number
+                    </label>
+                    <input
+                        type="tel"
+                        placeholder="Phone number"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        required
                         className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-300 transition"
                     />
                 </motion.div>
@@ -160,9 +219,10 @@ export default function RegisterForm() {
                 <motion.button
                     variants={itemVariants}
                     type="submit"
-                    className="w-full bg-[#103B40] hover:bg-[#0c2f33] text-white font-bold text-sm tracking-wider py-3 rounded-lg transition-colors cursor-pointer"
+                    disabled={loading}
+                    className="w-full bg-[#103B40] hover:bg-[#0c2f33] disabled:opacity-70 disabled:cursor-not-allowed text-white font-bold text-sm tracking-wider py-3 rounded-lg transition-colors cursor-pointer"
                 >
-                    Register
+                    {loading ? "REGISTERING..." : "REGISTER"}
                 </motion.button>
 
                 {/* Sign In link */}

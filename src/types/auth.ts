@@ -1,1 +1,1 @@
-export interface User {}
+export interface AuthUser {}

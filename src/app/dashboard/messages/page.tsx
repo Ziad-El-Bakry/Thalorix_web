@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { ChatList, ChatWindow } from "../../../components/features/messages";
 import { useChatState } from "../../../components/features/messages/useChatState";
 import { Conversation } from "../../../types/message";
@@ -10,10 +11,13 @@ const MIN_LIST_WIDTH = 280;
 const MAX_LIST_WIDTH = 560;
 const DEFAULT_LIST_WIDTH = 380;
 
-export default function Messages() {
+function MessagesContent() {
+  const searchParams = useSearchParams();
+  const userIdFromUrl = searchParams?.get("user");
+
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
   const { setIsChatOpen } = useChatState();
-  const [conversations] = useState<Conversation[]>(dummyConversations);
+  const [conversations, setConversations] = useState<Conversation[]>(dummyConversations);
   const [listWidth, setListWidth] = useState(DEFAULT_LIST_WIDTH);
   const isDragging = useRef(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -24,6 +28,49 @@ export default function Messages() {
     setIsChatOpen(!!selectedChatId);
     return () => setIsChatOpen(false);
   }, [selectedChatId, setIsChatOpen]);
+
+  useEffect(() => {
+    if (userIdFromUrl) {
+      setConversations(prev => {
+        const existing = prev.find(c => c.participants.some(p => p.id === userIdFromUrl));
+        if (existing) {
+          // Wrap setSelectedChatId in setTimeout to avoid updating state during existing state transition
+          setTimeout(() => setSelectedChatId(existing.id), 0);
+          return prev;
+        } else {
+          const newChatId = "new_chat_" + userIdFromUrl;
+          const newConversation: Conversation = {
+            id: newChatId,
+            participants: [
+              {
+                id: userIdFromUrl,
+                name: userIdFromUrl === "1" ? "Adel Ghamri" : userIdFromUrl === "2" ? "Sara" : "User " + userIdFromUrl,
+                avatarUrl: userIdFromUrl === "1" ? "/images/profile1.png" : userIdFromUrl === "2" ? "/images/profile2.png" : "/images/avatar.png",
+                online: true,
+              }
+            ],
+            messages: [],
+            lastMessage: {
+              id: "fake_last_msg",
+              sender: { id: "2" },
+              text: "Start of your conversation",
+              timestamp: new Date().toISOString(),
+              status: "delivered"
+            } as any
+          };
+          setTimeout(() => setSelectedChatId(newChatId), 0);
+          
+          // Persist the newly created chat to the global dummy memory so it survives page unmounts
+          const dummyExists = dummyConversations.find(c => c.id === newConversation.id);
+          if (!dummyExists) {
+            dummyConversations.unshift(newConversation);
+          }
+          
+          return [newConversation, ...prev];
+        }
+      });
+    }
+  }, [userIdFromUrl]);
 
   const onMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -65,6 +112,7 @@ export default function Messages() {
         style={{ "--list-width": `${listWidth}px` } as React.CSSProperties}
       >
         <ChatList
+          conversations={conversations}
           selectedId={selectedChatId}
           onSelect={setSelectedChatId}
         />
@@ -93,5 +141,13 @@ export default function Messages() {
         />
       </div>
     </div>
+  );
+}
+
+export default function Messages() {
+  return (
+    <React.Suspense fallback={<div className="flex items-center justify-center h-full">Loading...</div>}>
+      <MessagesContent />
+    </React.Suspense>
   );
 }
