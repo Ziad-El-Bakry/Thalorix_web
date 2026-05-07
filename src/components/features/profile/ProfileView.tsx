@@ -1086,7 +1086,7 @@ function ChangePassword({ user, onSave, onCancel }: { user: any; onSave: () => v
         newPassword, 
         confirmPassword: confirmNewPassword,
         logoutOtherDevices 
-      });
+      } as any);
       onSave();
     } catch (err: any) {
       setError(err?.response?.data?.message || "Failed to change password.");

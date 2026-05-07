@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, SlidersHorizontal, WifiOff, X, Loader2 } from "lucide-react";
 import UserHeader from "@/components/ui/UserHeader";
@@ -186,7 +186,9 @@ export default function Community() {
         </motion.div>
 
         {/* Create Post Bar */}
-        <CreatePostBar userName={userName} />
+        <Suspense fallback={<div className="h-[110px] w-full bg-white rounded-xl shadow-sm border border-gray-100 animate-pulse" />}>
+          <CreatePostBar userName={userName} />
+        </Suspense>
 
         {/* Pull-to-refresh indicator */}
         <AnimatePresence>

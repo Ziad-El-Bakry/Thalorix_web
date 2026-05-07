@@ -81,7 +81,7 @@ export default function ChatWindow({
           sender: otherUser,
           text: `This is an older mock message ${i + 1}`,
           timestamp: new Date(Date.now() - 86400000 * (i + 1)).toISOString(),
-          status: "read"
+          status: "read" as any
         }));
         // preserve scroll position
         const prevHeight = containerRef.current!.scrollHeight;
