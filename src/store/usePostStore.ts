@@ -43,7 +43,7 @@ const SAMPLE_POSTS: PostData[] = [
     },
     content:
       "Quick tip: Always use semantic HTML elements. It's not just for accessibility — it also helps with SEO and makes your code more maintainable. Small changes, big impact! ✨",
-    timestamp: "6h ago",
+    timestamp: "4h ago",
     likes: 24,
     comments: 6,
     shares: 3,

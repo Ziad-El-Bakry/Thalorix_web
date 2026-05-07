@@ -8,12 +8,12 @@ import MessageInput from "./MessageInput";
 import { X } from "lucide-react";
 import { useAvatar } from "@/store/useAvatarStore";
 
-export default function ChatWindow({ 
+export default function ChatWindow({
   conversation,
-  onBack 
-}: { 
+  onBack
+}: {
   conversation?: Conversation;
-  onBack?: () => void 
+  onBack?: () => void
 }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
@@ -81,7 +81,7 @@ export default function ChatWindow({
           sender: otherUser,
           text: `This is an older mock message ${i + 1}`,
           timestamp: new Date(Date.now() - 86400000 * (i + 1)).toISOString(),
-          status: "read" as any
+          status: "read" as const
         }));
         // preserve scroll position
         const prevHeight = containerRef.current!.scrollHeight;
@@ -152,16 +152,16 @@ export default function ChatWindow({
                     </span>
                   </div>
                 )}
-                <MessageBubble 
-                  message={m} 
-                  isOwn={m.sender.id === "1"} 
-                  onImageClick={(url: string) => setSelectedImage(url)} 
+                <MessageBubble
+                  message={m}
+                  isOwn={m.sender.id === "1"}
+                  onImageClick={(url: string) => setSelectedImage(url)}
                   onReply={(msg: Message) => setReplyingTo(msg)}
                 />
               </React.Fragment>
             );
           })}
-          
+
         {searchQuery && messages.filter(m => m.text?.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
           <div className="w-full text-center text-gray-500 py-8 text-sm">
             No messages found matching "{searchQuery}"
@@ -178,11 +178,11 @@ export default function ChatWindow({
           </div>
         )}
       </div>
-      
-      <MessageInput 
-        value={inputValue} 
-        onChange={setInputValue} 
-        onSend={handleSend} 
+
+      <MessageInput
+        value={inputValue}
+        onChange={setInputValue}
+        onSend={handleSend}
         replyingTo={replyingTo}
         onCancelReply={() => setReplyingTo(null)}
       />
@@ -190,15 +190,15 @@ export default function ChatWindow({
       {/* Fullscreen Image Modal */}
       {selectedImage && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4 animate-in fade-in duration-200">
-          <button 
+          <button
             onClick={() => setSelectedImage(null)}
             className="absolute top-4 right-4 text-white hover:bg-white/20 p-2 rounded-full transition-colors z-50"
           >
             <X className="w-8 h-8" />
           </button>
-          <img 
-            src={selectedImage} 
-            alt="Fullscreen view" 
+          <img
+            src={selectedImage}
+            alt="Fullscreen view"
             className="max-w-full max-h-full object-contain rounded-md"
           />
         </div>

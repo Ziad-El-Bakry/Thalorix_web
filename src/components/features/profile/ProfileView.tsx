@@ -21,6 +21,7 @@ import { useAvatar } from "@/store/useAvatarStore";
 import CreatePostBar from "@/components/features/community/CreatePostBar";
 import PostCard, { PostData } from "@/components/features/community/PostCard";
 import { usePostStore } from "@/store/usePostStore";
+import { LogoutModal, DeleteAccountModal } from "@/components/shared/ProfileModals";
 
 type SettingsTab = "personal" | "password";
 
@@ -98,6 +99,9 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [settingsTab, setSettingsTab] = useState<SettingsTab>("personal");
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [activeProfileTab, setActiveProfileTab] = useState<"posts" | "projects" | "media">("posts");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
@@ -243,23 +247,29 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
     setTimeout(() => setShowToast(false), 3000);
   };
 
-  const handleLogout = async () => {
+  const handleLogoutClick = () => setIsLogoutModalOpen(true);
+  const handleDeleteAccountClick = () => setIsDeleteModalOpen(true);
+
+  const handleLogoutConfirm = async () => {
+    setIsLogoutModalOpen(false);
     await authService.logout();
     router.push("/login");
   };
 
-  const handleDeleteAccount = async () => {
+  const handleDeleteAccountConfirm = async () => {
     if (!user?.id) return;
-    const confirmDelete = window.confirm("Are you sure you want to delete your account? This action cannot be undone.");
-    if (confirmDelete) {
-      try {
-        await usersService.deleteUser(user.id);
-        await authService.logout();
-        router.push("/login");
-      } catch (error) {
-        console.error("Failed to delete account:", error);
-        alert("Failed to delete account");
-      }
+    setIsDeleting(true);
+    try {
+      await usersService.deleteUser(user.id);
+      await authService.logout();
+      setIsDeleteModalOpen(false);
+      router.push("/login");
+    } catch (error) {
+      console.error("Failed to delete account:", error);
+      fireToast("Failed to delete account");
+      setIsDeleteModalOpen(false);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -407,10 +417,10 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
 
               {/* Danger zone */}
               <div className="border-t border-gray-100 px-6 py-4 flex items-center justify-between">
-                <button onClick={handleLogout} className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors font-medium">
+                <button onClick={handleLogoutClick} className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors font-medium">
                   <LogOut size={16} /> Logout
                 </button>
-                <button onClick={handleDeleteAccount} className="flex items-center gap-2 text-sm text-red-500 hover:text-red-700 transition-colors font-medium">
+                <button onClick={handleDeleteAccountClick} className="flex items-center gap-2 text-sm text-red-500 hover:text-red-700 transition-colors font-medium">
                   <Trash2 size={16} /> Delete Account
                 </button>
               </div>
@@ -714,8 +724,8 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
                 key={tab}
                 onClick={() => setActiveProfileTab(tab)}
                 className={`px-5 py-2 rounded-full text-sm font-semibold capitalize transition-all duration-200 ${activeProfileTab === tab
-                    ? "bg-[#103B40] text-white shadow-sm"
-                    : "text-gray-500 hover:bg-gray-100"
+                  ? "bg-[#103B40] text-white shadow-sm"
+                  : "text-gray-500 hover:bg-gray-100"
                   }`}
               >
                 {tab}
@@ -858,6 +868,24 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
           </div>
         </motion.div>
       </div>
+
+      {/* ═══════════════════════════════════════
+          MODALS
+         ═══════════════════════════════════════ */}
+         
+      <LogoutModal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={handleLogoutConfirm}
+      />
+
+      <DeleteAccountModal
+        isOpen={isDeleteModalOpen}
+        isDeleting={isDeleting}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDeleteAccountConfirm}
+      />
+
     </div>
   );
 }
@@ -877,50 +905,11 @@ const itemVariants = {
 };
 
 function PersonalDetails({ user, onSave, expertise, setExpertise, socialLinks, setSocialLinks }: { user: any; onSave: (data: any) => void; expertise: any[]; setExpertise: (e: any[]) => void; socialLinks: any; setSocialLinks: (s: any) => void }) {
-  const originalEmail = user?.email || "";
   const [username, setUsername] = useState(user?.name || user?.username || "");
-  const [email, setEmail] = useState(originalEmail);
-  const [isEmailVerified, setIsEmailVerified] = useState(true);
-  const [isVerifyingEmail, setIsVerifyingEmail] = useState(false);
-  const [otp, setOtp] = useState("");
-  
+  const [email] = useState(user?.email || "");
   const [bio, setBio] = useState(user?.bio || "");
   const [emailError, setEmailError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
-
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newEmail = e.target.value;
-    setEmail(newEmail);
-    if (newEmail !== originalEmail) {
-      setIsEmailVerified(false);
-    } else {
-      setIsEmailVerified(true);
-      setIsVerifyingEmail(false);
-    }
-  };
-
-  const handleSendVerification = () => {
-    if (!email.includes('@')) {
-      setEmailError("Please enter a valid email address.");
-      return;
-    }
-    setEmailError("");
-    setIsVerifyingEmail(true);
-    // Simulate sending OTP
-    setTimeout(() => {
-       alert("MOCK OTP SENT: 123456");
-    }, 500);
-  };
-
-  const handleVerifyOtp = () => {
-    if (otp.length >= 4) { // Mock simple check
-      setIsEmailVerified(true);
-      setIsVerifyingEmail(false);
-      setEmailError("");
-    } else {
-      setEmailError("Invalid verification code.");
-    }
-  };
 
   const handleSave = async () => {
     setEmailError("");
@@ -928,7 +917,7 @@ function PersonalDetails({ user, onSave, expertise, setExpertise, socialLinks, s
     if (!userId) return;
     setIsSaving(true);
     try {
-      const updateDto = { username, email, bio, expertise, socialLinks };
+      const updateDto = { username, bio, expertise, socialLinks };
       await usersService.updateProfile(userId, updateDto);
       // Pass 'name' as well so the local state updates correctly
       onSave({ ...updateDto, name: username });
@@ -949,45 +938,11 @@ function PersonalDetails({ user, onSave, expertise, setExpertise, socialLinks, s
 
       <motion.div variants={itemVariants} className="mb-5">
         <label className="block text-xs font-semibold text-gray-700 mb-2">Email Address</label>
-        <div className="flex gap-2">
-          <Input 
-            value={email} 
-            onChange={handleEmailChange} 
-            className="bg-gray-50 border border-gray-200 shadow-sm h-11 flex-1" 
-          />
-          {email !== originalEmail && !isEmailVerified && !isVerifyingEmail && (
-            <Button type="button" onClick={handleSendVerification} className="bg-amber-500 hover:bg-amber-600 text-white h-11 px-4 shadow-sm text-xs font-medium">
-              Verify Email
-            </Button>
-          )}
-          {email !== originalEmail && isEmailVerified && (
-            <div className="h-11 px-4 flex items-center justify-center bg-green-50 text-green-600 rounded-md border border-green-200 text-xs font-bold">
-              <CheckCircle size={14} className="mr-1.5" /> Verified
-            </div>
-          )}
-        </div>
-        
-        {isVerifyingEmail && (
-          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mt-3 p-4 bg-amber-50 border border-amber-100 rounded-lg">
-            <p className="text-xs text-amber-800 mb-2 font-medium">We sent a verification code to {email}.</p>
-            <div className="flex gap-2">
-              <Input 
-                value={otp} 
-                onChange={(e: any) => setOtp(e.target.value)} 
-                placeholder="Enter 6-digit code" 
-                className="bg-white h-9 flex-1 text-sm border-amber-200 focus-visible:ring-amber-400" 
-              />
-              <Button type="button" onClick={handleVerifyOtp} className="bg-amber-600 hover:bg-amber-700 text-white h-9 px-4 text-xs font-medium">
-                Confirm
-              </Button>
-            </div>
-          </motion.div>
-        )}
-
+        <Input value={email} disabled className="bg-gray-100 shadow-sm h-11 border border-gray-200 text-gray-500 cursor-not-allowed" />
         <AnimatePresence>
           {emailError && (
             <motion.p initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="text-xs text-red-500 mt-2 flex items-center gap-1.5 font-medium overflow-hidden">
-              <AlertCircle size={14} className="fill-red-500 text-white flex-shrink-0" />
+              <AlertCircle size={14} className="fill-red-500 text-white" />
               {emailError}
             </motion.p>
           )}
@@ -1042,13 +997,8 @@ function PersonalDetails({ user, onSave, expertise, setExpertise, socialLinks, s
       </motion.div>
 
       <motion.div variants={itemVariants} className="flex justify-end">
-        <Button 
-          onClick={handleSave} 
-          disabled={isSaving || !isEmailVerified} 
-          variant="primary" 
-          className="bg-[#103B40] hover:bg-[#0c2e32] h-10 shadow-md font-medium px-8 transition-transform hover:scale-105 active:scale-95 disabled:opacity-70 disabled:hover:scale-100"
-        >
-          {isSaving ? "Saving..." : !isEmailVerified ? "Verify Email to Save" : "Save Changes"}
+        <Button onClick={handleSave} disabled={isSaving} variant="primary" className="bg-[#103B40] hover:bg-[#0c2e32] h-10 shadow-md font-medium px-8 transition-transform hover:scale-105 active:scale-95 disabled:opacity-70">
+          {isSaving ? "Saving..." : "Save Changes"}
         </Button>
       </motion.div>
     </motion.div>
@@ -1066,7 +1016,6 @@ function ChangePassword({ user, onSave, onCancel }: { user: any; onSave: () => v
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
-  const [logoutOtherDevices, setLogoutOtherDevices] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -1080,13 +1029,7 @@ function ChangePassword({ user, onSave, onCancel }: { user: any; onSave: () => v
     if (newPassword !== confirmNewPassword) { setError("New passwords do not match."); return; }
     setIsSaving(true);
     try {
-      // Pass the logoutOtherDevices flag to the backend (mocked for now)
-      await usersService.changePassword({ 
-        currentPassword: oldPassword, 
-        newPassword, 
-        confirmPassword: confirmNewPassword,
-        logoutOtherDevices 
-      } as any);
+      await usersService.changePassword({ currentPassword: oldPassword, newPassword, confirmPassword: confirmNewPassword });
       onSave();
     } catch (err: any) {
       setError(err?.response?.data?.message || "Failed to change password.");
@@ -1132,26 +1075,6 @@ function ChangePassword({ user, onSave, onCancel }: { user: any; onSave: () => v
           <motion.button whileTap={{ scale: 0.8 }} type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
             {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
           </motion.button>
-        </div>
-      </motion.div>
-
-      <motion.div variants={itemVariants} className="mb-6 flex items-start gap-3">
-        <div className="flex h-5 items-center">
-          <input
-            id="logoutDevices"
-            type="checkbox"
-            checked={logoutOtherDevices}
-            onChange={(e) => setLogoutOtherDevices(e.target.checked)}
-            className="h-4 w-4 rounded border-gray-300 text-[#103B40] focus:ring-[#103B40] accent-[#103B40]"
-          />
-        </div>
-        <div className="flex flex-col">
-          <label htmlFor="logoutDevices" className="text-sm font-semibold text-gray-700 cursor-pointer">
-            Log out of all other devices
-          </label>
-          <p className="text-xs text-gray-500 mt-0.5">
-            You will be logged out everywhere else to secure your account.
-          </p>
         </div>
       </motion.div>
 
