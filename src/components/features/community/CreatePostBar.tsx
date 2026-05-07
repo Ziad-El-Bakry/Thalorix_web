@@ -1,11 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { Video, ImageIcon, FileText } from "lucide-react";
 import { motion } from "framer-motion";
 import CreatePostModal from "./CreatePostModal";
 import { useAvatar } from "@/store/useAvatarStore";
+import { usePostStore } from "@/store/usePostStore";
+import { PostData } from "@/components/features/community/PostCard";
+import { authService } from "@/lib/api/services/auth.service";
 
 interface CreatePostBarProps {
   userName?: string;
@@ -19,9 +23,49 @@ export default function CreatePostBar({ userName = "User", userAvatar }: CreateP
 
   const avatarSrc = userAvatar || globalAvatar || "/images/avatar.png";
 
+  const searchParams = useSearchParams();
+
   const openModal = (tab: "text" | "video" | "photo" | "article") => {
     setInitialTab(tab);
     setIsModalOpen(true);
+  };
+
+  useEffect(() => {
+    if (searchParams && searchParams.get("post") === "new") {
+      setIsModalOpen(true);
+    }
+  }, [searchParams]);
+
+  const addPost = usePostStore((state: any) => state.addPost);
+
+  const handlePost = (postData: {
+    content: string;
+    media?: File[];
+    visibility: string;
+  }) => {
+    // In a real app, media would be uploaded first and we'd get URLs back
+    // Here we'll just mock it or handle the text
+    const currentUser = authService.getStoredUser();
+    
+    const newPost: PostData = {
+      id: Date.now().toString(),
+      author: {
+        id: currentUser?.id || "1",
+        name: currentUser?.name || currentUser?.username || userName,
+        avatar: avatarSrc,
+        title: "User", // Mock title
+      },
+      content: postData.content,
+      // Create a local URL for the first media file if it's an image
+      image: postData.media && postData.media.length > 0 && postData.media[0].type.startsWith("image/")
+        ? URL.createObjectURL(postData.media[0])
+        : undefined,
+      timestamp: "Just now",
+      likes: 0,
+      comments: 0,
+      shares: 0,
+    };
+    addPost(newPost);
   };
 
   return (
@@ -93,6 +137,7 @@ export default function CreatePostBar({ userName = "User", userAvatar }: CreateP
         initialTab={initialTab}
         userName={userName}
         userAvatar={avatarSrc}
+        onPost={handlePost}
       />
     </>
   );

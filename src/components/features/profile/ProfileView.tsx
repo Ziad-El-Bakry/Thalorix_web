@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Camera, Copy, Lock, Trash2, CheckCircle, AlertCircle,
   Eye, EyeOff, X, LogOut, MapPin, ExternalLink, Code,
@@ -20,6 +20,8 @@ import { usersService } from "@/lib/api/services/users.service";
 import { useAvatar } from "@/store/useAvatarStore";
 import CreatePostBar from "@/components/features/community/CreatePostBar";
 import PostCard, { PostData } from "@/components/features/community/PostCard";
+import { usePostStore } from "@/store/usePostStore";
+import { LogoutModal, DeleteAccountModal } from "@/components/shared/ProfileModals";
 
 type SettingsTab = "personal" | "password";
 
@@ -77,36 +79,7 @@ const TRENDING = [
   { tag: "#NodeJS", posts: "987 posts" },
 ];
 
-const PROFILE_POSTS: PostData[] = [
-  {
-    id: "p1",
-    author: { name: "User", avatar: "/images/avatar.png", title: "Full Stack Developer" },
-    content: "🚀 Just launched a real-time collaboration tool — React, WebSockets & Node.js. Live cursors, shared state, conflict-free merging. Drop a ⭐ if you like it! #OpenSource #React #WebSockets",
-    image: "/images/post-placeholder.png",
-    timestamp: "2h ago",
-    likes: 247,
-    comments: 38,
-    shares: 12,
-  },
-  {
-    id: "p2",
-    author: { name: "User", avatar: "/images/avatar.png", title: "Full Stack Developer" },
-    content: "Explored GPT-4 Turbo for developer tooling 🔥\nKey insight: The most dangerous AI won't have bad intentions — it'll just have bad developers.\n#AI #DevTools",
-    timestamp: "3d ago",
-    likes: 183,
-    comments: 52,
-    shares: 8,
-  },
-  {
-    id: "p3",
-    author: { name: "User", avatar: "/images/avatar.png", title: "Full Stack Developer" },
-    content: "Stop using useEffect for everything\n🔴 • useMemo for values •\nuseCallback for functions •\nReact.memo prevents re-renders.\nSave this post.",
-    timestamp: "3d ago",
-    likes: 312,
-    comments: 44,
-    shares: 21,
-  },
-];
+
 
 /* ═══════════════════════════════════════════
    MAIN PROFILE PAGE
@@ -114,6 +87,7 @@ const PROFILE_POSTS: PostData[] = [
 
 export default function ProfileView({ userId, isOwnProfile = false }: { userId?: string, isOwnProfile?: boolean }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showToast, setShowToast] = useState(false);
@@ -125,6 +99,9 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [settingsTab, setSettingsTab] = useState<SettingsTab>("personal");
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [activeProfileTab, setActiveProfileTab] = useState<"posts" | "projects" | "media">("posts");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
@@ -144,6 +121,12 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
   }, [user]);
 
   useEffect(() => {
+    if (searchParams && searchParams.get("settings") === "open") {
+      setIsSettingsOpen(true);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
     try {
       if (isOwnProfile) {
         const storedCover = localStorage.getItem("thalorix_user_cover");
@@ -152,7 +135,7 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
       } else {
         setCoverImage("");
       }
-    } catch {}
+    } catch { }
   }, [isOwnProfile]);
 
   useEffect(() => {
@@ -176,7 +159,7 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
           setLoading(false);
           return;
         }
-        
+
         if (idToFetch) {
           let data;
           try {
@@ -187,7 +170,7 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
 
           setUser(data);
           if (data && data.avatar && !isOwnProfile) {
-             setDisplayAvatar(data.avatar);
+            setDisplayAvatar(data.avatar);
           }
         }
       } catch (error: any) {
@@ -264,23 +247,29 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
     setTimeout(() => setShowToast(false), 3000);
   };
 
-  const handleLogout = async () => {
+  const handleLogoutClick = () => setIsLogoutModalOpen(true);
+  const handleDeleteAccountClick = () => setIsDeleteModalOpen(true);
+
+  const handleLogoutConfirm = async () => {
+    setIsLogoutModalOpen(false);
     await authService.logout();
     router.push("/login");
   };
 
-  const handleDeleteAccount = async () => {
+  const handleDeleteAccountConfirm = async () => {
     if (!user?.id) return;
-    const confirmDelete = window.confirm("Are you sure you want to delete your account? This action cannot be undone.");
-    if (confirmDelete) {
-      try {
-        await usersService.deleteUser(user.id);
-        await authService.logout();
-        router.push("/login");
-      } catch (error) {
-        console.error("Failed to delete account:", error);
-        alert("Failed to delete account");
-      }
+    setIsDeleting(true);
+    try {
+      await usersService.deleteUser(user.id);
+      await authService.logout();
+      setIsDeleteModalOpen(false);
+      router.push("/login");
+    } catch (error) {
+      console.error("Failed to delete account:", error);
+      fireToast("Failed to delete account");
+      setIsDeleteModalOpen(false);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -289,11 +278,13 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
 
   const activeAvatar = isOwnProfile ? globalAvatar : displayAvatar;
 
-  // Update post author avatars to match current user
-  const posts = PROFILE_POSTS.map(p => ({
-    ...p,
-    author: { ...p.author, name: userName, avatar: activeAvatar }
-  }));
+  const globalPosts = usePostStore((state: any) => state.posts);
+  const posts = globalPosts
+    .filter((p: any) => isOwnProfile ? (p.author.name === userName || p.author.name === "Emad" || p.id.startsWith("p") || p.author.id === "1") : (user && p.author.name === user.name))
+    .map((p: any) => ({
+      ...p,
+      author: { ...p.author, name: isOwnProfile ? userName : p.author.name, avatar: isOwnProfile ? activeAvatar : p.author.avatar }
+    }));
 
   if (loading) {
     return (
@@ -404,16 +395,16 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
                     transition={{ duration: 0.25 }}
                   >
                     {settingsTab === "personal" ? (
-                      <PersonalDetails 
-                        user={user} 
+                      <PersonalDetails
+                        user={user}
                         onSave={(updatedData: any) => {
                           const newUser = { ...user, ...updatedData };
                           setUser(newUser);
                           localStorage.setItem('user', JSON.stringify(newUser));
                           fireToast("Profile updated successfully!");
-                        }} 
-                        expertise={expertiseData} 
-                        setExpertise={setExpertiseData} 
+                        }}
+                        expertise={expertiseData}
+                        setExpertise={setExpertiseData}
                         socialLinks={socialLinksData}
                         setSocialLinks={setSocialLinksData}
                       />
@@ -426,10 +417,10 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
 
               {/* Danger zone */}
               <div className="border-t border-gray-100 px-6 py-4 flex items-center justify-between">
-                <button onClick={handleLogout} className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors font-medium">
+                <button onClick={handleLogoutClick} className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors font-medium">
                   <LogOut size={16} /> Logout
                 </button>
-                <button onClick={handleDeleteAccount} className="flex items-center gap-2 text-sm text-red-500 hover:text-red-700 transition-colors font-medium">
+                <button onClick={handleDeleteAccountClick} className="flex items-center gap-2 text-sm text-red-500 hover:text-red-700 transition-colors font-medium">
                   <Trash2 size={16} /> Delete Account
                 </button>
               </div>
@@ -471,9 +462,9 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
           {/* Edit Cover Overlay */}
           {isOwnProfile && (
             <div className="absolute inset-0 bg-black/20 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
-               <motion.button onClick={() => coverInputRef.current?.click()} whileHover={{ scale: 1.05 }} className="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white font-medium text-sm flex items-center gap-2 px-4 py-2 rounded-full border border-white/30 transition-colors">
-                 <Camera size={16} /> Edit Cover Photo
-               </motion.button>
+              <motion.button onClick={() => coverInputRef.current?.click()} whileHover={{ scale: 1.05 }} className="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white font-medium text-sm flex items-center gap-2 px-4 py-2 rounded-full border border-white/30 transition-colors">
+                <Camera size={16} /> Edit Cover Photo
+              </motion.button>
             </div>
           )}
           {/* Developer Badge */}
@@ -732,11 +723,10 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
               <button
                 key={tab}
                 onClick={() => setActiveProfileTab(tab)}
-                className={`px-5 py-2 rounded-full text-sm font-semibold capitalize transition-all duration-200 ${
-                  activeProfileTab === tab
-                    ? "bg-[#103B40] text-white shadow-sm"
-                    : "text-gray-500 hover:bg-gray-100"
-                }`}
+                className={`px-5 py-2 rounded-full text-sm font-semibold capitalize transition-all duration-200 ${activeProfileTab === tab
+                  ? "bg-[#103B40] text-white shadow-sm"
+                  : "text-gray-500 hover:bg-gray-100"
+                  }`}
               >
                 {tab}
               </button>
@@ -745,7 +735,7 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
 
           {/* Posts feed */}
           <div className="space-y-4">
-            {activeProfileTab === "posts" && posts.map((post, idx) => (
+            {activeProfileTab === "posts" && posts.map((post: any, idx: number) => (
               <motion.div
                 key={post.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -878,6 +868,24 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
           </div>
         </motion.div>
       </div>
+
+      {/* ═══════════════════════════════════════
+          MODALS
+         ═══════════════════════════════════════ */}
+         
+      <LogoutModal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={handleLogoutConfirm}
+      />
+
+      <DeleteAccountModal
+        isOpen={isDeleteModalOpen}
+        isDeleting={isDeleting}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDeleteAccountConfirm}
+      />
+
     </div>
   );
 }
@@ -968,22 +976,22 @@ function PersonalDetails({ user, onSave, expertise, setExpertise, socialLinks, s
         <h3 className="text-sm font-bold mb-4 text-[#103B40]">Expertise Percentages</h3>
         {expertise?.map((exp, index) => (
           <div key={index} className="flex gap-4 mb-3">
-             <div className="flex-1">
-               <label className="block text-xs font-semibold text-gray-700 mb-1">Skill</label>
-               <Input value={exp.name} onChange={(e: any) => {
-                 const newExp = [...expertise];
-                 newExp[index].name = e.target.value;
-                 setExpertise(newExp);
-               }} className="bg-gray-50 border border-gray-200 shadow-sm h-10 text-sm" />
-             </div>
-             <div className="w-24">
-               <label className="block text-xs font-semibold text-gray-700 mb-1">Percent (%)</label>
-               <Input type="number" min="0" max="100" value={exp.percent} onChange={(e: any) => {
-                 const newExp = [...expertise];
-                 newExp[index].percent = Number(e.target.value);
-                 setExpertise(newExp);
-               }} className="bg-gray-50 border border-gray-200 shadow-sm h-10 text-sm" />
-             </div>
+            <div className="flex-1">
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Skill</label>
+              <Input value={exp.name} onChange={(e: any) => {
+                const newExp = [...expertise];
+                newExp[index].name = e.target.value;
+                setExpertise(newExp);
+              }} className="bg-gray-50 border border-gray-200 shadow-sm h-10 text-sm" />
+            </div>
+            <div className="w-24">
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Percent (%)</label>
+              <Input type="number" min="0" max="100" value={exp.percent} onChange={(e: any) => {
+                const newExp = [...expertise];
+                newExp[index].percent = Number(e.target.value);
+                setExpertise(newExp);
+              }} className="bg-gray-50 border border-gray-200 shadow-sm h-10 text-sm" />
+            </div>
           </div>
         ))}
       </motion.div>

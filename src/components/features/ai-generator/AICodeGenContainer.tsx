@@ -45,6 +45,7 @@ export function AICodeGenContainer() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedModel, setSelectedModel] = useState<AIModel>('Thalorix-X Vision');
   const [userName, setUserName] = useState('User');
+  const [credits, setCredits] = useState(50);
 
   useEffect(() => {
     const user = authService.getStoredUser() as any;
@@ -95,6 +96,8 @@ export function AICodeGenContainer() {
   );
 
   const handleGenerate = async (prompt: string, model: AIModel) => {
+    if (credits <= 0) return;
+
     const userMessage: AIMessage = {
       id: Date.now().toString(),
       role: 'user',
@@ -106,8 +109,10 @@ export function AICodeGenContainer() {
     setCurrentMessages(newMessages);
     setSelectedModel(model);
     setIsGenerating(true);
+    setCredits((prev) => prev - 1);
 
     // Create a new conversation entry if this is a fresh chat
+    let currentConvId = activeConversationId;
     if (!activeConversationId) {
       const newId = `conv-${Date.now()}`;
       const title = prompt.length > 40 ? prompt.substring(0, 40) + '...' : prompt;
@@ -122,9 +127,10 @@ export function AICodeGenContainer() {
         ...prev,
       ]);
       setActiveConversationId(newId);
+      currentConvId = newId;
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    // Initial think time
 
     let responseContent = '';
     let isCode = false;
@@ -190,26 +196,42 @@ console.log(solution(["apple", null, "banana"]));`;
     };
 
     setCurrentMessages((prev) => [...prev, textMessage]);
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 300));
 
-    const codeMessage: AIMessage = {
-      id: (Date.now() + 2).toString(),
+    const codeMessageId = (Date.now() + 2).toString();
+    const initialCodeMessage: AIMessage = {
+      id: codeMessageId,
       role: 'assistant',
-      content: responseContent,
+      content: '',
       isCode: true,
       language: language,
       timestamp: new Date(),
     };
 
-    setCurrentMessages((prev) => {
-      const updated = [...prev, codeMessage];
-      // Also update conversation store
-      setConversations((convs) =>
-        convs.map((c) =>
-          c.id === activeConversationId ? { ...c, messages: updated } : c
+    setCurrentMessages((prev) => [...prev, initialCodeMessage]);
+
+    // Simulate streaming chunks
+    const chunks = responseContent.match(/.{1,4}/g) || [responseContent];
+    let currentText = '';
+
+    for (let i = 0; i < chunks.length; i++) {
+      await new Promise((resolve) => setTimeout(resolve, 15)); // 15ms per chunk
+      currentText += chunks[i];
+      setCurrentMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === codeMessageId ? { ...msg, content: currentText } : msg
         )
       );
-      return updated;
+    }
+
+    setCurrentMessages((prev) => {
+      // Also update conversation store with final state
+      setConversations((convs) =>
+        convs.map((c) =>
+          c.id === currentConvId ? { ...c, messages: prev } : c
+        )
+      );
+      return prev;
     });
     setIsGenerating(false);
   };
@@ -253,13 +275,15 @@ console.log(solution(["apple", null, "banana"]));`;
         {/* Chat / Empty State */}
         <div className="flex-1 min-w-0 flex flex-col relative min-h-[calc(100vh-200px)]">
           {!isSidebarOpen && (
-            <button
-              onClick={() => setIsSidebarOpen(true)}
-              className="absolute top-0 left-0 md:-left-5 z-20 p-1.5 text-gray-400 hover:text-[#103B40] hover:bg-gray-100 rounded-r-lg border border-l-0 border-gray-200 bg-white transition-colors shadow-sm"
-              title="Open sidebar"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-panel-left-open"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m14 9 3 3-3 3"/></svg>
-            </button>
+            <div className="sticky top-6 z-20 w-0 h-0">
+              <button
+                onClick={() => setIsSidebarOpen(true)}
+                className="absolute top-0 left-0 md:-left-5 p-1.5 text-gray-400 hover:text-[#103B40] hover:bg-gray-100 rounded-r-lg border border-l-0 border-gray-200 bg-white transition-colors shadow-sm"
+                title="Open sidebar"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-panel-left-open"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m14 9 3 3-3 3"/></svg>
+              </button>
+            </div>
           )}
           
           <div className="flex-1 w-full flex flex-col">
@@ -269,6 +293,7 @@ console.log(solution(["apple", null, "banana"]));`;
                   onGenerate={handleGenerate}
                   selectedModel={selectedModel}
                   onModelSelect={setSelectedModel}
+                  credits={credits}
                 />
               </div>
             ) : (
@@ -280,6 +305,7 @@ console.log(solution(["apple", null, "banana"]));`;
                   selectedModel={selectedModel}
                   onModelSelect={setSelectedModel}
                   onReset={handleNewChat}
+                  credits={credits}
                 />
               </div>
             )}

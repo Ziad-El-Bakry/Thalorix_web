@@ -46,9 +46,28 @@ export const usersService = {
    */
   async getUserById(id: string): Promise<User> {
     const storedUser = authService.getStoredUser();
-    const endpoint = storedUser?.role === 'admin' ? ENDPOINTS.ADMINS.GET_BY_ID(id) : ENDPOINTS.USERS.GET_BY_ID(id);
-    const { data } = await api.get<User>(endpoint);
-    return data;
+    let endpoint = storedUser?.role === 'admin' ? ENDPOINTS.ADMINS.GET_BY_ID(id) : ENDPOINTS.USERS.GET_BY_ID(id);
+    
+    try {
+      const { data } = await api.get<any>(endpoint);
+      return {
+        ...data,
+        id: data.id || data._id,
+        avatar: data.avatar || data.avatarUrl,
+      };
+    } catch (error: any) {
+      if (error.response?.status === 404 && storedUser?.role === 'admin') {
+        // Fallback to users collection if admin is not found in admins collection
+        endpoint = ENDPOINTS.USERS.GET_BY_ID(id);
+        const { data } = await api.get<any>(endpoint);
+        return {
+          ...data,
+          id: data.id || data._id,
+          avatar: data.avatar || data.avatarUrl,
+        };
+      }
+      throw error;
+    }
   },
 
   /**
@@ -71,10 +90,28 @@ export const usersService = {
     if (dto.socialLinks) payload.socialLinks = dto.socialLinks;
 
     const storedUser = authService.getStoredUser();
-    const endpoint = storedUser?.role === 'admin' ? ENDPOINTS.ADMINS.UPDATE(id) : ENDPOINTS.USERS.UPDATE(id);
+    let endpoint = storedUser?.role === 'admin' ? ENDPOINTS.ADMINS.UPDATE(id) : ENDPOINTS.USERS.UPDATE(id);
 
-    const { data } = await api.patch<User>(endpoint, payload);
-    return data;
+    try {
+      const { data } = await api.patch<any>(endpoint, payload);
+      return {
+        ...data,
+        id: data.id || data._id,
+        avatar: data.avatar || data.avatarUrl,
+      };
+    } catch (error: any) {
+      if (error.response?.status === 404 && storedUser?.role === 'admin') {
+        // Fallback to users collection if admin is not found in admins collection
+        endpoint = ENDPOINTS.USERS.UPDATE(id);
+        const { data } = await api.patch<any>(endpoint, payload);
+        return {
+          ...data,
+          id: data.id || data._id,
+          avatar: data.avatar || data.avatarUrl,
+        };
+      }
+      throw error;
+    }
   },
 
   /**

@@ -11,12 +11,14 @@ interface AIPromptEmptyStateProps {
   onGenerate: (prompt: string, model: AIModel) => void;
   selectedModel: AIModel;
   onModelSelect: (model: AIModel) => void;
+  credits?: number;
 }
 
 export function AIPromptEmptyState({
   onGenerate,
   selectedModel,
   onModelSelect,
+  credits,
 }: AIPromptEmptyStateProps) {
   const suggestions = [
     {
@@ -111,6 +113,7 @@ export function AIPromptEmptyState({
           selectedModel={selectedModel}
           onModelSelect={onModelSelect}
           isExpanded={true}
+          credits={credits}
         />
 
         <div className="flex items-center gap-6 mt-3 text-xs text-gray-400 ml-2">

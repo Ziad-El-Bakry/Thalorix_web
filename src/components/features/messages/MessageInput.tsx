@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { Paperclip, Mic, Send, Image as ImageIcon, FileText, Archive, Camera, Square, X } from "lucide-react";
+import { Paperclip, Send, Image as ImageIcon, FileText, Archive, Square, X } from "lucide-react";
 
 export default function MessageInput({ value, onChange, onSend, replyingTo, onCancelReply }: any) {
   const [showAttachments, setShowAttachments] = useState(false);
@@ -16,10 +16,7 @@ export default function MessageInput({ value, onChange, onSend, replyingTo, onCa
     if (!fileInputRef.current) return;
     fileInputRef.current.removeAttribute("capture");
     fileInputRef.current.removeAttribute("accept");
-    if (type === "camera") {
-      fileInputRef.current.setAttribute("accept", "image/*");
-      fileInputRef.current.setAttribute("capture", "environment");
-    } else if (type === "images") {
+    if (type === "images") {
       fileInputRef.current.setAttribute("accept", "image/png, image/jpeg, image/webp, image/gif");
     } else if (type === "pdf") {
       fileInputRef.current.setAttribute("accept", ".pdf,application/pdf");
@@ -103,7 +100,6 @@ export default function MessageInput({ value, onChange, onSend, replyingTo, onCa
       {/* Attachment Menu */}
       {showAttachments && (
         <div className="absolute bottom-[calc(100%+6px)] left-3 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden w-52 animate-in fade-in zoom-in-95 slide-in-from-bottom-3 duration-150">
-          <AttachmentOption icon={<Camera className="w-4.5 h-4.5 text-indigo-500" />} label="Camera" onClick={() => handleAttachmentClick("camera")} />
           <AttachmentOption icon={<ImageIcon className="w-4.5 h-4.5 text-blue-500" />} label="Photos & Videos" onClick={() => handleAttachmentClick("images")} />
           <AttachmentOption icon={<FileText className="w-4.5 h-4.5 text-rose-500" />} label="PDF Document" onClick={() => handleAttachmentClick("pdf")} />
           <AttachmentOption icon={<Archive className="w-4.5 h-4.5 text-amber-500" />} label="Zip Archive" onClick={() => handleAttachmentClick("zip")} hideBorder />
@@ -151,14 +147,7 @@ export default function MessageInput({ value, onChange, onSend, replyingTo, onCa
           </button>
         ) : (
           <>
-            {!value.trim() && (
-              <button
-                onClick={startRecording}
-                className="w-10 h-10 text-white/70 hover:text-white hover:bg-white/10 rounded-full flex items-center justify-center transition-colors"
-              >
-                <Mic className="w-5 h-5" />
-              </button>
-            )}
+
             {value.trim() && (
               <button
                 onClick={() => onSend(value, "text")}

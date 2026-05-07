@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, SlidersHorizontal, WifiOff, X, Loader2 } from "lucide-react";
 import UserHeader from "@/components/ui/UserHeader";
@@ -8,75 +8,13 @@ import CreatePostBar from "@/components/features/community/CreatePostBar";
 import PostCard, { PostData } from "@/components/features/community/PostCard";
 import { useAvatar } from "@/store/useAvatarStore";
 import { authService } from "@/lib/api/services/auth.service";
+import { usePostStore } from "@/store/usePostStore";
 
-// Sample posts data
-const SAMPLE_POSTS: PostData[] = [
-  {
-    id: "1",
-    author: {
-      id: "1",
-      name: "Adel Ghamri",
-      avatar: "/images/profile1.png",
-      title: "Full-Stack Developer",
-    },
-    content:
-      "Just shipped a new feature that reduces load time by 40%! The key was optimizing our database queries and implementing smart caching. Here's what worked...",
-    image: "/images/post-placeholder.png",
-    timestamp: "2h ago",
-    likes: 24,
-    comments: 8,
-    shares: 2,
-  },
-  {
-    id: "2",
-    author: {
-      id: "2",
-      name: "Sara",
-      avatar: "/images/profile2.png",
-      title: "UI/UX Designer",
-    },
-    content:
-      "Anyone else excited about the new design trends for 2024? I'm particularly loving the return to minimalism with bold typography. What are your thoughts?",
-    timestamp: "4h ago",
-    likes: 34,
-    comments: 12,
-    shares: 5,
-  },
-  {
-    id: "3",
-    author: {
-      id: "3",
-      name: "Parker",
-      avatar: "/images/avatar.png",
-      title: "Frontend Engineer",
-    },
-    content:
-      "Quick tip: Always use semantic HTML elements. It's not just for accessibility — it also helps with SEO and makes your code more maintainable. Small changes, big impact! ✨",
-    timestamp: "6h ago",
-    likes: 24,
-    comments: 6,
-    shares: 3,
-  },
-  {
-    id: "4",
-    author: {
-      id: "4",
-      name: "William",
-      avatar: "/images/avatar.png",
-      title: "Product Manager",
-    },
-    content:
-      "I'm trying to book an appointment but the assistant isn't picking up the phone. Can I book here?",
-    timestamp: "8h ago",
-    likes: 4,
-    comments: 1,
-    shares: 0,
-  },
-];
+
 
 export default function Community() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [posts, setPosts] = useState<PostData[]>(SAMPLE_POSTS);
+  const posts = usePostStore((state: any) => state.posts);
   const { avatar: globalAvatar } = useAvatar();
   const [userName, setUserName] = useState("User");
 
@@ -169,29 +107,10 @@ export default function Community() {
     }
   }, [pullDistance, isRefreshing]);
 
-  const handleNewPost = (postData: {
-    content: string;
-    media?: File[];
-    visibility: string;
-  }) => {
-    const newPost: PostData = {
-      id: Date.now().toString(),
-      author: {
-        name: "Emad",
-        avatar: globalAvatar || "/images/avatar.png",
-        title: "Developer",
-      },
-      content: postData.content,
-      timestamp: "Just now",
-      likes: 0,
-      comments: 0,
-      shares: 0,
-    };
-    setPosts((prev) => [newPost, ...prev]);
-  };
+
 
   const filteredPosts = posts.filter(
-    (post) =>
+    (post: any) =>
       post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
       post.author.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -267,7 +186,9 @@ export default function Community() {
         </motion.div>
 
         {/* Create Post Bar */}
-        <CreatePostBar userName={userName} />
+        <Suspense fallback={<div className="h-[110px] w-full bg-white rounded-xl shadow-sm border border-gray-100 animate-pulse" />}>
+          <CreatePostBar userName={userName} />
+        </Suspense>
 
         {/* Pull-to-refresh indicator */}
         <AnimatePresence>
@@ -296,7 +217,7 @@ export default function Community() {
 
         {/* Posts feed */}
         <div className="space-y-4 mt-4" ref={feedRef}>
-          {filteredPosts.map((post, index) => (
+          {filteredPosts.map((post: any, index: number) => (
             <motion.div
               key={post.id}
               initial={{ opacity: 0, y: 20 }}
