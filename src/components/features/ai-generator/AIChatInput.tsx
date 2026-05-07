@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ChevronDown, Sparkles } from 'lucide-react';
+import { ChevronDown, Sparkles, Coins } from 'lucide-react';
 import { AIModel } from '@/types/ai';
 import {
   DropdownMenu,
@@ -16,6 +16,7 @@ interface AIChatInputProps {
   onModelSelect: (model: AIModel) => void;
   isExpanded?: boolean;
   isGenerating?: boolean;
+  credits?: number;
 }
 
 export function AIChatInput({
@@ -24,11 +25,12 @@ export function AIChatInput({
   onModelSelect,
   isExpanded = false,
   isGenerating = false,
+  credits,
 }: AIChatInputProps) {
   const [prompt, setPrompt] = useState('');
 
   const handleGenerate = () => {
-    if (!prompt.trim() || isGenerating) return;
+    if (!prompt.trim() || isGenerating || credits === 0) return;
     onGenerate(prompt, selectedModel);
     setPrompt('');
   };
@@ -65,7 +67,7 @@ export function AIChatInput({
         className={`w-full bg-transparent text-[#103B40] placeholder:text-gray-400 resize-none outline-none text-sm ${
           isExpanded ? 'flex-1 min-h-[70px]' : 'h-[24px]'
         }`}
-        disabled={isGenerating}
+        disabled={isGenerating || credits === 0}
       />
 
       <div
@@ -107,12 +109,18 @@ export function AIChatInput({
         </DropdownMenu>
 
         <div className="flex items-center gap-3">
+          {credits !== undefined && (
+            <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${credits === 0 ? 'bg-red-50 text-red-700 border-red-100' : 'bg-teal-50 text-teal-700 border-teal-100'}`}>
+              <Coins className="w-3.5 h-3.5" />
+              {credits} {credits === 1 ? 'Credit' : 'Credits'}
+            </div>
+          )}
           {isExpanded && (
             <span className="text-xs text-gray-400">Max. 1K chars</span>
           )}
           <button
             onClick={handleGenerate}
-            disabled={!prompt.trim() || isGenerating}
+            disabled={!prompt.trim() || isGenerating || credits === 0}
             className="flex items-center gap-2 bg-[#103B40] hover:bg-teal-800 disabled:opacity-40 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium transition-colors text-xs shadow-sm"
           >
             <Sparkles className="w-3.5 h-3.5" />

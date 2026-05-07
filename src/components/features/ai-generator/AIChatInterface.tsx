@@ -13,6 +13,7 @@ interface AIChatInterfaceProps {
   selectedModel: AIModel;
   onModelSelect: (model: AIModel) => void;
   onReset: () => void;
+  credits?: number;
 }
 
 export function AIChatInterface({
@@ -22,6 +23,7 @@ export function AIChatInterface({
   selectedModel,
   onModelSelect,
   onReset,
+  credits,
 }: AIChatInterfaceProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -68,6 +70,7 @@ export function AIChatInterface({
             onModelSelect={onModelSelect}
             isExpanded={false}
             isGenerating={isGenerating}
+            credits={credits}
           />
         </div>
       </div>

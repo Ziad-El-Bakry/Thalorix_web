@@ -15,7 +15,7 @@ const TEMPLATES = [
   {
     id: 2,
     title: "Social Media",
-    price: 40,
+    price: 0,
     imageSrc: "/images/Market-Place/social-media.png",
     category: "Social Media",
   },

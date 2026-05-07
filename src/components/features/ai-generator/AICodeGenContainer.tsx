@@ -45,6 +45,7 @@ export function AICodeGenContainer() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedModel, setSelectedModel] = useState<AIModel>('Thalorix-X Vision');
   const [userName, setUserName] = useState('User');
+  const [credits, setCredits] = useState(50);
 
   useEffect(() => {
     const user = authService.getStoredUser() as any;
@@ -95,6 +96,8 @@ export function AICodeGenContainer() {
   );
 
   const handleGenerate = async (prompt: string, model: AIModel) => {
+    if (credits <= 0) return;
+
     const userMessage: AIMessage = {
       id: Date.now().toString(),
       role: 'user',
@@ -106,8 +109,10 @@ export function AICodeGenContainer() {
     setCurrentMessages(newMessages);
     setSelectedModel(model);
     setIsGenerating(true);
+    setCredits((prev) => prev - 1);
 
     // Create a new conversation entry if this is a fresh chat
+    let currentConvId = activeConversationId;
     if (!activeConversationId) {
       const newId = `conv-${Date.now()}`;
       const title = prompt.length > 40 ? prompt.substring(0, 40) + '...' : prompt;
@@ -122,9 +127,10 @@ export function AICodeGenContainer() {
         ...prev,
       ]);
       setActiveConversationId(newId);
+      currentConvId = newId;
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    // Initial think time
 
     let responseContent = '';
     let isCode = false;
@@ -190,26 +196,42 @@ console.log(solution(["apple", null, "banana"]));`;
     };
 
     setCurrentMessages((prev) => [...prev, textMessage]);
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 300));
 
-    const codeMessage: AIMessage = {
-      id: (Date.now() + 2).toString(),
+    const codeMessageId = (Date.now() + 2).toString();
+    const initialCodeMessage: AIMessage = {
+      id: codeMessageId,
       role: 'assistant',
-      content: responseContent,
+      content: '',
       isCode: true,
       language: language,
       timestamp: new Date(),
     };
 
-    setCurrentMessages((prev) => {
-      const updated = [...prev, codeMessage];
-      // Also update conversation store
-      setConversations((convs) =>
-        convs.map((c) =>
-          c.id === activeConversationId ? { ...c, messages: updated } : c
+    setCurrentMessages((prev) => [...prev, initialCodeMessage]);
+
+    // Simulate streaming chunks
+    const chunks = responseContent.match(/.{1,4}/g) || [responseContent];
+    let currentText = '';
+
+    for (let i = 0; i < chunks.length; i++) {
+      await new Promise((resolve) => setTimeout(resolve, 15)); // 15ms per chunk
+      currentText += chunks[i];
+      setCurrentMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === codeMessageId ? { ...msg, content: currentText } : msg
         )
       );
-      return updated;
+    }
+
+    setCurrentMessages((prev) => {
+      // Also update conversation store with final state
+      setConversations((convs) =>
+        convs.map((c) =>
+          c.id === currentConvId ? { ...c, messages: prev } : c
+        )
+      );
+      return prev;
     });
     setIsGenerating(false);
   };
@@ -271,6 +293,7 @@ console.log(solution(["apple", null, "banana"]));`;
                   onGenerate={handleGenerate}
                   selectedModel={selectedModel}
                   onModelSelect={setSelectedModel}
+                  credits={credits}
                 />
               </div>
             ) : (
@@ -282,6 +305,7 @@ console.log(solution(["apple", null, "banana"]));`;
                   selectedModel={selectedModel}
                   onModelSelect={setSelectedModel}
                   onReset={handleNewChat}
+                  credits={credits}
                 />
               </div>
             )}

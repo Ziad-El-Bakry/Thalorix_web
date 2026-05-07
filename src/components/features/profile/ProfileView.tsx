@@ -877,11 +877,50 @@ const itemVariants = {
 };
 
 function PersonalDetails({ user, onSave, expertise, setExpertise, socialLinks, setSocialLinks }: { user: any; onSave: (data: any) => void; expertise: any[]; setExpertise: (e: any[]) => void; socialLinks: any; setSocialLinks: (s: any) => void }) {
+  const originalEmail = user?.email || "";
   const [username, setUsername] = useState(user?.name || user?.username || "");
-  const [email] = useState(user?.email || "");
+  const [email, setEmail] = useState(originalEmail);
+  const [isEmailVerified, setIsEmailVerified] = useState(true);
+  const [isVerifyingEmail, setIsVerifyingEmail] = useState(false);
+  const [otp, setOtp] = useState("");
+  
   const [bio, setBio] = useState(user?.bio || "");
   const [emailError, setEmailError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newEmail = e.target.value;
+    setEmail(newEmail);
+    if (newEmail !== originalEmail) {
+      setIsEmailVerified(false);
+    } else {
+      setIsEmailVerified(true);
+      setIsVerifyingEmail(false);
+    }
+  };
+
+  const handleSendVerification = () => {
+    if (!email.includes('@')) {
+      setEmailError("Please enter a valid email address.");
+      return;
+    }
+    setEmailError("");
+    setIsVerifyingEmail(true);
+    // Simulate sending OTP
+    setTimeout(() => {
+       alert("MOCK OTP SENT: 123456");
+    }, 500);
+  };
+
+  const handleVerifyOtp = () => {
+    if (otp.length >= 4) { // Mock simple check
+      setIsEmailVerified(true);
+      setIsVerifyingEmail(false);
+      setEmailError("");
+    } else {
+      setEmailError("Invalid verification code.");
+    }
+  };
 
   const handleSave = async () => {
     setEmailError("");
@@ -889,7 +928,7 @@ function PersonalDetails({ user, onSave, expertise, setExpertise, socialLinks, s
     if (!userId) return;
     setIsSaving(true);
     try {
-      const updateDto = { username, bio, expertise, socialLinks };
+      const updateDto = { username, email, bio, expertise, socialLinks };
       await usersService.updateProfile(userId, updateDto);
       // Pass 'name' as well so the local state updates correctly
       onSave({ ...updateDto, name: username });
@@ -910,11 +949,45 @@ function PersonalDetails({ user, onSave, expertise, setExpertise, socialLinks, s
 
       <motion.div variants={itemVariants} className="mb-5">
         <label className="block text-xs font-semibold text-gray-700 mb-2">Email Address</label>
-        <Input value={email} disabled className="bg-gray-100 shadow-sm h-11 border border-gray-200 text-gray-500 cursor-not-allowed" />
+        <div className="flex gap-2">
+          <Input 
+            value={email} 
+            onChange={handleEmailChange} 
+            className="bg-gray-50 border border-gray-200 shadow-sm h-11 flex-1" 
+          />
+          {email !== originalEmail && !isEmailVerified && !isVerifyingEmail && (
+            <Button type="button" onClick={handleSendVerification} className="bg-amber-500 hover:bg-amber-600 text-white h-11 px-4 shadow-sm text-xs font-medium">
+              Verify Email
+            </Button>
+          )}
+          {email !== originalEmail && isEmailVerified && (
+            <div className="h-11 px-4 flex items-center justify-center bg-green-50 text-green-600 rounded-md border border-green-200 text-xs font-bold">
+              <CheckCircle size={14} className="mr-1.5" /> Verified
+            </div>
+          )}
+        </div>
+        
+        {isVerifyingEmail && (
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mt-3 p-4 bg-amber-50 border border-amber-100 rounded-lg">
+            <p className="text-xs text-amber-800 mb-2 font-medium">We sent a verification code to {email}.</p>
+            <div className="flex gap-2">
+              <Input 
+                value={otp} 
+                onChange={(e: any) => setOtp(e.target.value)} 
+                placeholder="Enter 6-digit code" 
+                className="bg-white h-9 flex-1 text-sm border-amber-200 focus-visible:ring-amber-400" 
+              />
+              <Button type="button" onClick={handleVerifyOtp} className="bg-amber-600 hover:bg-amber-700 text-white h-9 px-4 text-xs font-medium">
+                Confirm
+              </Button>
+            </div>
+          </motion.div>
+        )}
+
         <AnimatePresence>
           {emailError && (
             <motion.p initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="text-xs text-red-500 mt-2 flex items-center gap-1.5 font-medium overflow-hidden">
-              <AlertCircle size={14} className="fill-red-500 text-white" />
+              <AlertCircle size={14} className="fill-red-500 text-white flex-shrink-0" />
               {emailError}
             </motion.p>
           )}
@@ -969,8 +1042,13 @@ function PersonalDetails({ user, onSave, expertise, setExpertise, socialLinks, s
       </motion.div>
 
       <motion.div variants={itemVariants} className="flex justify-end">
-        <Button onClick={handleSave} disabled={isSaving} variant="primary" className="bg-[#103B40] hover:bg-[#0c2e32] h-10 shadow-md font-medium px-8 transition-transform hover:scale-105 active:scale-95 disabled:opacity-70">
-          {isSaving ? "Saving..." : "Save Changes"}
+        <Button 
+          onClick={handleSave} 
+          disabled={isSaving || !isEmailVerified} 
+          variant="primary" 
+          className="bg-[#103B40] hover:bg-[#0c2e32] h-10 shadow-md font-medium px-8 transition-transform hover:scale-105 active:scale-95 disabled:opacity-70 disabled:hover:scale-100"
+        >
+          {isSaving ? "Saving..." : !isEmailVerified ? "Verify Email to Save" : "Save Changes"}
         </Button>
       </motion.div>
     </motion.div>
@@ -988,6 +1066,7 @@ function ChangePassword({ user, onSave, onCancel }: { user: any; onSave: () => v
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [logoutOtherDevices, setLogoutOtherDevices] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -1001,7 +1080,13 @@ function ChangePassword({ user, onSave, onCancel }: { user: any; onSave: () => v
     if (newPassword !== confirmNewPassword) { setError("New passwords do not match."); return; }
     setIsSaving(true);
     try {
-      await usersService.changePassword({ currentPassword: oldPassword, newPassword, confirmPassword: confirmNewPassword });
+      // Pass the logoutOtherDevices flag to the backend (mocked for now)
+      await usersService.changePassword({ 
+        currentPassword: oldPassword, 
+        newPassword, 
+        confirmPassword: confirmNewPassword,
+        logoutOtherDevices 
+      });
       onSave();
     } catch (err: any) {
       setError(err?.response?.data?.message || "Failed to change password.");
@@ -1047,6 +1132,26 @@ function ChangePassword({ user, onSave, onCancel }: { user: any; onSave: () => v
           <motion.button whileTap={{ scale: 0.8 }} type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
             {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
           </motion.button>
+        </div>
+      </motion.div>
+
+      <motion.div variants={itemVariants} className="mb-6 flex items-start gap-3">
+        <div className="flex h-5 items-center">
+          <input
+            id="logoutDevices"
+            type="checkbox"
+            checked={logoutOtherDevices}
+            onChange={(e) => setLogoutOtherDevices(e.target.checked)}
+            className="h-4 w-4 rounded border-gray-300 text-[#103B40] focus:ring-[#103B40] accent-[#103B40]"
+          />
+        </div>
+        <div className="flex flex-col">
+          <label htmlFor="logoutDevices" className="text-sm font-semibold text-gray-700 cursor-pointer">
+            Log out of all other devices
+          </label>
+          <p className="text-xs text-gray-500 mt-0.5">
+            You will be logged out everywhere else to secure your account.
+          </p>
         </div>
       </motion.div>
 
