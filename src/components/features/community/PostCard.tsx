@@ -7,6 +7,7 @@ import { ThumbsUp, MessageCircle, Share2, MoreHorizontal, Send, Check } from "lu
 import { motion, AnimatePresence } from "framer-motion";
 import { useAvatar } from "@/store/useAvatarStore";
 import { authService } from "@/lib/api/services/auth.service";
+import { usePostStore } from "@/store/usePostStore";
 
 export interface PostData {
   id: string;
@@ -45,6 +46,19 @@ export default function PostCard({ post }: { post: PostData }) {
   const [isShared, setIsShared] = useState(false);
   const { avatar: globalAvatar } = useAvatar();
 
+  const currentUser = authService.getStoredUser();
+  const currentUserName = currentUser?.name || currentUser?.username || "User";
+  const isPostOwner = post.author.name === currentUserName || (currentUser?.id && post.author.id === currentUser.id);
+
+  const { deletePost, editPost } = usePostStore();
+  const [isPostDropdownOpen, setIsPostDropdownOpen] = useState(false);
+  const [isEditingPost, setIsEditingPost] = useState(false);
+  const [editPostContent, setEditPostContent] = useState(post.content);
+
+  const [openCommentDropdownId, setOpenCommentDropdownId] = useState<string | null>(null);
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editCommentText, setEditCommentText] = useState("");
+
   const CONTENT_LIMIT = 200;
   const isLongContent = post.content.length > CONTENT_LIMIT;
 
@@ -55,11 +69,10 @@ export default function PostCard({ post }: { post: PostData }) {
 
   const handleAddComment = () => {
     if (!commentText.trim()) return;
-    const currentUser = authService.getStoredUser();
     
     const newComment: CommentData = {
       id: Date.now().toString(),
-      author: currentUser?.username || "User",
+      author: currentUserName,
       avatar: globalAvatar || "/images/avatar.png",
       text: commentText,
       time: "Just now",
@@ -106,25 +119,93 @@ export default function PostCard({ post }: { post: PostData }) {
             <p className="text-[11px] text-gray-400 mt-0.5">{post.timestamp}</p>
           </div>
         </Link>
-        <button className="p-1.5 rounded-full hover:bg-gray-100 transition-colors text-gray-400">
-          <MoreHorizontal size={18} />
-        </button>
+        <div className="relative">
+          <button 
+            onClick={() => setIsPostDropdownOpen(!isPostDropdownOpen)} 
+            className="p-1.5 rounded-full hover:bg-gray-100 transition-colors text-gray-400"
+          >
+            <MoreHorizontal size={18} />
+          </button>
+          <AnimatePresence>
+            {isPostDropdownOpen && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 5 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 5 }}
+                className="absolute right-0 top-full mt-1 w-36 bg-white border border-gray-100 rounded-xl shadow-lg z-10 overflow-hidden"
+              >
+                {isPostOwner ? (
+                  <>
+                    <button 
+                      onClick={() => { setIsEditingPost(true); setIsPostDropdownOpen(false); }}
+                      className="w-full text-left px-4 py-2.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      Edit Post
+                    </button>
+                    <button 
+                      onClick={() => deletePost(post.id)}
+                      className="w-full text-left px-4 py-2.5 text-xs font-semibold text-red-600 hover:bg-red-50 transition-colors"
+                    >
+                      Delete Post
+                    </button>
+                  </>
+                ) : (
+                  <button 
+                    onClick={() => deletePost(post.id)}
+                    className="w-full text-left px-4 py-2.5 text-xs font-semibold text-red-600 hover:bg-red-50 transition-colors"
+                  >
+                    Hide Post
+                  </button>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
 
       {/* Content */}
       <div className="px-4 pb-2">
-        <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
-          {isLongContent && !showMore
-            ? post.content.slice(0, CONTENT_LIMIT) + "..."
-            : post.content}
-        </p>
-        {isLongContent && (
-          <button
-            onClick={() => setShowMore(!showMore)}
-            className="text-gray-500 hover:text-teal-600 text-xs font-medium mt-1 transition-colors"
-          >
-            {showMore ? "Show less" : "See more"}
-          </button>
+        {isEditingPost ? (
+          <div className="space-y-2 mt-1">
+            <textarea
+              value={editPostContent}
+              onChange={(e) => setEditPostContent(e.target.value)}
+              className="w-full border border-gray-200 rounded-lg p-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-200 resize-none min-h-[100px]"
+            />
+            <div className="flex justify-end gap-2">
+              <button 
+                onClick={() => { setIsEditingPost(false); setEditPostContent(post.content); }}
+                className="px-3 py-1.5 text-xs font-semibold text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={() => {
+                  editPost(post.id, editPostContent);
+                  setIsEditingPost(false);
+                }}
+                className="px-3 py-1.5 text-xs font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition-colors"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+              {isLongContent && !showMore
+                ? post.content.slice(0, CONTENT_LIMIT) + "..."
+                : post.content}
+            </p>
+            {isLongContent && (
+              <button
+                onClick={() => setShowMore(!showMore)}
+                className="text-gray-500 hover:text-teal-600 text-xs font-medium mt-1 transition-colors"
+              >
+                {showMore ? "Show less" : "See more"}
+              </button>
+            )}
+          </>
         )}
       </div>
 
@@ -209,7 +290,7 @@ export default function PostCard({ post }: { post: PostData }) {
             <div className="px-4 py-3 space-y-3">
               {/* Existing comments */}
               {comments.map((comment) => (
-                <div key={comment.id} className="flex gap-2">
+                <div key={comment.id} className="flex gap-2 group">
                   <Image
                     src={comment.avatar}
                     alt={comment.author}
@@ -217,16 +298,108 @@ export default function PostCard({ post }: { post: PostData }) {
                     height={32}
                     className="w-8 h-8 rounded-full object-cover flex-shrink-0"
                   />
-                  <div className="bg-gray-50 rounded-xl px-3.5 py-2 flex-1">
-                    <span className="text-xs font-semibold text-gray-800">
-                      {comment.author}
-                    </span>
-                    <p className="text-xs text-gray-600 mt-0.5">
-                      {comment.text}
-                    </p>
-                    <span className="text-[10px] text-gray-400 mt-1 block">
-                      {comment.time}
-                    </span>
+                  <div className="flex-1">
+                    <div className="flex items-start gap-2">
+                      <div className="bg-gray-50 rounded-xl px-3.5 py-2 flex-1 relative">
+                        <span className="text-xs font-semibold text-gray-800">
+                          {comment.author}
+                        </span>
+                        
+                        {editingCommentId === comment.id ? (
+                          <div className="mt-1 space-y-2">
+                            <input
+                              value={editCommentText}
+                              onChange={(e) => setEditCommentText(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  setComments(comments.map(c => c.id === comment.id ? { ...c, text: editCommentText } : c));
+                                  setEditingCommentId(null);
+                                }
+                              }}
+                              autoFocus
+                              className="w-full text-xs bg-white border border-gray-200 px-2 py-1.5 rounded focus:outline-none focus:ring-1 focus:ring-teal-200"
+                            />
+                            <div className="flex items-center gap-2 text-[10px] font-medium text-gray-500">
+                              <button onClick={() => setEditingCommentId(null)} className="hover:text-gray-700">Cancel</button>
+                              <span>·</span>
+                              <button 
+                                onClick={() => {
+                                  setComments(comments.map(c => c.id === comment.id ? { ...c, text: editCommentText } : c));
+                                  setEditingCommentId(null);
+                                }} 
+                                className="text-teal-600 hover:text-teal-700"
+                              >
+                                Save
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <p className="text-xs text-gray-600 mt-0.5 whitespace-pre-wrap">
+                              {comment.text}
+                            </p>
+                            <span className="text-[10px] text-gray-400 mt-1 block">
+                              {comment.time}
+                            </span>
+                          </>
+                        )}
+                      </div>
+                      
+                      {/* Comment Actions (Three dots) */}
+                      <div className="relative opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button 
+                          onClick={() => setOpenCommentDropdownId(openCommentDropdownId === comment.id ? null : comment.id)}
+                          className="p-1 rounded-full hover:bg-gray-100 text-gray-400"
+                        >
+                          <MoreHorizontal size={14} />
+                        </button>
+                        
+                        <AnimatePresence>
+                          {openCommentDropdownId === comment.id && (
+                            <motion.div
+                              initial={{ opacity: 0, scale: 0.95 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              exit={{ opacity: 0, scale: 0.95 }}
+                              className="absolute right-0 top-full mt-1 w-24 bg-white border border-gray-100 rounded-lg shadow-lg z-20 overflow-hidden"
+                            >
+                              <button 
+                                onClick={() => {
+                                  navigator.clipboard.writeText(comment.text);
+                                  setOpenCommentDropdownId(null);
+                                }}
+                                className="w-full text-left px-3 py-2 text-[11px] font-semibold text-gray-700 hover:bg-gray-50"
+                              >
+                                Copy Text
+                              </button>
+                              {(comment.author === currentUserName || comment.author === currentUser?.username || comment.author === currentUser?.name) && (
+                                <>
+                                  <button 
+                                    onClick={() => { 
+                                      setEditingCommentId(comment.id); 
+                                      setEditCommentText(comment.text);
+                                      setOpenCommentDropdownId(null); 
+                                    }}
+                                    className="w-full text-left px-3 py-2 text-[11px] font-semibold text-gray-700 hover:bg-gray-50"
+                                  >
+                                    Edit
+                                  </button>
+                                  <button 
+                                    onClick={() => {
+                                      setComments(comments.filter(c => c.id !== comment.id));
+                                      setCommentCount(prev => prev - 1);
+                                      setOpenCommentDropdownId(null);
+                                    }}
+                                    className="w-full text-left px-3 py-2 text-[11px] font-semibold text-red-600 hover:bg-red-50"
+                                  >
+                                    Delete
+                                  </button>
+                                </>
+                              )}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}

@@ -189,6 +189,7 @@ export const authService = {
    * Check if user is authenticated
    */
   isAuthenticated(): boolean {
+    if (typeof window === 'undefined') return false;
     return !!localStorage.getItem('access_token');
   },
 
@@ -196,6 +197,7 @@ export const authService = {
    * Get stored user
    */
   getStoredUser(): User | null {
+    if (typeof window === 'undefined') return null;
     const userStr = localStorage.getItem('user');
     return userStr ? JSON.parse(userStr) : null;
   },

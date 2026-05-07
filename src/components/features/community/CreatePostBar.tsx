@@ -9,6 +9,7 @@ import CreatePostModal from "./CreatePostModal";
 import { useAvatar } from "@/store/useAvatarStore";
 import { usePostStore } from "@/store/usePostStore";
 import { PostData } from "@/components/features/community/PostCard";
+import { authService } from "@/lib/api/services/auth.service";
 
 interface CreatePostBarProps {
   userName?: string;
@@ -44,11 +45,13 @@ export default function CreatePostBar({ userName = "User", userAvatar }: CreateP
   }) => {
     // In a real app, media would be uploaded first and we'd get URLs back
     // Here we'll just mock it or handle the text
+    const currentUser = authService.getStoredUser();
+    
     const newPost: PostData = {
       id: Date.now().toString(),
       author: {
-        id: "1", // Mock ID
-        name: userName,
+        id: currentUser?.id || "1",
+        name: currentUser?.name || currentUser?.username || userName,
         avatar: avatarSrc,
         title: "User", // Mock title
       },

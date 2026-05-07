@@ -96,9 +96,15 @@ const SAMPLE_POSTS: PostData[] = [
 interface PostStore {
   posts: PostData[];
   addPost: (post: PostData) => void;
+  deletePost: (id: string) => void;
+  editPost: (id: string, content: string) => void;
 }
 
 export const usePostStore = create<PostStore>((set: any) => ({
   posts: SAMPLE_POSTS,
   addPost: (post: PostData) => set((state: any) => ({ posts: [post, ...state.posts] })),
+  deletePost: (id: string) => set((state: any) => ({ posts: state.posts.filter((p: PostData) => p.id !== id) })),
+  editPost: (id: string, content: string) => set((state: any) => ({
+    posts: state.posts.map((p: PostData) => p.id === id ? { ...p, content } : p)
+  })),
 }));
