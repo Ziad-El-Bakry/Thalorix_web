@@ -21,8 +21,17 @@ export function LoginForm() {
         setLoading(true);
         
         try {
-            await authService.login({ email, password });
-            router.push("/dashboard");
+            const data = await authService.login({ email, password });
+            
+            // Route based on role
+            const userRole = data.user?.role || 'user';
+            if (userRole === 'admin') {
+                router.push("/dashboard/admin");
+            } else if (userRole === 'seller') {
+                router.push("/dashboard/marketplace");
+            } else {
+                router.push("/dashboard/community");
+            }
         } catch (err: any) {
             setError(err?.response?.data?.message || err?.message || "Invalid credentials");
         } finally {

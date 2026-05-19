@@ -123,7 +123,7 @@ export default function Community() {
       onTouchEnd={handleTouchEnd}
     >
       {/* Header */}
-      <UserHeader name={userName} badge="Developer" compact />
+      <UserHeader name={userName} compact />
 
       {/* Poor Connection Toast */}
       <AnimatePresence>

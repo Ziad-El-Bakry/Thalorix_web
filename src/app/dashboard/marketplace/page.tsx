@@ -32,7 +32,7 @@ export default function MarketplacePage() {
     <div className="-m-4 md:-m-6 lg:-m-10 p-4 md:p-6 lg:p-10 bg-[#E2E3EA] min-h-[calc(100vh-60px)]">
       <div className="w-full max-w-[1200px] mx-auto flex flex-col h-full">
         <div className="border-b-2 border-[#b0c4c4] pb-2 mb-4 relative z-50">
-          <UserHeader name={userName} badge="Developer" compact={true} />
+          <UserHeader name={userName} compact={true} />
         </div>
 
         {/* Search Bar */}
