@@ -57,7 +57,7 @@ export default function MobileNavbar() {
         }
       } 
       // Scroll up -> show
-      else {
+      else if (currentScrollY < lastScrollY) {
         setIsVisible(true);
       }
       lastScrollY = currentScrollY;
@@ -72,11 +72,12 @@ export default function MobileNavbar() {
   }
 
   return (
-    <div 
-      className={`lg:hidden sticky top-0 z-[60] transition-transform duration-300 ease-in-out ${
-        isVisible ? "translate-y-0" : "-translate-y-full"
-      }`}
-    >
+    <>
+      <div 
+        className={`lg:hidden fixed left-0 right-0 top-0 w-full z-[60] transition-transform duration-300 ease-in-out ${
+          isVisible ? "translate-y-0" : "-translate-y-full"
+        }`}
+      >
       {/* Top Bar */}
       <div className="flex items-center justify-between bg-[#103B40] text-white px-4 py-4 relative z-50 shadow-md">
         
@@ -221,6 +222,9 @@ export default function MobileNavbar() {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+      </div>
+      {/* Spacer to maintain layout flow since navbar is fixed */}
+      <div className="h-[79px] lg:hidden w-full shrink-0" />
+    </>
   );
 }
