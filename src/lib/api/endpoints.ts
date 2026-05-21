@@ -58,5 +58,19 @@ export const ENDPOINTS = {
     RESEND: '/otp/resend',
   },
 
+  // ============================================
+  // COMMUNITY
+  // ============================================
+  COMMUNITY: {
+    POST: '/community/post', // POST for create, GET /feed for feed
+    FEED: '/community/feed',
+    UPDATE_POST: (id: string) => `/community/post/${id}`,
+    DELETE_POST: (id: string) => `/community/post/${id}`,
+    ADD_COMMENT: (id: string) => `/community/${id}/comment`,
+    GET_COMMENTS: (id: string) => `/community/${id}/comments`,
+    UPDATE_COMMENT: (id: string) => `/community/comment/${id}`,
+    DELETE_COMMENT: (id: string) => `/community/comment/${id}`,
+  },
+
   // ... rest of endpoints
 } as const;

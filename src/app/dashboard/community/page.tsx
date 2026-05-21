@@ -15,6 +15,8 @@ import { usePostStore } from "@/store/usePostStore";
 export default function Community() {
   const [searchQuery, setSearchQuery] = useState("");
   const posts = usePostStore((state: any) => state.posts);
+  const fetchFeed = usePostStore((state: any) => state.fetchFeed);
+  const isLoadingFeed = usePostStore((state: any) => state.isLoading);
   const { avatar: globalAvatar } = useAvatar();
   const [userName, setUserName] = useState("User");
 
@@ -23,7 +25,8 @@ export default function Community() {
     if (user) {
       setUserName((user?.name || user?.username)?.split(' ')[0] || "User");
     }
-  }, []);
+    fetchFeed();
+  }, [fetchFeed]);
   const [showConnectionToast, setShowConnectionToast] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [pullDistance, setPullDistance] = useState(0);
@@ -99,9 +102,9 @@ export default function Community() {
       setIsRefreshing(true);
       setPullDistance(0);
       // Simulate fetching new posts
-      setTimeout(() => {
-        setIsRefreshing(false);
-      }, 1500);
+      fetchFeed().then(() => {
+        setTimeout(() => setIsRefreshing(false), 500);
+      });
     } else {
       setPullDistance(0);
     }
@@ -217,18 +220,24 @@ export default function Community() {
 
         {/* Posts feed */}
         <div className="space-y-4 mt-4" ref={feedRef}>
-          {filteredPosts.map((post: any, index: number) => (
-            <motion.div
-              key={post.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.05 * index, duration: 0.35 }}
-            >
-              <PostCard post={post} />
-            </motion.div>
-          ))}
+          {isLoadingFeed ? (
+            <div className="flex justify-center items-center py-12">
+              <Loader2 className="animate-spin text-teal-600" size={32} />
+            </div>
+          ) : (
+            filteredPosts.map((post: any, index: number) => (
+              <motion.div
+                key={post.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.05 * index, duration: 0.35 }}
+              >
+                <PostCard post={post} />
+              </motion.div>
+            ))
+          )}
 
-          {filteredPosts.length === 0 && (
+          {!isLoadingFeed && filteredPosts.length === 0 && (
             <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-gray-100">
               <p className="text-gray-400 text-sm">No posts found.</p>
             </div>

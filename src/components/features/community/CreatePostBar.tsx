@@ -38,34 +38,18 @@ export default function CreatePostBar({ userName = "User", userAvatar }: CreateP
 
   const addPost = usePostStore((state: any) => state.addPost);
 
-  const handlePost = (postData: {
+  const handlePost = async (postData: {
     content: string;
     media?: File[];
     visibility: string;
   }) => {
     // In a real app, media would be uploaded first and we'd get URLs back
-    // Here we'll just mock it or handle the text
-    const currentUser = authService.getStoredUser();
-    
-    const newPost: PostData = {
-      id: Date.now().toString(),
-      author: {
-        id: currentUser?.id || "1",
-        name: currentUser?.name || currentUser?.username || userName,
-        avatar: avatarSrc,
-        title: "User", // Mock title
-      },
-      content: postData.content,
-      // Create a local URL for the first media file if it's an image
-      image: postData.media && postData.media.length > 0 && postData.media[0].type.startsWith("image/")
-        ? URL.createObjectURL(postData.media[0])
-        : undefined,
-      timestamp: "Just now",
-      likes: 0,
-      comments: 0,
-      shares: 0,
-    };
-    addPost(newPost);
+    // Here we'll just mock the image string if there's media
+    const image = postData.media && postData.media.length > 0 && postData.media[0].type.startsWith("image/")
+      ? URL.createObjectURL(postData.media[0])
+      : undefined;
+      
+    await addPost(postData.content, image);
   };
 
   return (
