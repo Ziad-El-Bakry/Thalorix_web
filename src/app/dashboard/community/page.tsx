@@ -141,7 +141,7 @@ export default function Community() {
             animate={{ opacity: 1, y: 0, x: "-50%" }}
             exit={{ opacity: 0, y: -30, x: "-50%" }}
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
-            className="fixed top-5 left-1/2 z-200 flex items-center gap-3 bg-[#103B40] text-white pl-4 pr-3 py-3 rounded-xl shadow-lg border border-white/10 min-w-[320px]"
+              className="fixed top-5 left-1/2 z-200 flex items-center gap-3 bg-[#103B40] text-white pl-4 pr-3 py-3 rounded-xl shadow-lg border border-white/10 min-w-[320px]"
           >
             <div className="flex items-center justify-center w-8 h-8 rounded-full bg-red-500/20 shrink-0">
               <WifiOff size={16} className="text-red-400" />
