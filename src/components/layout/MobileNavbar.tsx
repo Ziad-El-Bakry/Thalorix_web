@@ -38,18 +38,45 @@ export default function MobileNavbar() {
   const { hasUnreadMessages, markMessagesRead } = useNotifications();
   const { isChatOpen } = useChatState();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
     const user = authService.getStoredUser();
     setIsAdmin(user?.role === "admin");
   }, []);
 
+  useEffect(() => {
+    let lastScrollY = window.scrollY;
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      // Scroll down -> hide
+      if (currentScrollY > lastScrollY && currentScrollY > 50) {
+        if (!isOpen) {
+          setIsVisible(false);
+        }
+      } 
+      // Scroll up -> show
+      else {
+        setIsVisible(true);
+      }
+      lastScrollY = currentScrollY;
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [isOpen]);
+
   if (isMessagesPage && isChatOpen) {
     return null;
   }
 
   return (
-    <div className="lg:hidden sticky top-0 z-[60]">
+    <div 
+      className={`lg:hidden sticky top-0 z-[60] transition-transform duration-300 ease-in-out ${
+        isVisible ? "translate-y-0" : "-translate-y-full"
+      }`}
+    >
       {/* Top Bar */}
       <div className="flex items-center justify-between bg-[#103B40] text-white px-4 py-4 relative z-50 shadow-md">
         
