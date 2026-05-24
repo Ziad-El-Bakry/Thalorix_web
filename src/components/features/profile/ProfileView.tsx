@@ -36,6 +36,7 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [activeProfileTab, setActiveProfileTab] = useState<"posts" | "projects" | "media">("posts");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
@@ -132,13 +133,25 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
     setTimeout(() => setShowToast(false), 3000);
   };
 
-  const handleLogoutClick = () => setIsLogoutModalOpen(true);
-  const handleDeleteAccountClick = () => setIsDeleteModalOpen(true);
+  const handleLogoutClick = () => {
+    setIsSettingsOpen(false);
+    setIsLogoutModalOpen(true);
+  };
+  
+  const handleDeleteAccountClick = () => {
+    setIsSettingsOpen(false);
+    setIsDeleteModalOpen(true);
+  };
 
   const handleLogoutConfirm = async () => {
-    setIsLogoutModalOpen(false);
-    await authService.logout();
-    router.push("/login");
+    setIsLoggingOut(true);
+    try {
+      await authService.logout();
+      setIsLogoutModalOpen(false);
+      router.push("/login");
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   const handleDeleteAccountConfirm = async () => {
@@ -266,7 +279,7 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
             initial={{ y: -100, opacity: 0, x: "-50%" }}
             animate={{ y: 20, opacity: 1, x: "-50%" }}
             exit={{ y: -100, opacity: 0, x: "-50%" }}
-            className="fixed top-0 left-1/2 z-[100] w-full max-w-sm"
+            className="fixed top-4 left-1/2 z-[9999] w-full max-w-sm pointer-events-none"
           >
             <div className="flex items-center justify-center gap-2 px-6 py-3 rounded-lg shadow-2xl text-white text-sm font-bold bg-[#1fce81] border border-white/20">
               <CheckCircle size={18} />
@@ -337,6 +350,7 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
          ═══════════════════════════════════════ */}
       <LogoutModal
         isOpen={isLogoutModalOpen}
+        isLoggingOut={isLoggingOut}
         onClose={() => setIsLogoutModalOpen(false)}
         onConfirm={handleLogoutConfirm}
       />

@@ -19,7 +19,7 @@ export default function NetworkGrowthChart() {
       </div>
       
       <div className="flex-1 w-full min-h-[250px]">
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height={250}>
           <LineChart
             data={data}
             margin={{ top: 10, right: 10, left: -20, bottom: 0 }}

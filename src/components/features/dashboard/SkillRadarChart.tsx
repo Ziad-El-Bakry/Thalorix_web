@@ -19,7 +19,7 @@ export default function SkillRadarChart() {
       </div>
       
       <div className="flex-1 w-full min-h-[250px] flex items-center justify-center">
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height={250}>
           <RadarChart cx="50%" cy="50%" outerRadius="70%" data={data}>
             <PolarGrid stroke="#E5E7EB" />
             <PolarAngleAxis 

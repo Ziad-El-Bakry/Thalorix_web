@@ -18,7 +18,7 @@ export default function PostPerformanceChart() {
       </div>
       
       <div className="flex-1 w-full min-h-[250px]">
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height={250}>
           <BarChart
             data={data}
             margin={{ top: 10, right: 0, left: -20, bottom: 0 }}
