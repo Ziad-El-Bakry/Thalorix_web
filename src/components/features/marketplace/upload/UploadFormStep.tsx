@@ -2,12 +2,46 @@
 
 import { CloudUpload, Info, Gift, DollarSign } from "lucide-react";
 import { motion } from "framer-motion";
+import { useState, useRef } from "react";
+
+export interface TemplateFormData {
+  title: string;
+  description: string;
+  price: number;
+  file: File;
+  tags: string;
+}
 
 interface UploadFormStepProps {
-  onNext: () => void;
+  onNext: (data: TemplateFormData) => void;
 }
 
 export default function UploadFormStep({ onNext }: UploadFormStepProps) {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [isPaid, setIsPaid] = useState(false);
+  const [price, setPrice] = useState(0);
+  const [tags, setTags] = useState("");
+  const [error, setError] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleSubmit = () => {
+    if (!title || title.length < 3) {
+      setError("Title must be at least 3 characters.");
+      return;
+    }
+    if (!description || description.length < 50) {
+      setError("Description must be at least 50 characters.");
+      return;
+    }
+    if (!file) {
+      setError("Please select a template file.");
+      return;
+    }
+    setError("");
+    onNext({ title, description, price: isPaid ? price : 0, file, tags });
+  };
   return (
     <motion.div 
       key="form"
@@ -32,9 +66,10 @@ export default function UploadFormStep({ onNext }: UploadFormStepProps) {
           </label>
           <input 
             type="text" 
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
             className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-[#123E41]"
           />
-          <p className="text-xs text-red-500 mt-1.5">Template name is required</p>
         </div>
 
         {/* Description */}
@@ -44,11 +79,12 @@ export default function UploadFormStep({ onNext }: UploadFormStepProps) {
           </label>
           <textarea 
             rows={4}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
             className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-[#123E41] resize-none"
           ></textarea>
           <div className="flex justify-between items-center mt-1.5">
             <p className="text-xs text-gray-400">Minimum 50 characters</p>
-            <p className="text-xs text-red-500">Description must be at least 50 characters</p>
           </div>
         </div>
 
@@ -57,16 +93,28 @@ export default function UploadFormStep({ onNext }: UploadFormStepProps) {
           <label className="block text-sm font-bold text-[#103B40] mb-2">
             Template Files<span className="text-red-500">*</span>
           </label>
-          <div className="bg-white border-2 border-dashed border-gray-200 rounded-2xl p-8 flex flex-col items-center justify-center text-center">
+          <div 
+            onClick={() => fileInputRef.current?.click()}
+            className="bg-white border-2 border-dashed border-gray-200 rounded-2xl p-8 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-gray-50 transition-colors"
+          >
             <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-4">
               <CloudUpload className="text-gray-400" size={24} />
             </div>
-            <p className="text-sm text-gray-700 font-medium">Drag & drop your files here</p>
-            <p className="text-xs text-gray-400 my-1">or</p>
-            <button className="text-sm font-medium text-blue-600 hover:underline">
-              Browse Files
-            </button>
+            {file ? (
+              <p className="text-sm text-[#123E41] font-bold">{file.name}</p>
+            ) : (
+              <>
+                <p className="text-sm text-gray-700 font-medium">Click to browse your files here</p>
+              </>
+            )}
           </div>
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={(e) => setFile(e.target.files?.[0] || null)} 
+            className="hidden" 
+            accept=".zip,.rar,.tar.gz" 
+          />
           
           <div className="mt-4 space-y-1.5">
             <div className="flex items-start gap-2 text-xs">
@@ -92,7 +140,7 @@ export default function UploadFormStep({ onNext }: UploadFormStepProps) {
             Pricing Model<span className="text-red-500">*</span>
           </label>
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white border-2 border-green-500/20 rounded-xl p-4 flex items-center gap-3 cursor-pointer">
+            <div onClick={() => setIsPaid(false)} className={`bg-white border-2 rounded-xl p-4 flex items-center gap-3 cursor-pointer ${!isPaid ? 'border-green-500/50 bg-green-50' : 'border-gray-100 hover:border-green-500/30'}`}>
               <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white flex-shrink-0">
                 <Gift size={20} />
               </div>
@@ -101,13 +149,17 @@ export default function UploadFormStep({ onNext }: UploadFormStepProps) {
                 <p className="text-xs text-gray-500">Open source</p>
               </div>
             </div>
-            <div className="bg-white border border-gray-100 rounded-xl p-4 flex items-center gap-3 cursor-pointer hover:border-amber-500/50">
+            <div onClick={() => setIsPaid(true)} className={`bg-white border-2 rounded-xl p-4 flex items-center gap-3 cursor-pointer ${isPaid ? 'border-amber-500/50 bg-amber-50' : 'border-gray-100 hover:border-amber-500/30'}`}>
               <div className="w-10 h-10 rounded-full bg-amber-400 flex items-center justify-center text-white flex-shrink-0">
                 <DollarSign size={20} />
               </div>
               <div>
                 <p className="font-bold text-gray-900 text-sm">Paid</p>
-                <p className="text-xs text-gray-500">Set price</p>
+                {isPaid ? (
+                  <input type="number" min="1" value={price || ''} onChange={(e) => setPrice(Number(e.target.value))} placeholder="Price $" onClick={(e) => e.stopPropagation()} className="w-16 bg-transparent border-b border-amber-300 outline-none mt-1" />
+                ) : (
+                  <p className="text-xs text-gray-500">Set price</p>
+                )}
               </div>
             </div>
           </div>
@@ -120,22 +172,26 @@ export default function UploadFormStep({ onNext }: UploadFormStepProps) {
           </label>
           <input 
             type="text" 
+            value={tags}
+            onChange={(e) => setTags(e.target.value)}
             placeholder="e.g. react, dashboard, admin"
             className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-[#123E41]"
           />
           <p className="text-xs text-gray-500 mt-1.5">Separate tags with commas</p>
         </div>
 
+        {error && <p className="text-red-500 text-sm text-center font-medium">{error}</p>}
+
         {/* Action Buttons */}
         <div className="flex gap-4 pt-4">
           <button className="flex-1 bg-[#A5C9D3]/70 text-[#123E41] font-bold py-3.5 rounded-xl hover:bg-[#A5C9D3] transition-colors">
-            save as Draft
+            Save as Draft
           </button>
           <button 
-            onClick={onNext}
+            onClick={handleSubmit}
             className="flex-1 bg-[#123E41] text-white font-bold py-3.5 rounded-xl hover:bg-[#0d2c2e] transition-colors"
           >
-            submit Template
+            Submit Template
           </button>
         </div>
       </div>

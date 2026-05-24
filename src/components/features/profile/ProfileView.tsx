@@ -172,6 +172,13 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
         if (avatarUrl) {
           setDisplayAvatar(avatarUrl);
           setGlobalAvatar(avatarUrl);
+          if (user?.id || user?._id) {
+            await usersService.updateProfile(user.id || user._id, { avatarUrl });
+            // Update local storage user
+            const updatedUser = { ...user, avatar: avatarUrl };
+            setUser(updatedUser);
+            localStorage.setItem("user", JSON.stringify(updatedUser));
+          }
         }
         fireToast("Profile photo updated!");
       } catch (error: any) {

@@ -10,6 +10,7 @@ import { useAvatar } from "@/store/useAvatarStore";
 import { usePostStore } from "@/store/usePostStore";
 import { PostData } from "@/components/features/community/PostCard";
 import { authService } from "@/lib/api/services/auth.service";
+import { uploadService } from "@/lib/api/services/upload.service";
 
 interface CreatePostBarProps {
   userName?: string;
@@ -43,13 +44,20 @@ export default function CreatePostBar({ userName = "User", userAvatar }: CreateP
     media?: File[];
     visibility: string;
   }) => {
-    // In a real app, media would be uploaded first and we'd get URLs back
-    // Here we'll just mock the image string if there's media
-    const image = postData.media && postData.media.length > 0 && postData.media[0].type.startsWith("image/")
-      ? URL.createObjectURL(postData.media[0])
-      : undefined;
+    let imageUrl: string | undefined = undefined;
+
+    // Upload media to Cloudinary first
+    if (postData.media && postData.media.length > 0 && postData.media[0].type.startsWith("image/")) {
+      try {
+        const uploadRes = await uploadService.uploadFile(postData.media[0], "posts");
+        imageUrl = uploadRes.url;
+      } catch (error) {
+        console.error("Failed to upload image:", error);
+        // Optionally handle error, e.g., show a toast. We'll proceed without image if upload fails.
+      }
+    }
       
-    await addPost(postData.content, image);
+    await addPost(postData.content, imageUrl);
   };
 
   return (

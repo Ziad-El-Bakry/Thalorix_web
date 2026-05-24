@@ -2,6 +2,7 @@
 import { api } from '../axios';
 import { ENDPOINTS } from '../endpoints';
 import { authService, type User } from './auth.service';
+import { uploadService } from './upload.service';
 
 // ============================================
 // TYPES
@@ -9,7 +10,7 @@ import { authService, type User } from './auth.service';
 export interface UpdateProfileDto {
   username?: string;
   bio?: string;
-  avatar?: File;
+  avatarUrl?: string; // Real URL string
   expertise?: { name: string; percent: number }[];
   socialLinks?: { facebook: string; instagram: string };
 }
@@ -86,6 +87,10 @@ export const usersService = {
     const payload: any = {};
     if (dto.username) payload.name = dto.username;
     if (dto.bio !== undefined) payload.bio = dto.bio;
+    if (dto.avatarUrl !== undefined) {
+      payload.avatar = dto.avatarUrl;
+      payload.avatarUrl = dto.avatarUrl;
+    }
     if (dto.expertise) payload.expertise = dto.expertise;
     if (dto.socialLinks) payload.socialLinks = dto.socialLinks;
 
@@ -133,13 +138,8 @@ export const usersService = {
    * Upload avatar
    */
   async uploadAvatar(file: File): Promise<{ avatarUrl: string }> {
-    // Backend doesn't support avatar upload yet. 
-    // Mocking success to keep frontend working.
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({ avatarUrl: URL.createObjectURL(file) });
-      }, 500);
-    });
+    const response = await uploadService.uploadFile(file, 'avatars');
+    return { avatarUrl: response.url };
   },
 
   /**

@@ -68,6 +68,14 @@ export const ENDPOINTS = {
   },
 
   // ============================================
+  // CLOUDINARY
+  // ============================================
+  CLOUDINARY: {
+    UPLOAD: (slug: string) => `/cloudinary/upload/${slug}`,
+    DELETE: (publicId: string) => `/cloudinary/${publicId}`,
+  },
+
+  // ============================================
   // COMMUNITY
   // ============================================
   COMMUNITY: {
@@ -79,6 +87,17 @@ export const ENDPOINTS = {
     GET_COMMENTS: (id: string) => `/community/${id}/comments`,
     UPDATE_COMMENT: (id: string) => `/community/comment/${id}`,
     DELETE_COMMENT: (id: string) => `/community/comment/${id}`,
+  },
+
+  // ============================================
+  // TEMPLATES
+  // ============================================
+  TEMPLATES: {
+    CREATE: '/templates',
+    GET_ALL: '/templates',
+    GET_BY_ID: (id: string) => `/templates/${id}`,
+    UPDATE: (id: string) => `/templates/${id}`,
+    DELETE: (id: string) => `/templates/${id}`,
   },
 
   // ... rest of endpoints
