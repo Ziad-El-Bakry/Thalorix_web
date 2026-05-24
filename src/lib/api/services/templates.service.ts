@@ -27,13 +27,19 @@ export const templatesService = {
       formData.append('image', payload.image);
     }
 
-    const { data } = await api.post(ENDPOINTS.TEMPLATES.CREATE, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+    const token = localStorage.getItem('access_token');
+    const response = await fetch(api.defaults.baseURL + ENDPOINTS.TEMPLATES.CREATE, {
+      method: 'POST',
+      body: formData,
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
 
-    return data;
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `Template creation failed with status ${response.status}`);
+    }
+
+    return response.json();
   },
 
   /**

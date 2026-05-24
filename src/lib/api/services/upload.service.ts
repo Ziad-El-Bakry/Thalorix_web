@@ -17,20 +17,22 @@ export const uploadService = {
    */
   async uploadFile(file: File | Blob, slug: string): Promise<UploadResponse> {
     const formData = new FormData();
-    // Some components pass a Blob (like audio), we need to ensure it's appended as 'file'
-    formData.append('file', file);
+    const filename = file instanceof File ? file.name : 'upload.bin';
+    formData.append('file', file, filename);
 
-    const { data } = await api.post<UploadResponse>(
-      ENDPOINTS.CLOUDINARY.UPLOAD(slug),
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }
-    );
+    const token = localStorage.getItem('access_token');
+    const response = await fetch(api.defaults.baseURL + ENDPOINTS.CLOUDINARY.UPLOAD(slug), {
+      method: 'POST',
+      body: formData,
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
 
-    return data;
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `Upload failed with status ${response.status}`);
+    }
+
+    return response.json();
   },
 
   /**

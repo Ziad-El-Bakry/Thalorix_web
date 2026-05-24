@@ -18,6 +18,12 @@ export interface RegisterDto {
   confirmPassword?: string;
 }
 
+export interface RegisterSellerDto extends RegisterDto {
+  storeName?: string;
+  storeDescription?: string;
+  address?: string;
+}
+
 export interface User {
   id: string;
   name?: string;
@@ -110,6 +116,24 @@ export const authService = {
 
     const { data } = await api.post<AuthResponse>(endpoint, backendPayload);
 
+    return data;
+  },
+
+  /**
+   * Register new seller
+   */
+  async registerSeller(dto: RegisterSellerDto): Promise<any> {
+    const backendPayload: any = {
+      name: dto.username,
+      email: dto.email,
+      phone: dto.phone,
+      password: dto.password,
+      storeName: dto.storeName || undefined,
+      storeDescription: dto.storeDescription || undefined,
+      address: dto.address || undefined,
+    };
+
+    const { data } = await api.post(ENDPOINTS.SELLERS.REGISTER, backendPayload);
     return data;
   },
 
