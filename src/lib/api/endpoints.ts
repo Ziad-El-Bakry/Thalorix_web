@@ -44,9 +44,18 @@ export const ENDPOINTS = {
   // ADMINS
   // ============================================
   ADMINS: {
+    LOGIN: '/admins/login',
     GET_BY_ID: (id: string) => `/admins/${id}`,
     UPDATE: (id: string) => `/admins/${id}`,
     GET_ALL: '/admins',
+  },
+
+  // ============================================
+  // SELLERS
+  // ============================================
+  SELLERS: {
+    LOGIN: '/seller/login',
+    REGISTER: '/seller/register',
   },
 
   // ============================================
