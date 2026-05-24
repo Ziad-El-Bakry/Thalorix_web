@@ -8,12 +8,22 @@ import UploadFormStep, { TemplateFormData } from "./upload/UploadFormStep";
 import UploadProgressStep from "./upload/UploadProgressStep";
 import UploadSuccessStep from "./upload/UploadSuccessStep";
 import { templatesService } from "@/lib/api/services/templates.service";
+import { authService } from "@/lib/api/services/auth.service";
+import { useRouter } from "next/navigation";
 
 type UploadState = "form" | "uploading" | "success";
 
 export default function UploadFlow() {
   const [step, setStep] = useState<UploadState>("form");
   const [progress, setProgress] = useState(0);
+  const router = useRouter();
+
+  useEffect(() => {
+    const user = authService.getStoredUser() as any;
+    if (!user || user.role !== 'seller') {
+      router.push('/dashboard/marketplace');
+    }
+  }, [router]);
 
   const handleUpload = async (data: TemplateFormData) => {
     setStep("uploading");

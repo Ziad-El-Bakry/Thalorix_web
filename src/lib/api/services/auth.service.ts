@@ -61,13 +61,19 @@ export const authService = {
    * Tries User, then Seller, then Admin automatically.
    */
   async login(dto: LoginDto, platform: Platform = 'web'): Promise<AuthResponse> {
-    const processData = (data: AuthResponse, fallbackRole: string) => {
+    const processData = (data: any, fallbackRole: string) => {
       const token = data.access_token || data.accessToken;
       const refresh = data.refresh_token || data.refreshToken;
       if (token) localStorage.setItem('access_token', token);
       if (refresh) localStorage.setItem('refresh_token', refresh);
-      if (!data.user.role) data.user.role = fallbackRole as any;
-      localStorage.setItem('user', JSON.stringify(data.user));
+      
+      const userObj = data.user || data.seller || data.admin;
+      if (userObj) {
+        if (!userObj.role) userObj.role = fallbackRole as any;
+        localStorage.setItem('user', JSON.stringify(userObj));
+        data.user = userObj; // Ensure .user is always available
+      }
+      
       return data;
     };
 

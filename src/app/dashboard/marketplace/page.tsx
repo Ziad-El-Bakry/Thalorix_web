@@ -2,8 +2,9 @@
 
 import UserHeader from "@/components/ui/UserHeader";
 import TemplateList from "@/components/features/marketplace/shared/TemplateList";
-import { Search, Filter, LayoutGrid } from "lucide-react";
+import { Search, Filter, LayoutGrid, Upload } from "lucide-react";
 import { motion } from "framer-motion";
+import Link from "next/link";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,11 +21,15 @@ export default function MarketplacePage() {
   const [category, setCategory] = useState("All Categories");
   const [sortBy, setSortBy] = useState("Newest First");
   const [userName, setUserName] = useState("User");
+  const [isSeller, setIsSeller] = useState(false);
 
   useEffect(() => {
     const user = authService.getStoredUser() as any;
     if (user) {
       setUserName((user?.name || user?.username)?.split(' ')[0] || "User");
+      if (user?.role === 'seller') {
+        setIsSeller(true);
+      }
     }
   }, []);
 
@@ -86,6 +91,26 @@ export default function MarketplacePage() {
                 <DropdownMenuItem onClick={() => setSortBy("Price: High to Low")} className={sortBy === "Price: High to Low" ? "bg-slate-100 font-medium" : ""}>Price: High to Low</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+
+            {isSeller && (
+              <Link
+                href="/dashboard/marketplace/upload"
+                className="hidden sm:flex items-center gap-2 bg-[#123E41] hover:bg-[#0d2c2e] text-white px-4 py-3.5 rounded-xl transition-colors font-medium text-sm ml-2 shadow-sm"
+              >
+                <Upload size={18} />
+                <span>Upload Template</span>
+              </Link>
+            )}
+            
+            {isSeller && (
+              <Link
+                href="/dashboard/marketplace/upload"
+                className="sm:hidden p-3.5 rounded-xl flex-shrink-0 flex items-center justify-center bg-[#123E41] hover:bg-[#0d2c2e] text-white transition-colors shadow-sm ml-2"
+                title="Upload Template"
+              >
+                <Upload size={20} />
+              </Link>
+            )}
           </div>
         </motion.div>
 
