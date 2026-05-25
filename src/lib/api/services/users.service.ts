@@ -46,28 +46,21 @@ export const usersService = {
    * Get user by ID
    */
   async getUserById(id: string): Promise<User> {
-    const storedUser = authService.getStoredUser();
-    let endpoint = storedUser?.role === 'admin' ? ENDPOINTS.ADMINS.GET_BY_ID(id) : ENDPOINTS.USERS.GET_BY_ID(id);
-    
     try {
-      const { data } = await api.get<any>(endpoint);
-      return {
-        ...data,
-        id: data.id || data._id,
-        avatar: data.avatar || data.avatarUrl,
-      };
-    } catch (error: any) {
-      if (error.response?.status === 404 && storedUser?.role === 'admin') {
-        // Fallback to users collection if admin is not found in admins collection
-        endpoint = ENDPOINTS.USERS.GET_BY_ID(id);
-        const { data } = await api.get<any>(endpoint);
-        return {
-          ...data,
-          id: data.id || data._id,
-          avatar: data.avatar || data.avatarUrl,
-        };
+      const { data } = await api.get<any>(ENDPOINTS.USERS.GET_BY_ID(id));
+      return { ...data, id: data.id || data._id, avatar: data.avatar || data.avatarUrl };
+    } catch (e1: any) {
+      if (e1.response?.status !== 404) throw e1;
+      
+      try {
+        const { data } = await api.get<any>(ENDPOINTS.SELLERS.GET_BY_ID(id));
+        return { ...data, id: data.id || data._id, avatar: data.avatar || data.avatarUrl };
+      } catch (e2: any) {
+        if (e2.response?.status !== 404) throw e2;
+        
+        const { data } = await api.get<any>(ENDPOINTS.ADMINS.GET_BY_ID(id));
+        return { ...data, id: data.id || data._id, avatar: data.avatar || data.avatarUrl };
       }
-      throw error;
     }
   },
 
@@ -95,28 +88,16 @@ export const usersService = {
     if (dto.socialLinks) payload.socialLinks = dto.socialLinks;
 
     const storedUser = authService.getStoredUser();
-    let endpoint = storedUser?.role === 'admin' ? ENDPOINTS.ADMINS.UPDATE(id) : ENDPOINTS.USERS.UPDATE(id);
+    let endpoint = ENDPOINTS.USERS.UPDATE(id);
+    if (storedUser?.role === 'admin') endpoint = ENDPOINTS.ADMINS.UPDATE(id);
+    else if (storedUser?.role === 'seller') endpoint = ENDPOINTS.SELLERS.UPDATE(id);
 
-    try {
-      const { data } = await api.patch<any>(endpoint, payload);
-      return {
-        ...data,
-        id: data.id || data._id,
-        avatar: data.avatar || data.avatarUrl,
-      };
-    } catch (error: any) {
-      if (error.response?.status === 404 && storedUser?.role === 'admin') {
-        // Fallback to users collection if admin is not found in admins collection
-        endpoint = ENDPOINTS.USERS.UPDATE(id);
-        const { data } = await api.patch<any>(endpoint, payload);
-        return {
-          ...data,
-          id: data.id || data._id,
-          avatar: data.avatar || data.avatarUrl,
-        };
-      }
-      throw error;
-    }
+    const { data } = await api.patch<any>(endpoint, payload);
+    return {
+      ...data,
+      id: data.id || data._id,
+      avatar: data.avatar || data.avatarUrl,
+    };
   },
 
   /**
