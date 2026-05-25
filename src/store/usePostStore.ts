@@ -21,7 +21,7 @@ const mapBackendPost = (post: any): PostData => ({
     id: post.userId?._id || post.userId?.id,
     name: post.userId?.name || "Unknown User",
     avatar: post.userId?.avatarUrl || "/images/avatar.png",
-    title: post.userId?.bio || post.userId?.role || "Member",
+    title: post.userId?.role ? post.userId.role.charAt(0).toUpperCase() + post.userId.role.slice(1) : "User",
   },
   content: post.content,
   image: post.image,

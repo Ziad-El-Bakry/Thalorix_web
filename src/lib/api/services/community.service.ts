@@ -13,7 +13,7 @@ export const communityService = {
     // Let's assume frontend passes user ID from its context if required.
     // Actually, looking at the backend code, `createPost` takes `dto.userId`. So we must pass it.
     const user = JSON.parse(localStorage.getItem('user') || '{}');
-    const { data } = await api.post(ENDPOINTS.COMMUNITY.POST, { userId: user.id || user._id, content, image });
+    const { data } = await api.post(ENDPOINTS.COMMUNITY.POST, { userId: user.id || user._id, userRole: user.role, content, image });
     return data;
   },
 
@@ -35,7 +35,7 @@ export const communityService = {
 
   addComment: async (postId: string, content: string) => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
-    const { data } = await api.post(ENDPOINTS.COMMUNITY.ADD_COMMENT(postId), { userId: user.id || user._id, content });
+    const { data } = await api.post(ENDPOINTS.COMMUNITY.ADD_COMMENT(postId), { userId: user.id || user._id, userRole: user.role, content });
     return data;
   },
 
