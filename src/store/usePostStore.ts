@@ -9,10 +9,11 @@ dayjs.extend(relativeTime);
 interface PostStore {
   posts: PostData[];
   isLoading: boolean;
-  fetchFeed: () => Promise<void>;
+  fetchFeed: (userId?: string) => Promise<void>;
   addPost: (content: string, image?: string) => Promise<void>;
   deletePost: (id: string) => Promise<void>;
   editPost: (id: string, content: string) => Promise<void>;
+  toggleLike: (postId: string, userId: string) => Promise<void>;
 }
 
 const mapBackendPost = (post: any): PostData => ({
@@ -29,15 +30,16 @@ const mapBackendPost = (post: any): PostData => ({
   likes: post.likesCount || 0,
   comments: post.commentsCount || 0,
   shares: 0,
+  liked: post.liked || false,
 });
 
 export const usePostStore = create<PostStore>((set: any) => ({
   posts: [],
   isLoading: false,
-  fetchFeed: async () => {
+  fetchFeed: async (userId?: string) => {
     set({ isLoading: true });
     try {
-      const data = await communityService.getFeed();
+      const data = await communityService.getFeed(userId);
       set({ posts: data.map(mapBackendPost), isLoading: false });
     } catch (error) {
       console.error("Failed to fetch feed:", error);
@@ -68,6 +70,32 @@ export const usePostStore = create<PostStore>((set: any) => ({
       }));
     } catch (error) {
       console.error("Failed to update post:", error);
+    }
+  },
+  toggleLike: async (postId: string, userId: string) => {
+    try {
+      // Optimistic update
+      set((state: any) => ({
+        posts: state.posts.map((p: PostData) => p.id === postId ? { 
+          ...p, 
+          liked: !p.liked, 
+          likes: p.liked ? p.likes - 1 : p.likes + 1 
+        } : p)
+      }));
+      
+      const result = await communityService.toggleLike(postId, userId);
+      
+      // Update with actual backend state
+      set((state: any) => ({
+        posts: state.posts.map((p: PostData) => p.id === postId ? { 
+          ...p, 
+          liked: result.liked, 
+          likes: result.likesCount 
+        } : p)
+      }));
+    } catch (error) {
+      console.error("Failed to toggle like:", error);
+      // Revert optimistic update could be handled here
     }
   },
 }));

@@ -23,7 +23,7 @@ export default function Community() {
     if (user) {
       setUserName((user?.name || user?.username)?.split(" ")[0] || "User");
     }
-    fetchFeed();
+    fetchFeed(user?.id || user?._id);
   }, [fetchFeed]);
   const [showConnectionToast, setShowConnectionToast] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);

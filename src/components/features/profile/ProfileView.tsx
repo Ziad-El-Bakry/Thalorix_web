@@ -37,7 +37,7 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [activeProfileTab, setActiveProfileTab] = useState<"posts" | "projects" | "media">("posts");
+  const [activeProfileTab, setActiveProfileTab] = useState<"posts" | "projects" | "media" | "friends">("posts");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
   const [coverImage, setCoverImage] = useState<string>("/images/profile-cover.png");
@@ -87,9 +87,19 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
     const fetchUserData = async () => {
       try {
         let idToFetch = userId;
+        const storedUser = authService.getStoredUser();
+
+        // 🚀 Optimistic UI: Pre-load local stored user data instantly for own profile
+        if (isOwnProfile && storedUser) {
+          setUser(storedUser);
+          if (storedUser.avatar) {
+            setDisplayAvatar(storedUser.avatar);
+            setGlobalAvatar(storedUser.avatar);
+          }
+        }
+
         if (!idToFetch) {
-          const storedUser = authService.getStoredUser();
-          idToFetch = storedUser?.id;
+          idToFetch = storedUser?.id || (storedUser as any)?._id;
         }
 
         // Mock users for feed placeholders
@@ -107,9 +117,14 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
 
         if (idToFetch) {
           const data = await usersService.getUserById(idToFetch);
-          setUser(data);
-          if (data && data.avatar && !isOwnProfile) {
-            setDisplayAvatar(data.avatar);
+          if (data) {
+            setUser(data);
+            if (data.avatar) {
+              setDisplayAvatar(data.avatar);
+              if (isOwnProfile) {
+                setGlobalAvatar(data.avatar);
+              }
+            }
           }
         }
       } catch (error: any) {
@@ -117,6 +132,11 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
           console.warn("User unauthorized, token might be expired.");
         } else {
           console.warn("Failed to fetch user data:", error?.message || error);
+        }
+        // Graceful fallback to stored user if API failed for own profile
+        const storedUser = authService.getStoredUser();
+        if (isOwnProfile && storedUser) {
+          setUser(storedUser);
         }
       } finally {
         setLoading(false);

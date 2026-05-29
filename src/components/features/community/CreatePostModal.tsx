@@ -376,7 +376,7 @@ export default function CreatePostModal({
                     whileTap={{ scale: 0.95 }}
                     onClick={() => {
                       setActiveTab(btn.tab);
-                      if (btn.tab === "photo") {
+                      if (btn.tab === "photo" || btn.tab === "video") {
                         fileInputRef.current?.click();
                       }
                     }}

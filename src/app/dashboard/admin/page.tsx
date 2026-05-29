@@ -9,7 +9,8 @@ import AdminTabs, { AdminTabId } from "@/components/features/admin/AdminTabs";
 import OverviewTab from "@/components/features/admin/OverviewTab";
 import PostsTab from "@/components/features/admin/PostsTab";
 import ProductsTab from "@/components/features/admin/ProductsTab";
-import PermissionsTab from "@/components/features/admin/PermissionsTab";
+import UsersTab from "@/components/features/admin/UsersTab";
+import SellersTab from "@/components/features/admin/SellersTab";
 import { mockStats, mockPosts, mockProducts } from "@/components/features/admin/adminMockData";
 
 export default function AdminPage() {
@@ -63,9 +64,10 @@ export default function AdminPage() {
         transition={{ duration: 0.3 }}
       >
         {activeTab === "overview" && <OverviewTab />}
+        {activeTab === "users" && <UsersTab />}
+        {activeTab === "sellers" && <SellersTab />}
         {activeTab === "posts" && <PostsTab />}
         {activeTab === "products" && <ProductsTab />}
-        {activeTab === "permissions" && <PermissionsTab />}
       </motion.div>
     </div>
   );

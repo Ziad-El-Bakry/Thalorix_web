@@ -35,14 +35,13 @@ export interface PostData {
 interface CommentData {
   id: string;
   author: string;
+  authorId?: string;
   avatar: string;
   text: string;
   time: string;
 }
 
 export default function PostCard({ post }: { post: PostData }) {
-  const [liked, setLiked] = useState(post.liked ?? false);
-  const [likeCount, setLikeCount] = useState(post.likes);
   const [commentCount, setCommentCount] = useState(post.comments);
   const [showComments, setShowComments] = useState(false);
   const [commentsLoading, setCommentsLoading] = useState(false);
@@ -56,7 +55,7 @@ export default function PostCard({ post }: { post: PostData }) {
   const currentUserName = currentUser?.name || currentUser?.username || "User";
   const isPostOwner = post.author.name === currentUserName || (currentUser?.id && post.author.id === currentUser.id);
 
-  const { deletePost, editPost } = usePostStore();
+  const { deletePost, editPost, toggleLike } = usePostStore();
   const [isPostDropdownOpen, setIsPostDropdownOpen] = useState(false);
   const [isEditingPost, setIsEditingPost] = useState(false);
   const [editPostContent, setEditPostContent] = useState(post.content);
@@ -69,8 +68,9 @@ export default function PostCard({ post }: { post: PostData }) {
   const isLongContent = post.content.length > CONTENT_LIMIT;
 
   const handleLike = () => {
-    setLiked(!liked);
-    setLikeCount((prev) => (liked ? prev - 1 : prev + 1));
+    if (currentUser?.id || currentUser?._id) {
+      toggleLike(post.id, currentUser.id || currentUser._id);
+    }
   };
 
   const handleShowComments = async () => {
@@ -83,6 +83,7 @@ export default function PostCard({ post }: { post: PostData }) {
         setComments(data.map((c: any) => ({
           id: c._id,
           author: c.userId?.name || c.userId?.username || "User",
+          authorId: c.userId?._id || c.userId?.id,
           avatar: c.userId?.avatarUrl || "/images/avatar.png",
           text: c.content,
           time: dayjs(c.createdAt).fromNow(),
@@ -103,6 +104,7 @@ export default function PostCard({ post }: { post: PostData }) {
       const newComment: CommentData = {
         id: c._id,
         author: c.userId?.name || currentUserName,
+        authorId: c.userId?._id || c.userId?.id || currentUser?.id,
         avatar: c.userId?.avatarUrl || globalAvatar || "/images/avatar.png",
         text: c.content,
         time: "Just now",
@@ -242,14 +244,22 @@ export default function PostCard({ post }: { post: PostData }) {
         )}
       </div>
 
-      {/* Image */}
+      {/* Media (Image or Video) */}
       {post.image && (
-        <div className="border-t border-b border-gray-100">
-          <img
-            src={post.image}
-            alt="Post media"
-            className="w-full max-h-[400px] object-cover"
-          />
+        <div className="border-t border-b border-gray-100 bg-black flex justify-center">
+          {post.image.match(/\.(mp4|webm|ogg|mov)$/i) || post.image.includes('/video/upload/') ? (
+            <video
+              src={post.image}
+              controls
+              className="w-full max-h-[400px] object-contain"
+            />
+          ) : (
+            <img
+              src={post.image}
+              alt="Post media"
+              className="w-full max-h-[400px] object-cover"
+            />
+          )}
         </div>
       )}
 
@@ -259,7 +269,7 @@ export default function PostCard({ post }: { post: PostData }) {
           <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-teal-500 text-white text-[10px]">
             👍
           </span>
-          <span>{likeCount}</span>
+          <span>{post.likes}</span>
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -281,10 +291,10 @@ export default function PostCard({ post }: { post: PostData }) {
           whileTap={{ scale: 0.93 }}
           onClick={handleLike}
           className={`flex items-center gap-2 flex-1 justify-center py-2.5 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-gray-50 ${
-            liked ? "text-teal-600" : "text-gray-500"
+            post.liked ? "text-teal-600" : "text-gray-500"
           }`}
         >
-          <ThumbsUp size={18} className={liked ? "fill-teal-600" : ""} />
+          <ThumbsUp size={18} className={post.liked ? "fill-teal-600" : ""} />
           <span className="hidden sm:inline">Like</span>
         </motion.button>
 
@@ -322,21 +332,29 @@ export default function PostCard({ post }: { post: PostData }) {
             <div className="h-px bg-gray-100 mx-4" />
             <div className="px-4 py-3 space-y-3">
               {/* Existing comments */}
-              {comments.map((comment) => (
-                <div key={comment.id} className="flex gap-2 group">
-                  <Image
-                    src={comment.avatar}
-                    alt={comment.author}
-                    width={32}
-                    height={32}
-                    className="w-8 h-8 rounded-full object-cover flex-shrink-0"
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-start gap-2">
-                      <div className="bg-gray-50 rounded-xl px-3.5 py-2 flex-1 relative">
-                        <span className="text-xs font-semibold text-gray-800">
-                          {comment.author}
-                        </span>
+              {comments.map((comment) => {
+                const commentProfileHref = comment.authorId 
+                  ? (comment.authorId === currentUser?.id ? "/dashboard/profile" : `/dashboard/profile/${comment.authorId}`)
+                  : "#";
+                return (
+                  <div key={comment.id} className="flex gap-2 group">
+                    <Link href={commentProfileHref} className="shrink-0 hover:opacity-85 transition-opacity">
+                      <Image
+                        src={comment.avatar}
+                        alt={comment.author}
+                        width={32}
+                        height={32}
+                        className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                      />
+                    </Link>
+                    <div className="flex-1">
+                      <div className="flex items-start gap-2">
+                        <div className="bg-gray-50 rounded-xl px-3.5 py-2 flex-1 relative">
+                          <Link href={commentProfileHref} className="hover:text-teal-700 hover:underline transition-colors block w-fit">
+                            <span className="text-xs font-semibold text-gray-800 cursor-pointer">
+                              {comment.author}
+                            </span>
+                          </Link>
                         
                         {editingCommentId === comment.id ? (
                           <div className="mt-1 space-y-2">
@@ -441,7 +459,7 @@ export default function PostCard({ post }: { post: PostData }) {
                     </div>
                   </div>
                 </div>
-              ))}
+              );})}
 
               {/* Comment input */}
               <div className="flex items-center gap-2">

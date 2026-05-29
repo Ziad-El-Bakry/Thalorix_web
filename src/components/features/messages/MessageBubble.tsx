@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import Link from "next/link";
 import { motion, useAnimation } from "framer-motion";
 import { CheckCheck, FileText, Archive, Download, Play, Pause, Volume2, Reply } from "lucide-react";
 import MessageContextMenu from "./MessageContextMenu";
@@ -181,11 +182,13 @@ export default function MessageBubble({ message, isOwn = false, onImageClick, on
       </div>
       
       {!isOwn && (
-        <img
-          src={message.sender?.avatarUrl || "/images/avatar.png"}
-          alt={message.sender?.name || "User"}
-          className="w-7 h-7 rounded-full object-cover flex-shrink-0 mt-auto mb-1 ring-1 ring-black/5 z-10 shadow-md"
-        />
+        <Link href={`/dashboard/profile/${message.sender?.id}`} className="hover:opacity-85 transition-opacity z-10 mt-auto mb-1">
+          <img
+            src={message.sender?.avatarUrl || "/images/avatar.png"}
+            alt={message.sender?.name || "User"}
+            className="w-7 h-7 rounded-full object-cover flex-shrink-0 ring-1 ring-black/5 shadow-md"
+          />
+        </Link>
       )}
 
       <motion.div 

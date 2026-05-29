@@ -39,7 +39,19 @@ export const usersService = {
     totalPages: number;
   }> {
     const { data } = await api.get(ENDPOINTS.USERS.GET_ALL, { params });
-    return data;
+    const usersList = data.users || data.data || [];
+    const totalCount = data.total || usersList.length;
+    const pageNum = params?.page || 1;
+    const limitNum = params?.limit || 10;
+    return {
+      users: usersList.map((u: any) => ({
+        ...u,
+        id: u.id || u._id,
+      })),
+      total: totalCount,
+      page: Number(pageNum),
+      totalPages: Math.ceil(totalCount / limitNum),
+    };
   },
 
   /**
@@ -48,17 +60,26 @@ export const usersService = {
   async getUserById(id: string): Promise<User> {
     try {
       const { data } = await api.get<any>(ENDPOINTS.USERS.GET_BY_ID(id));
+      if (!data || (!data.id && !data._id)) {
+        throw { response: { status: 404 } };
+      }
       return { ...data, id: data.id || data._id, avatar: data.avatar || data.avatarUrl };
     } catch (e1: any) {
       if (e1.response?.status !== 404) throw e1;
       
       try {
         const { data } = await api.get<any>(ENDPOINTS.SELLERS.GET_BY_ID(id));
+        if (!data || (!data.id && !data._id)) {
+          throw { response: { status: 404 } };
+        }
         return { ...data, id: data.id || data._id, avatar: data.avatar || data.avatarUrl };
       } catch (e2: any) {
         if (e2.response?.status !== 404) throw e2;
         
         const { data } = await api.get<any>(ENDPOINTS.ADMINS.GET_BY_ID(id));
+        if (!data || (!data.id && !data._id)) {
+          throw { response: { status: 404 } };
+        }
         return { ...data, id: data.id || data._id, avatar: data.avatar || data.avatarUrl };
       }
     }
@@ -76,6 +97,8 @@ export const usersService = {
    * Update user profile
    */
   async updateProfile(id: string, dto: UpdateProfileDto): Promise<User> {
+    const storedUser = authService.getStoredUser();
+    
     // Backend expects JSON with 'name' instead of 'username', and 'bio', 'expertise', 'socialLinks'.
     const payload: any = {};
     if (dto.username) payload.name = dto.username;
@@ -83,20 +106,23 @@ export const usersService = {
     if (dto.avatarUrl !== undefined) {
       payload.avatar = dto.avatarUrl;
       payload.avatarUrl = dto.avatarUrl;
+      if (storedUser?.role === 'seller') {
+        payload.logo = dto.avatarUrl;
+      }
     }
     if (dto.expertise) payload.expertise = dto.expertise;
     if (dto.socialLinks) payload.socialLinks = dto.socialLinks;
 
-    const storedUser = authService.getStoredUser();
     let endpoint = ENDPOINTS.USERS.UPDATE(id);
     if (storedUser?.role === 'admin') endpoint = ENDPOINTS.ADMINS.UPDATE(id);
     else if (storedUser?.role === 'seller') endpoint = ENDPOINTS.SELLERS.UPDATE(id);
 
     const { data } = await api.patch<any>(endpoint, payload);
+    const userObj = data.user || data.seller || data;
     return {
-      ...data,
-      id: data.id || data._id,
-      avatar: data.avatar || data.avatarUrl,
+      ...userObj,
+      id: userObj.id || userObj._id,
+      avatar: userObj.avatar || userObj.avatarUrl || userObj.logo,
     };
   },
 

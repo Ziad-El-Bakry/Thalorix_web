@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Link from "next/link";
 import { ChatHeaderProps } from "../../../types/message";
 import { Search, MoreHorizontal, ArrowLeft, X } from "lucide-react";
 
@@ -46,24 +47,26 @@ export default function ChatHeader({ user, onBack, onSearch }: ChatHeaderProps &
             <ArrowLeft className="w-5 h-5 text-white" />
           </button>
         )}
-        <div className="relative">
-          <img
-            src={user.avatarUrl || "/images/avatar.png"}
-            alt={user.name}
-            className="w-10 h-10 rounded-full object-cover ring-2 ring-white/20"
-          />
-        </div>
-        <div>
-          <h2 className="font-semibold text-white text-sm leading-tight">{user.name}</h2>
-          {user.online ? (
-            <span className="text-xs text-white flex items-center gap-1">
-              <span className="w-1.5 h-1.5 bg-[#9EC8FF] rounded-full inline-block animate-pulse" />
-              Online
-            </span>
-          ) : (
-            <span className="text-xs text-white/50">Offline</span>
-          )}
-        </div>
+        <Link href={`/dashboard/profile/${user.id}`} className="flex items-center gap-2 hover:opacity-85 transition-opacity cursor-pointer">
+          <div className="relative">
+            <img
+              src={user.avatarUrl || "/images/avatar.png"}
+              alt={user.name}
+              className="w-10 h-10 rounded-full object-cover ring-2 ring-white/20"
+            />
+          </div>
+          <div>
+            <h2 className="font-semibold text-white text-sm leading-tight">{user.name}</h2>
+            {user.online ? (
+              <span className="text-xs text-white flex items-center gap-1">
+                <span className="w-1.5 h-1.5 bg-[#9EC8FF] rounded-full inline-block animate-pulse" />
+                Online
+              </span>
+            ) : (
+              <span className="text-xs text-white/50">Offline</span>
+            )}
+          </div>
+        </Link>
       </div>
 
       <div className="flex items-center gap-0.5">

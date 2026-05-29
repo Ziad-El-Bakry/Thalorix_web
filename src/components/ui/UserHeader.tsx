@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { Code, User as UserIcon, Store, Shield } from "lucide-react";
 import Notifications from "@/components/shared/Notification";
 import { usePathname } from "next/navigation";
@@ -52,7 +53,7 @@ export default function UserHeader({ name, avatar, badge, badgeIcon, compact = f
       transition={{ duration: 0.5 }}
       className={`flex items-center justify-between mt-2 md:mt-0 relative z-50 ${compact ? 'mb-2 md:mb-3' : 'mb-6 md:mb-8'}`}
     >
-      <div className="flex items-center gap-3 md:gap-4">
+      <Link href="/dashboard/profile" className="flex items-center gap-3 md:gap-4 hover:opacity-85 transition-opacity cursor-pointer">
         <div className="flex flex-shrink-0">
           <Image
             src={avatarSrc}
@@ -67,7 +68,7 @@ export default function UserHeader({ name, avatar, badge, badgeIcon, compact = f
             Welcome {displayName}
           </h1>
         </div>
-      </div>
+      </Link>
 
       <div className="flex gap-4 items-center">
         {!isMessagesPage && (

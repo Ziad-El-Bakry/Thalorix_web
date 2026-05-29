@@ -2,8 +2,8 @@ import api from '../axios';
 import { ENDPOINTS } from '../endpoints';
 
 export const communityService = {
-  getFeed: async () => {
-    const { data } = await api.get(ENDPOINTS.COMMUNITY.FEED);
+  getFeed: async (userId?: string) => {
+    const { data } = await api.get(ENDPOINTS.COMMUNITY.FEED, { params: { userId } });
     return data;
   },
 
@@ -47,6 +47,11 @@ export const communityService = {
 
   deleteComment: async (id: string) => {
     const { data } = await api.delete(ENDPOINTS.COMMUNITY.DELETE_COMMENT(id));
+    return data;
+  },
+
+  toggleLike: async (postId: string, userId: string) => {
+    const { data } = await api.post(ENDPOINTS.COMMUNITY.TOGGLE_LIKE(postId), { userId });
     return data;
   }
 };

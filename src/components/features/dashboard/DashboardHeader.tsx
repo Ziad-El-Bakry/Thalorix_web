@@ -1,6 +1,7 @@
 "use client";
-
+ 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect } from "react";
 import { User } from "@/lib/api/services/auth.service";
 import { useAvatar } from "@/store/useAvatarStore";
@@ -41,14 +42,14 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
         </div>
         
         {/* User Avatar */}
-        <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white dark:border-gray-800 shadow-sm relative">
+        <Link href="/dashboard/profile" className="w-10 h-10 rounded-full overflow-hidden border-2 border-white dark:border-gray-800 shadow-sm relative block hover:opacity-85 transition-opacity cursor-pointer">
           <Image
             src={avatar !== "/images/avatar.png" ? avatar : (user?.avatar || "/images/avatar.png")}
             alt="User Avatar"
             fill
             className="object-cover"
           />
-        </div>
+        </Link>
       </div>
     </div>
   );

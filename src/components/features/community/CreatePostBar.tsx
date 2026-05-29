@@ -47,7 +47,7 @@ export default function CreatePostBar({ userName = "User", userAvatar }: CreateP
     let imageUrl: string | undefined = undefined;
 
     // Upload media to Cloudinary first
-    if (postData.media && postData.media.length > 0 && postData.media[0].type.startsWith("image/")) {
+    if (postData.media && postData.media.length > 0) {
       try {
         const uploadRes = await uploadService.uploadFile(postData.media[0], "posts");
         imageUrl = uploadRes.url;
