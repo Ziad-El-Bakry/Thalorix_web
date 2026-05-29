@@ -134,22 +134,17 @@ export default function CreatePostModal({
     handleMediaSelect(e.dataTransfer.files);
   };
 
-  const handlePost = async () => {
+  const handlePost = () => {
     if (!content.trim() && mediaFiles.length === 0) return;
-    setIsPosting(true);
-    try {
-      await onPost?.({
-        content,
-        media: mediaFiles.length > 0 ? mediaFiles : undefined,
-        visibility,
-      });
-      onClose();
-    } finally {
-      setIsPosting(false);
-    }
+    onPost?.({
+      content,
+      media: mediaFiles.length > 0 ? mediaFiles : undefined,
+      visibility,
+    });
+    onClose();
   };
 
-  const canPost = (content.trim().length > 0 || mediaFiles.length > 0) && !isPosting;
+  const canPost = (content.trim().length > 0 || mediaFiles.length > 0);
 
   const visibilityOptions = [
     { label: "Anyone", icon: Globe, desc: "Anyone on the platform" },
@@ -400,20 +395,22 @@ export default function CreatePostModal({
                 </motion.button>
               </div>
 
-              {/* Post button */}
-              <motion.button
-                whileHover={canPost ? { scale: 1.03 } : undefined}
-                whileTap={canPost ? { scale: 0.97 } : undefined}
-                onClick={handlePost}
-                disabled={!canPost || isPosting}
-                className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${
-                  canPost && !isPosting
-                    ? "bg-[#103B40] text-white hover:bg-[#1a4f55] shadow-sm"
-                    : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                }`}
-              >
-                {isPosting ? "Posting..." : "Post"}
-              </motion.button>
+              <div className="flex gap-2">
+                <button
+                  disabled={!canPost}
+                  onClick={() => {
+                    handlePost();
+                    onClose();
+                  }}
+                  className={`px-4 py-2 rounded-full font-semibold transition-all ${
+                    canPost
+                      ? "bg-teal-600 text-white hover:bg-teal-700 shadow-sm"
+                      : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                  }`}
+                >
+                  Post
+                </button>
+              </div>
 
               {/* Hidden file input */}
               <input

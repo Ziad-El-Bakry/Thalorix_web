@@ -11,6 +11,7 @@ import { usePostStore } from "@/store/usePostStore";
 import { PostData } from "@/components/features/community/PostCard";
 import { authService } from "@/lib/api/services/auth.service";
 import { uploadService } from "@/lib/api/services/upload.service";
+import { communityService } from "@/lib/api/services/community.service";
 
 interface CreatePostBarProps {
   userName?: string;
@@ -37,7 +38,7 @@ export default function CreatePostBar({ userName = "User", userAvatar }: CreateP
     }
   }, [searchParams]);
 
-  const addPost = usePostStore((state: any) => state.addPost);
+  const { addOptimisticPost, updatePostUploadStatus, finalizePost } = usePostStore();
 
   const handlePost = async (postData: {
     content: string;
@@ -45,19 +46,51 @@ export default function CreatePostBar({ userName = "User", userAvatar }: CreateP
     visibility: string;
   }) => {
     let imageUrl: string | undefined = undefined;
+    let localMediaBlob: string | undefined = undefined;
 
-    // Upload media to Cloudinary first
     if (postData.media && postData.media.length > 0) {
-      try {
-        const uploadRes = await uploadService.uploadFile(postData.media[0], "posts");
-        imageUrl = uploadRes.url;
-      } catch (error) {
-        console.error("Failed to upload image:", error);
-        // Optionally handle error, e.g., show a toast. We'll proceed without image if upload fails.
-      }
+      localMediaBlob = URL.createObjectURL(postData.media[0]);
     }
-      
-    await addPost(postData.content, imageUrl);
+
+    const tempId = `temp_${Date.now()}`;
+    const currentUser = authService.getStoredUser() as any;
+    
+    // Add optimistic post
+    addOptimisticPost({
+      id: tempId,
+      content: postData.content,
+      localMediaBlob,
+      localMediaFile: postData.media?.[0],
+      localMediaType: postData.media?.[0]?.type,
+      isUploading: !!localMediaBlob,
+      uploadProgress: localMediaBlob ? 0 : undefined,
+      author: {
+        name: currentUser?.name || currentUser?.username || userName,
+        avatar: avatarSrc,
+        title: currentUser?.role ? currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1) : "Member",
+      }
+    });
+
+    try {
+      if (postData.media && postData.media.length > 0) {
+        const uploadRes = await uploadService.uploadFile(postData.media[0], "posts", (progressEvent) => {
+          if (progressEvent.total) {
+            const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            updatePostUploadStatus(tempId, { uploadProgress: progress });
+          }
+        });
+        imageUrl = uploadRes.url;
+      }
+        
+      const newPost = await communityService.createPost(postData.content, imageUrl);
+      finalizePost(tempId, newPost);
+    } catch (error: any) {
+      console.error("Failed to post:", error);
+      updatePostUploadStatus(tempId, { 
+        isUploading: false, 
+        uploadError: error.message || "Failed to post. Please try again." 
+      });
+    }
   };
 
   return (

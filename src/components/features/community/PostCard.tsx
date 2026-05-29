@@ -29,6 +29,12 @@ export interface PostData {
   comments: number;
   shares: number;
   liked?: boolean;
+  isUploading?: boolean;
+  uploadProgress?: number;
+  uploadError?: string;
+  localMediaBlob?: string;
+  localMediaFile?: any;
+  localMediaType?: string;
 }
 
 // individual comment
@@ -55,7 +61,7 @@ export default function PostCard({ post }: { post: PostData }) {
   const currentUserName = currentUser?.name || currentUser?.username || "User";
   const isPostOwner = post.author.name === currentUserName || (currentUser?.id && post.author.id === currentUser.id);
 
-  const { deletePost, editPost, toggleLike } = usePostStore();
+  const { deletePost, editPost, toggleLike, retryPost } = usePostStore();
   const [isPostDropdownOpen, setIsPostDropdownOpen] = useState(false);
   const [isEditingPost, setIsEditingPost] = useState(false);
   const [editPostContent, setEditPostContent] = useState(post.content);
@@ -68,8 +74,8 @@ export default function PostCard({ post }: { post: PostData }) {
   const isLongContent = post.content.length > CONTENT_LIMIT;
 
   const handleLike = () => {
-    if (currentUser?.id || currentUser?._id) {
-      toggleLike(post.id, currentUser.id || currentUser._id);
+    if (currentUser?.id) {
+      toggleLike(post.id, currentUser.id);
     }
   };
 
@@ -129,10 +135,12 @@ export default function PostCard({ post }: { post: PostData }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={post.id.startsWith("temp_") ? { opacity: 0, scale: 0.95 } : { opacity: 0, y: 15 }}
+      animate={post.id.startsWith("temp_") ? { opacity: 1, scale: 1 } : { opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}
-      className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
+      className={`bg-white rounded-xl shadow-sm border overflow-hidden ${
+        post.uploadError ? "border-red-200" : "border-gray-100"
+      }`}
     >
       {/* Author row */}
       <div className="flex items-start justify-between px-4 pt-4 pb-2">
@@ -245,20 +253,54 @@ export default function PostCard({ post }: { post: PostData }) {
       </div>
 
       {/* Media (Image or Video) */}
-      {post.image && (
-        <div className="border-t border-b border-gray-100 bg-black flex justify-center">
-          {post.image.match(/\.(mp4|webm|ogg|mov)$/i) || post.image.includes('/video/upload/') ? (
+      {(post.image || post.localMediaBlob) && (
+        <div className="border-t border-b border-gray-100 bg-black flex justify-center relative">
+          {(post.image && (post.image.match(/\.(mp4|webm|ogg|mov)$/i) || post.image.includes('/video/upload/'))) || 
+           (post.localMediaType && post.localMediaType.startsWith('video/')) ? (
             <video
-              src={post.image}
-              controls
-              className="w-full max-h-[400px] object-contain"
+              src={post.image || post.localMediaBlob}
+              controls={!post.isUploading}
+              className={`w-full max-h-[400px] object-contain ${post.isUploading ? 'opacity-40' : ''}`}
             />
           ) : (
             <img
-              src={post.image}
+              src={post.image || post.localMediaBlob}
               alt="Post media"
-              className="w-full max-h-[400px] object-cover"
+              className={`w-full max-h-[400px] object-cover ${post.isUploading ? 'opacity-40' : ''}`}
             />
+          )}
+
+          {post.isUploading && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-sm z-10">
+              <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin mb-3" />
+              <div className="w-48 bg-white/20 rounded-full h-1.5 overflow-hidden">
+                <div 
+                  className="bg-teal-400 h-full transition-all duration-300"
+                  style={{ width: `${post.uploadProgress || 0}%` }}
+                />
+              </div>
+              <p className="text-white text-xs mt-2 font-medium">Uploading... {post.uploadProgress || 0}%</p>
+            </div>
+          )}
+
+          {post.uploadError && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-red-900/60 backdrop-blur-sm z-10 p-4 text-center">
+              <p className="text-white text-sm font-semibold mb-2">{post.uploadError}</p>
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => retryPost(post.id)}
+                  className="px-4 py-1.5 bg-teal-100 text-teal-700 rounded-full text-xs font-bold hover:bg-teal-200 transition-colors"
+                >
+                  Retry Upload
+                </button>
+                <button 
+                  onClick={() => deletePost(post.id)}
+                  className="px-4 py-1.5 bg-red-100 text-red-700 rounded-full text-xs font-bold hover:bg-red-200 transition-colors"
+                >
+                  Discard Post
+                </button>
+              </div>
+            </div>
           )}
         </div>
       )}
@@ -286,7 +328,10 @@ export default function PostCard({ post }: { post: PostData }) {
       <div className="h-px bg-gray-100 mx-4" />
 
       {/* Action buttons */}
-      <div className="flex items-center justify-around px-2 py-1">
+      <div className="flex items-center justify-around px-2 py-1 relative">
+        {(post.isUploading || post.uploadError) && (
+          <div className="absolute inset-0 bg-white/50 z-10 cursor-not-allowed" />
+        )}
         <motion.button
           whileTap={{ scale: 0.93 }}
           onClick={handleLike}
