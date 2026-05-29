@@ -34,7 +34,8 @@ export const uploadService = {
           },
           onUploadProgress: (progressEvent) => {
             if (onProgress) onProgress(progressEvent);
-          }
+          },
+          timeout: 0 // Disable timeout for large uploads
         }
       );
       
