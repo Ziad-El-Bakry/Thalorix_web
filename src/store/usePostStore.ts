@@ -61,7 +61,9 @@ export const usePostStore = create<PostStore>((set: any, get: any) => ({
   },
   deletePost: async (id: string) => {
     try {
-      await communityService.deletePost(id);
+      if (!id.startsWith("temp_")) {
+        await communityService.deletePost(id);
+      }
       set((state: any) => ({ posts: state.posts.filter((p: PostData) => p.id !== id) }));
     } catch (error) {
       console.error("Failed to delete post:", error);
