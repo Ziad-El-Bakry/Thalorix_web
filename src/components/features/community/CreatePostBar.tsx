@@ -10,6 +10,7 @@ import { useAvatar } from "@/store/useAvatarStore";
 import { usePostStore } from "@/store/usePostStore";
 import { PostData } from "@/components/features/community/PostCard";
 import { authService } from "@/lib/api/services/auth.service";
+import { uploadService } from "@/lib/api/services/upload.service";
 
 interface CreatePostBarProps {
   userName?: string;
@@ -38,34 +39,25 @@ export default function CreatePostBar({ userName = "User", userAvatar }: CreateP
 
   const addPost = usePostStore((state: any) => state.addPost);
 
-  const handlePost = (postData: {
+  const handlePost = async (postData: {
     content: string;
     media?: File[];
     visibility: string;
   }) => {
-    // In a real app, media would be uploaded first and we'd get URLs back
-    // Here we'll just mock it or handle the text
-    const currentUser = authService.getStoredUser();
-    
-    const newPost: PostData = {
-      id: Date.now().toString(),
-      author: {
-        id: currentUser?.id || "1",
-        name: currentUser?.name || currentUser?.username || userName,
-        avatar: avatarSrc,
-        title: "User", // Mock title
-      },
-      content: postData.content,
-      // Create a local URL for the first media file if it's an image
-      image: postData.media && postData.media.length > 0 && postData.media[0].type.startsWith("image/")
-        ? URL.createObjectURL(postData.media[0])
-        : undefined,
-      timestamp: "Just now",
-      likes: 0,
-      comments: 0,
-      shares: 0,
-    };
-    addPost(newPost);
+    let imageUrl: string | undefined = undefined;
+
+    // Upload media to Cloudinary first
+    if (postData.media && postData.media.length > 0 && postData.media[0].type.startsWith("image/")) {
+      try {
+        const uploadRes = await uploadService.uploadFile(postData.media[0], "posts");
+        imageUrl = uploadRes.url;
+      } catch (error) {
+        console.error("Failed to upload image:", error);
+        // Optionally handle error, e.g., show a toast. We'll proceed without image if upload fails.
+      }
+    }
+      
+    await addPost(postData.content, imageUrl);
   };
 
   return (

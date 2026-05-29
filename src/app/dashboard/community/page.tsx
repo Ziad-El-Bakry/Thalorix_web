@@ -10,20 +10,21 @@ import { useAvatar } from "@/store/useAvatarStore";
 import { authService } from "@/lib/api/services/auth.service";
 import { usePostStore } from "@/store/usePostStore";
 
-
-
 export default function Community() {
   const [searchQuery, setSearchQuery] = useState("");
   const posts = usePostStore((state: any) => state.posts);
+  const fetchFeed = usePostStore((state: any) => state.fetchFeed);
+  const isLoadingFeed = usePostStore((state: any) => state.isLoading);
   const { avatar: globalAvatar } = useAvatar();
   const [userName, setUserName] = useState("User");
 
   useEffect(() => {
     const user = authService.getStoredUser() as any;
     if (user) {
-      setUserName((user?.name || user?.username)?.split(' ')[0] || "User");
+      setUserName((user?.name || user?.username)?.split(" ")[0] || "User");
     }
-  }, []);
+    fetchFeed();
+  }, [fetchFeed]);
   const [showConnectionToast, setShowConnectionToast] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [pullDistance, setPullDistance] = useState(0);
@@ -43,7 +44,10 @@ export default function Community() {
 
       if (conn) {
         const slowTypes = ["slow-2g", "2g", "3g"];
-        if (slowTypes.includes(conn.effectiveType) || (conn.downlink && conn.downlink < 1.5)) {
+        if (
+          slowTypes.includes(conn.effectiveType) ||
+          (conn.downlink && conn.downlink < 1.5)
+        ) {
           setShowConnectionToast(true);
         }
       }
@@ -57,7 +61,10 @@ export default function Community() {
       timer = setTimeout(() => setShowConnectionToast(false), 5000);
     };
 
-    const handleOffline = () => { setShowConnectionToast(true); startDismissTimer(); };
+    const handleOffline = () => {
+      setShowConnectionToast(true);
+      startDismissTimer();
+    };
     const handleOnline = () => setShowConnectionToast(false);
     window.addEventListener("offline", handleOffline);
     window.addEventListener("online", handleOnline);
@@ -84,35 +91,36 @@ export default function Community() {
     touchStartY.current = e.touches[0].clientY;
   }, []);
 
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (isRefreshing) return;
-    const scrollTop = feedRef.current?.scrollTop ?? window.scrollY;
-    if (scrollTop > 5) return; // only trigger at top
-    const diff = e.touches[0].clientY - touchStartY.current;
-    if (diff > 0) {
-      setPullDistance(Math.min(diff * 0.5, 120));
-    }
-  }, [isRefreshing]);
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent) => {
+      if (isRefreshing) return;
+      const scrollTop = feedRef.current?.scrollTop ?? window.scrollY;
+      if (scrollTop > 5) return; // only trigger at top
+      const diff = e.touches[0].clientY - touchStartY.current;
+      if (diff > 0) {
+        setPullDistance(Math.min(diff * 0.5, 120));
+      }
+    },
+    [isRefreshing],
+  );
 
   const handleTouchEnd = useCallback(() => {
     if (pullDistance >= PULL_THRESHOLD && !isRefreshing) {
       setIsRefreshing(true);
       setPullDistance(0);
       // Simulate fetching new posts
-      setTimeout(() => {
-        setIsRefreshing(false);
-      }, 1500);
+      fetchFeed().then(() => {
+        setTimeout(() => setIsRefreshing(false), 500);
+      });
     } else {
       setPullDistance(0);
     }
   }, [pullDistance, isRefreshing]);
 
-
-
   const filteredPosts = posts.filter(
     (post: any) =>
       post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.author.name.toLowerCase().includes(searchQuery.toLowerCase())
+      post.author.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   return (
@@ -123,7 +131,7 @@ export default function Community() {
       onTouchEnd={handleTouchEnd}
     >
       {/* Header */}
-      <UserHeader name={userName} badge="Developer" compact />
+      <UserHeader name={userName} compact />
 
       {/* Poor Connection Toast */}
       <AnimatePresence>
@@ -133,18 +141,20 @@ export default function Community() {
             animate={{ opacity: 1, y: 0, x: "-50%" }}
             exit={{ opacity: 0, y: -30, x: "-50%" }}
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
-            className="fixed top-5 left-1/2 z-[200] flex items-center gap-3 bg-[#103B40] text-white pl-4 pr-3 py-3 rounded-xl shadow-lg border border-white/10 min-w-[320px]"
+              className="fixed top-5 left-1/2 z-200 flex items-center gap-3 bg-[#103B40] text-white pl-4 pr-3 py-3 rounded-xl shadow-lg border border-white/10 min-w-[320px]"
           >
-            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-red-500/20 flex-shrink-0">
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-red-500/20 shrink-0">
               <WifiOff size={16} className="text-red-400" />
             </div>
             <div className="flex-1">
               <p className="text-sm font-semibold">Poor Connection</p>
-              <p className="text-xs text-gray-300">Some features may be limited right now.</p>
+              <p className="text-xs text-gray-300">
+                Some features may be limited right now.
+              </p>
             </div>
             <button
               onClick={() => setShowConnectionToast(false)}
-              className="p-1.5 rounded-full hover:bg-white/10 transition-colors text-gray-300 hover:text-white flex-shrink-0"
+              className="p-1.5 rounded-full hover:bg-white/10 transition-colors text-gray-300 hover:text-white shrink-0"
             >
               <X size={16} />
             </button>
@@ -186,7 +196,11 @@ export default function Community() {
         </motion.div>
 
         {/* Create Post Bar */}
-        <Suspense fallback={<div className="h-[110px] w-full bg-white rounded-xl shadow-sm border border-gray-100 animate-pulse" />}>
+        <Suspense
+          fallback={
+            <div className="h-27.5 w-full bg-white rounded-xl shadow-sm border border-gray-100 animate-pulse" />
+          }
+        >
           <CreatePostBar userName={userName} />
         </Suspense>
 
@@ -200,8 +214,14 @@ export default function Community() {
               className="flex items-center justify-center py-4 mt-2"
             >
               <motion.div
-                animate={isRefreshing ? { rotate: 360 } : { rotate: pullDistance * 3 }}
-                transition={isRefreshing ? { repeat: Infinity, duration: 0.8, ease: "linear" } : { duration: 0 }}
+                animate={
+                  isRefreshing ? { rotate: 360 } : { rotate: pullDistance * 3 }
+                }
+                transition={
+                  isRefreshing
+                    ? { repeat: Infinity, duration: 0.8, ease: "linear" }
+                    : { duration: 0 }
+                }
               >
                 <Loader2
                   size={24}
@@ -209,7 +229,9 @@ export default function Community() {
                 />
               </motion.div>
               {isRefreshing && (
-                <span className="ml-2 text-sm text-gray-500">Refreshing...</span>
+                <span className="ml-2 text-sm text-gray-500">
+                  Refreshing...
+                </span>
               )}
             </motion.div>
           )}
@@ -217,18 +239,24 @@ export default function Community() {
 
         {/* Posts feed */}
         <div className="space-y-4 mt-4" ref={feedRef}>
-          {filteredPosts.map((post: any, index: number) => (
-            <motion.div
-              key={post.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.05 * index, duration: 0.35 }}
-            >
-              <PostCard post={post} />
-            </motion.div>
-          ))}
+          {isLoadingFeed ? (
+            <div className="flex justify-center items-center py-12">
+              <Loader2 className="animate-spin text-teal-600" size={32} />
+            </div>
+          ) : (
+            filteredPosts.map((post: any, index: number) => (
+              <motion.div
+                key={post.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.05 * index, duration: 0.35 }}
+              >
+                <PostCard post={post} />
+              </motion.div>
+            ))
+          )}
 
-          {filteredPosts.length === 0 && (
+          {!isLoadingFeed && filteredPosts.length === 0 && (
             <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-gray-100">
               <p className="text-gray-400 text-sm">No posts found.</p>
             </div>

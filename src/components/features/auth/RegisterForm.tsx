@@ -3,15 +3,22 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { authService } from "@/lib/api/services/auth.service";
 
 export default function RegisterForm() {
+    const [role, setRole] = useState<"user" | "seller">("user");
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [phone, setPhone] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+    
+    // Seller specific states
+    const [storeName, setStoreName] = useState("");
+    const [storeDescription, setStoreDescription] = useState("");
+    const [address, setAddress] = useState("");
+
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
@@ -37,7 +44,21 @@ export default function RegisterForm() {
                 formattedPhone = "+" + formattedPhone;
             }
 
-            await authService.register({ username, email, phone: formattedPhone, password, confirmPassword });
+            if (role === "user") {
+                await authService.register({ username, email, phone: formattedPhone, password, confirmPassword });
+            } else {
+                await authService.registerSeller({
+                    username,
+                    email,
+                    phone: formattedPhone,
+                    password,
+                    confirmPassword,
+                    storeName: storeName || undefined,
+                    storeDescription: storeDescription || undefined,
+                    address: address || undefined,
+                });
+            }
+
             const params = new URLSearchParams({ email });
             if (phone) params.set("phone", phone);
             if (username) params.set("name", username);
@@ -73,6 +94,45 @@ export default function RegisterForm() {
             <motion.h2 variants={itemVariants} className="text-2xl font-semibold text-[#103B40] text-center">
                 Sign Up
             </motion.h2>
+
+            {/* Modern Sliding Underline Tab Swapper */}
+            <motion.div 
+                variants={itemVariants} 
+                className="flex border-b border-[#D3E0E2] w-full mb-6 relative"
+            >
+                <button
+                    type="button"
+                    onClick={() => setRole("user")}
+                    className={`flex-1 py-3 text-sm font-semibold transition-all duration-200 relative cursor-pointer ${
+                        role === "user" ? "text-[#103B40] scale-[1.03]" : "text-gray-400 hover:text-[#103B40]/70"
+                    }`}
+                >
+                    User
+                    {role === "user" && (
+                        <motion.div
+                            layoutId="activeTabUnderline"
+                            className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#103B40] rounded-full shadow-[0_1px_8px_rgba(16,59,64,0.4)]"
+                            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                        />
+                    )}
+                </button>
+                <button
+                    type="button"
+                    onClick={() => setRole("seller")}
+                    className={`flex-1 py-3 text-sm font-semibold transition-all duration-200 relative cursor-pointer ${
+                        role === "seller" ? "text-[#103B40] scale-[1.03]" : "text-gray-400 hover:text-[#103B40]/70"
+                    }`}
+                >
+                    Seller
+                    {role === "seller" && (
+                        <motion.div
+                            layoutId="activeTabUnderline"
+                            className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#103B40] rounded-full shadow-[0_1px_8px_rgba(16,59,64,0.4)]"
+                            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                        />
+                    )}
+                </button>
+            </motion.div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
                 {/* Username */}
@@ -123,6 +183,62 @@ export default function RegisterForm() {
                         className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-300 transition"
                     />
                 </motion.div>
+
+                {/* Seller Specific Fields wrapped in Framer Motion AnimatePresence with vertical & horizontal slide */}
+                <AnimatePresence mode="wait">
+                    {role === "seller" && (
+                        <motion.div
+                            key="seller-inputs"
+                            initial={{ opacity: 0, height: 0, x: 25 }}
+                            animate={{ opacity: 1, height: "auto", x: 0 }}
+                            exit={{ opacity: 0, height: 0, x: -25 }}
+                            transition={{ duration: 0.35, ease: "easeInOut" }}
+                            className="space-y-5 overflow-hidden"
+                        >
+                            {/* Store Name */}
+                            <div className="space-y-1.5">
+                                <label className="block text-xs font-semibold text-gray-700 tracking-wide">
+                                    Store Name
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="e.g. Thalorix Market"
+                                    value={storeName}
+                                    onChange={(e) => setStoreName(e.target.value)}
+                                    required={role === "seller"}
+                                    className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-300 transition"
+                                />
+                            </div>
+
+                            {/* Store Description */}
+                            <div className="space-y-1.5">
+                                <label className="block text-xs font-semibold text-gray-700 tracking-wide">
+                                    Store Description
+                                </label>
+                                <textarea
+                                    placeholder="Describe your business and products..."
+                                    value={storeDescription}
+                                    onChange={(e) => setStoreDescription(e.target.value)}
+                                    className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-300 transition min-h-[80px] resize-y"
+                                />
+                            </div>
+
+                            {/* Store Address */}
+                            <div className="space-y-1.5">
+                                <label className="block text-xs font-semibold text-gray-700 tracking-wide">
+                                    Store Address
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="e.g. 123 Nile St, Cairo, Egypt"
+                                    value={address}
+                                    onChange={(e) => setAddress(e.target.value)}
+                                    className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-300 transition"
+                                />
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
                 {/* Password */}
                 <motion.div variants={itemVariants} className="space-y-1.5">
@@ -194,7 +310,6 @@ export default function RegisterForm() {
                             )}
                         </button>
                     </div>
-
                 </motion.div>
 
                 {/* Terms */}
@@ -220,7 +335,7 @@ export default function RegisterForm() {
                     variants={itemVariants}
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-[#103B40] hover:bg-[#0c2f33] disabled:opacity-70 disabled:cursor-not-allowed text-white font-bold text-sm tracking-wider py-3 rounded-lg transition-colors cursor-pointer"
+                    className={`w-full bg-[#103B40] hover:bg-[#0c2f33] disabled:opacity-70 disabled:cursor-not-allowed text-white font-bold text-sm tracking-wider py-3 rounded-lg transition-colors cursor-pointer ${loading ? 'animate-pulse' : ''}`}
                 >
                     {loading ? "REGISTERING..." : "REGISTER"}
                 </motion.button>

@@ -17,7 +17,7 @@ export default function MarketplaceDetails() {
   return (
     <div className="w-full max-w-[1200px] mx-auto flex flex-col h-full overflow-y-auto custom-scrollbar pb-10">
       <div className="border-b-2 border-[#b0c4c4] pb-2 mb-4 relative z-50">
-        <UserHeader name="User" badge="Developer" compact />
+        <UserHeader compact />
       </div>
 
       {/* Header */}

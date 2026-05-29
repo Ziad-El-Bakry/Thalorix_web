@@ -18,12 +18,18 @@ export interface RegisterDto {
   confirmPassword?: string;
 }
 
+export interface RegisterSellerDto extends RegisterDto {
+  storeName?: string;
+  storeDescription?: string;
+  address?: string;
+}
+
 export interface User {
   id: string;
   name?: string;
   username: string;
   email: string;
-  role: 'user' | 'developer' | 'admin';
+  role: 'user' | 'admin' | 'seller';
   credits: number;
   avatar?: string;
   bio?: string;
@@ -51,24 +57,48 @@ type Platform = 'web' | 'mobile';
 // ============================================
 export const authService = {
   /**
-   * Login user (Web or Mobile)
+   * Universal Login (Web)
+   * Tries User, then Seller, then Admin automatically.
    */
   async login(dto: LoginDto, platform: Platform = 'web'): Promise<AuthResponse> {
-    const endpoint = platform === 'web' 
-      ? ENDPOINTS.AUTH.WEB_LOGIN 
-      : ENDPOINTS.AUTH.MOB_LOGIN;
+    const processData = (data: any, fallbackRole: string) => {
+      const token = data.access_token || data.accessToken;
+      const refresh = data.refresh_token || data.refreshToken;
+      if (token) localStorage.setItem('access_token', token);
+      if (refresh) localStorage.setItem('refresh_token', refresh);
+      
+      const userObj = data.user || data.seller || data.admin;
+      if (userObj) {
+        if (!userObj.role) userObj.role = fallbackRole as any;
+        localStorage.setItem('user', JSON.stringify(userObj));
+        data.user = userObj; // Ensure .user is always available
+      }
+      
+      return data;
+    };
 
-    const { data } = await api.post<AuthResponse>(endpoint, dto);
-
-    // Save tokens
-    const token = data.access_token || data.accessToken;
-    const refresh = data.refresh_token || data.refreshToken;
-    
-    if (token) localStorage.setItem('access_token', token);
-    if (refresh) localStorage.setItem('refresh_token', refresh);
-    localStorage.setItem('user', JSON.stringify(data.user));
-
-    return data;
+    try {
+      // 1. Try User
+      const endpoint = platform === 'web' ? ENDPOINTS.AUTH.WEB_LOGIN : ENDPOINTS.AUTH.MOB_LOGIN;
+      const { data } = await api.post<AuthResponse>(endpoint, dto);
+      return processData(data, 'user');
+    } catch (err: any) {
+      if (err.response?.status === 401 || err.response?.status === 404) {
+        try {
+          // 2. Try Seller
+          const { data } = await api.post<AuthResponse>(ENDPOINTS.SELLERS.LOGIN, dto);
+          return processData(data, 'seller');
+        } catch (err2: any) {
+          if (err2.response?.status === 401 || err2.response?.status === 404) {
+            // 3. Try Admin
+            const { data } = await api.post<AuthResponse>(ENDPOINTS.ADMINS.LOGIN, dto);
+            return processData(data, 'admin');
+          }
+          throw err2;
+        }
+      }
+      throw err;
+    }
   },
 
   /**
@@ -92,6 +122,24 @@ export const authService = {
 
     const { data } = await api.post<AuthResponse>(endpoint, backendPayload);
 
+    return data;
+  },
+
+  /**
+   * Register new seller
+   */
+  async registerSeller(dto: RegisterSellerDto): Promise<any> {
+    const backendPayload: any = {
+      name: dto.username,
+      email: dto.email,
+      phone: dto.phone,
+      password: dto.password,
+      storeName: dto.storeName || undefined,
+      storeDescription: dto.storeDescription || undefined,
+      address: dto.address || undefined,
+    };
+
+    const { data } = await api.post(ENDPOINTS.SELLERS.REGISTER, backendPayload);
     return data;
   },
 

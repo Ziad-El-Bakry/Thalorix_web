@@ -8,9 +8,10 @@ interface LogoutModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
+  isLoggingOut?: boolean;
 }
 
-export function LogoutModal({ isOpen, onClose, onConfirm }: LogoutModalProps) {
+export function LogoutModal({ isOpen, onClose, onConfirm, isLoggingOut }: LogoutModalProps) {
   return (
     <AnimatePresence>
       {isOpen && (
@@ -20,7 +21,7 @@ export function LogoutModal({ isOpen, onClose, onConfirm }: LogoutModalProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-            onClick={onClose}
+            onClick={!isLoggingOut ? onClose : undefined}
           />
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
@@ -38,15 +39,17 @@ export function LogoutModal({ isOpen, onClose, onConfirm }: LogoutModalProps) {
             <div className="flex border-t border-gray-100">
               <button
                 onClick={onClose}
-                className="flex-1 py-3 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors border-r border-gray-100"
+                disabled={isLoggingOut}
+                className="flex-1 py-3 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors border-r border-gray-100 disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 onClick={onConfirm}
-                className="flex-1 py-3 text-sm font-bold text-[#103B40] hover:bg-[#103B40]/5 transition-colors"
+                disabled={isLoggingOut}
+                className="flex-1 py-3 text-sm font-bold text-[#103B40] hover:bg-[#103B40]/5 transition-colors disabled:opacity-50"
               >
-                Sign Out
+                {isLoggingOut ? "Signing out..." : "Sign Out"}
               </button>
             </div>
           </motion.div>

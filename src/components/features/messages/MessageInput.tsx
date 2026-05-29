@@ -1,12 +1,14 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { Paperclip, Send, Image as ImageIcon, FileText, Archive, Square, X } from "lucide-react";
+import { Paperclip, Send, Image as ImageIcon, FileText, Archive, Square, X, Loader2 } from "lucide-react";
+import { uploadService } from "@/lib/api/services/upload.service";
 
 export default function MessageInput({ value, onChange, onSend, replyingTo, onCancelReply }: any) {
   const [showAttachments, setShowAttachments] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -36,10 +38,20 @@ export default function MessageInput({ value, onChange, onSend, replyingTo, onCa
       mediaRecorderRef.current = mediaRecorder;
       const chunks: Blob[] = [];
       mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
-      mediaRecorder.onstop = () => {
+      mediaRecorder.onstop = async () => {
+        setIsUploading(true);
         const blob = new Blob(chunks, { type: "audio/webm" });
-        onSend(URL.createObjectURL(blob), "audio");
-        stream.getTracks().forEach((t) => t.stop());
+        try {
+          // Upload audio to Cloudinary
+          const res = await uploadService.uploadFile(blob, "messages");
+          onSend(res.url, "audio");
+        } catch (error) {
+          console.error("Failed to upload audio:", error);
+          alert("Failed to upload audio message.");
+        } finally {
+          setIsUploading(false);
+          stream.getTracks().forEach((t) => t.stop());
+        }
       };
       mediaRecorder.start();
       setIsRecording(true);
@@ -56,16 +68,26 @@ export default function MessageInput({ value, onChange, onSend, replyingTo, onCa
     setRecordingTime(0);
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const url = URL.createObjectURL(file);
+    
     let type: any = "file";
     if (file.type.startsWith("image/")) type = "image";
     else if (file.type === "application/pdf" || file.name.endsWith(".pdf")) type = "pdf";
     else if (file.type.includes("zip") || file.name.endsWith(".zip")) type = "zip";
-    onSend(url, type, file.name);
-    e.target.value = "";
+    
+    setIsUploading(true);
+    try {
+      const res = await uploadService.uploadFile(file, "messages");
+      onSend(res.url, type, file.name);
+    } catch (error) {
+      console.error("Failed to upload file:", error);
+      alert("Failed to upload file.");
+    } finally {
+      setIsUploading(false);
+      e.target.value = "";
+    }
   };
 
   const fmtTime = (s: number) =>
@@ -121,10 +143,11 @@ export default function MessageInput({ value, onChange, onSend, replyingTo, onCa
             <input
               type="text"
               className="flex-1 bg-transparent text-white placeholder-white/40 focus:outline-none text-sm"
-              placeholder="Your message..."
+              placeholder={isUploading ? "Uploading..." : "Your message..."}
               value={value}
               onChange={(e) => onChange(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && value.trim() && onSend(value, "text")}
+              onKeyDown={(e) => e.key === "Enter" && value.trim() && !isUploading && onSend(value, "text")}
+              disabled={isUploading}
             />
           </>
         ) : (
@@ -138,7 +161,11 @@ export default function MessageInput({ value, onChange, onSend, replyingTo, onCa
 
       {/* Action Buttons */}
       <div className="flex items-center gap-1.5 flex-shrink-0">
-        {isRecording ? (
+        {isUploading ? (
+          <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center">
+             <Loader2 className="w-4.5 h-4.5 text-white animate-spin" />
+          </div>
+        ) : isRecording ? (
           <button
             onClick={stopRecording}
             className="w-10 h-10 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-colors shadow-sm"

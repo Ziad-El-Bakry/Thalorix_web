@@ -49,6 +49,7 @@ export default function CreatePostModal({
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
   const [mediaPreviews, setMediaPreviews] = useState<string[]>([]);
   const [isDragging, setIsDragging] = useState(false);
+  const [isPosting, setIsPosting] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
@@ -133,17 +134,22 @@ export default function CreatePostModal({
     handleMediaSelect(e.dataTransfer.files);
   };
 
-  const handlePost = () => {
+  const handlePost = async () => {
     if (!content.trim() && mediaFiles.length === 0) return;
-    onPost?.({
-      content,
-      media: mediaFiles.length > 0 ? mediaFiles : undefined,
-      visibility,
-    });
-    onClose();
+    setIsPosting(true);
+    try {
+      await onPost?.({
+        content,
+        media: mediaFiles.length > 0 ? mediaFiles : undefined,
+        visibility,
+      });
+      onClose();
+    } finally {
+      setIsPosting(false);
+    }
   };
 
-  const canPost = content.trim().length > 0 || mediaFiles.length > 0;
+  const canPost = (content.trim().length > 0 || mediaFiles.length > 0) && !isPosting;
 
   const visibilityOptions = [
     { label: "Anyone", icon: Globe, desc: "Anyone on the platform" },
@@ -399,14 +405,14 @@ export default function CreatePostModal({
                 whileHover={canPost ? { scale: 1.03 } : undefined}
                 whileTap={canPost ? { scale: 0.97 } : undefined}
                 onClick={handlePost}
-                disabled={!canPost}
+                disabled={!canPost || isPosting}
                 className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${
-                  canPost
+                  canPost && !isPosting
                     ? "bg-[#103B40] text-white hover:bg-[#1a4f55] shadow-sm"
                     : "bg-gray-200 text-gray-400 cursor-not-allowed"
                 }`}
               >
-                Post
+                {isPosting ? "Posting..." : "Post"}
               </motion.button>
 
               {/* Hidden file input */}

@@ -8,6 +8,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAvatar } from "@/store/useAvatarStore";
 import { authService } from "@/lib/api/services/auth.service";
 import { usePostStore } from "@/store/usePostStore";
+import { communityService } from "@/lib/api/services/community.service";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+
+dayjs.extend(relativeTime);
 
 export interface PostData {
   id: string;
@@ -40,6 +45,7 @@ export default function PostCard({ post }: { post: PostData }) {
   const [likeCount, setLikeCount] = useState(post.likes);
   const [commentCount, setCommentCount] = useState(post.comments);
   const [showComments, setShowComments] = useState(false);
+  const [commentsLoading, setCommentsLoading] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [comments, setComments] = useState<CommentData[]>([]);
   const [showMore, setShowMore] = useState(false);
@@ -67,19 +73,46 @@ export default function PostCard({ post }: { post: PostData }) {
     setLikeCount((prev) => (liked ? prev - 1 : prev + 1));
   };
 
-  const handleAddComment = () => {
+  const handleShowComments = async () => {
+    const newShow = !showComments;
+    setShowComments(newShow);
+    if (newShow && comments.length === 0 && commentCount > 0) {
+      setCommentsLoading(true);
+      try {
+        const data = await communityService.getComments(post.id);
+        setComments(data.map((c: any) => ({
+          id: c._id,
+          author: c.userId?.name || c.userId?.username || "User",
+          avatar: c.userId?.avatarUrl || "/images/avatar.png",
+          text: c.content,
+          time: dayjs(c.createdAt).fromNow(),
+        })));
+      } catch (error) {
+        console.error("Failed to load comments:", error);
+      } finally {
+        setCommentsLoading(false);
+      }
+    }
+  };
+
+  const handleAddComment = async () => {
     if (!commentText.trim()) return;
     
-    const newComment: CommentData = {
-      id: Date.now().toString(),
-      author: currentUserName,
-      avatar: globalAvatar || "/images/avatar.png",
-      text: commentText,
-      time: "Just now",
-    };
-    setComments((prev) => [...prev, newComment]);
-    setCommentCount((prev) => prev + 1);
-    setCommentText("");
+    try {
+      const c = await communityService.addComment(post.id, commentText);
+      const newComment: CommentData = {
+        id: c._id,
+        author: c.userId?.name || currentUserName,
+        avatar: c.userId?.avatarUrl || globalAvatar || "/images/avatar.png",
+        text: c.content,
+        time: "Just now",
+      };
+      setComments((prev) => [newComment, ...prev]);
+      setCommentCount((prev) => prev + 1);
+      setCommentText("");
+    } catch (error) {
+      console.error("Failed to add comment:", error);
+    }
   };
 
   const handleShare = async () => {
@@ -230,7 +263,7 @@ export default function PostCard({ post }: { post: PostData }) {
         </div>
         <div className="flex items-center gap-3">
           <button
-            onClick={() => setShowComments(!showComments)}
+            onClick={handleShowComments}
             className="hover:text-teal-600 hover:underline transition-colors cursor-pointer"
           >
             {commentCount} comments
@@ -257,7 +290,7 @@ export default function PostCard({ post }: { post: PostData }) {
 
         <motion.button
           whileTap={{ scale: 0.93 }}
-          onClick={() => setShowComments(!showComments)}
+          onClick={handleShowComments}
           className="flex items-center gap-2 flex-1 justify-center py-2.5 rounded-lg text-sm font-medium text-gray-500 transition-all duration-200 hover:bg-gray-50"
         >
           <MessageCircle size={18} />
@@ -323,9 +356,12 @@ export default function PostCard({ post }: { post: PostData }) {
                               <button onClick={() => setEditingCommentId(null)} className="hover:text-gray-700">Cancel</button>
                               <span>·</span>
                               <button 
-                                onClick={() => {
-                                  setComments(comments.map(c => c.id === comment.id ? { ...c, text: editCommentText } : c));
-                                  setEditingCommentId(null);
+                                onClick={async () => {
+                                  try {
+                                    await communityService.updateComment(comment.id, editCommentText);
+                                    setComments(comments.map(c => c.id === comment.id ? { ...c, text: editCommentText } : c));
+                                    setEditingCommentId(null);
+                                  } catch(e) { console.error(e); }
                                 }} 
                                 className="text-teal-600 hover:text-teal-700"
                               >
@@ -384,10 +420,13 @@ export default function PostCard({ post }: { post: PostData }) {
                                     Edit
                                   </button>
                                   <button 
-                                    onClick={() => {
-                                      setComments(comments.filter(c => c.id !== comment.id));
-                                      setCommentCount(prev => prev - 1);
-                                      setOpenCommentDropdownId(null);
+                                    onClick={async () => {
+                                      try {
+                                        await communityService.deleteComment(comment.id);
+                                        setComments(comments.filter(c => c.id !== comment.id));
+                                        setCommentCount(prev => prev - 1);
+                                        setOpenCommentDropdownId(null);
+                                      } catch (e) { console.error(e); }
                                     }}
                                     className="w-full text-left px-3 py-2 text-[11px] font-semibold text-red-600 hover:bg-red-50"
                                   >

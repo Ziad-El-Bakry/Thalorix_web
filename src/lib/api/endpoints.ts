@@ -44,9 +44,20 @@ export const ENDPOINTS = {
   // ADMINS
   // ============================================
   ADMINS: {
+    LOGIN: '/admins/login',
     GET_BY_ID: (id: string) => `/admins/${id}`,
     UPDATE: (id: string) => `/admins/${id}`,
     GET_ALL: '/admins',
+  },
+
+  // ============================================
+  // SELLERS
+  // ============================================
+  SELLERS: {
+    LOGIN: '/seller/login',
+    REGISTER: '/seller/register',
+    GET_BY_ID: (id: string) => `/seller/${id}`,
+    UPDATE: (id: string) => `/seller/${id}`,
   },
 
   // ============================================
@@ -56,6 +67,39 @@ export const ENDPOINTS = {
     SEND:   '/otp/send',
     VERIFY: '/otp/verify',
     RESEND: '/otp/resend',
+  },
+
+  // ============================================
+  // CLOUDINARY
+  // ============================================
+  CLOUDINARY: {
+    UPLOAD: (slug: string) => `/cloudinary/upload/${slug}`,
+    DELETE: (publicId: string) => `/cloudinary/${publicId}`,
+  },
+
+  // ============================================
+  // COMMUNITY
+  // ============================================
+  COMMUNITY: {
+    POST: '/community/post', // POST for create, GET /feed for feed
+    FEED: '/community/feed',
+    UPDATE_POST: (id: string) => `/community/post/${id}`,
+    DELETE_POST: (id: string) => `/community/post/${id}`,
+    ADD_COMMENT: (id: string) => `/community/${id}/comment`,
+    GET_COMMENTS: (id: string) => `/community/${id}/comments`,
+    UPDATE_COMMENT: (id: string) => `/community/comment/${id}`,
+    DELETE_COMMENT: (id: string) => `/community/comment/${id}`,
+  },
+
+  // ============================================
+  // TEMPLATES
+  // ============================================
+  TEMPLATES: {
+    CREATE: '/templates',
+    GET_ALL: '/templates',
+    GET_BY_ID: (id: string) => `/templates/${id}`,
+    UPDATE: (id: string) => `/templates/${id}`,
+    DELETE: (id: string) => `/templates/${id}`,
   },
 
   // ... rest of endpoints

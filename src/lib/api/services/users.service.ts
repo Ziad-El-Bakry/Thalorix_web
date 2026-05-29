@@ -2,6 +2,7 @@
 import { api } from '../axios';
 import { ENDPOINTS } from '../endpoints';
 import { authService, type User } from './auth.service';
+import { uploadService } from './upload.service';
 
 // ============================================
 // TYPES
@@ -9,7 +10,7 @@ import { authService, type User } from './auth.service';
 export interface UpdateProfileDto {
   username?: string;
   bio?: string;
-  avatar?: File;
+  avatarUrl?: string; // Real URL string
   expertise?: { name: string; percent: number }[];
   socialLinks?: { facebook: string; instagram: string };
 }
@@ -45,28 +46,21 @@ export const usersService = {
    * Get user by ID
    */
   async getUserById(id: string): Promise<User> {
-    const storedUser = authService.getStoredUser();
-    let endpoint = storedUser?.role === 'admin' ? ENDPOINTS.ADMINS.GET_BY_ID(id) : ENDPOINTS.USERS.GET_BY_ID(id);
-    
     try {
-      const { data } = await api.get<any>(endpoint);
-      return {
-        ...data,
-        id: data.id || data._id,
-        avatar: data.avatar || data.avatarUrl,
-      };
-    } catch (error: any) {
-      if (error.response?.status === 404 && storedUser?.role === 'admin') {
-        // Fallback to users collection if admin is not found in admins collection
-        endpoint = ENDPOINTS.USERS.GET_BY_ID(id);
-        const { data } = await api.get<any>(endpoint);
-        return {
-          ...data,
-          id: data.id || data._id,
-          avatar: data.avatar || data.avatarUrl,
-        };
+      const { data } = await api.get<any>(ENDPOINTS.USERS.GET_BY_ID(id));
+      return { ...data, id: data.id || data._id, avatar: data.avatar || data.avatarUrl };
+    } catch (e1: any) {
+      if (e1.response?.status !== 404) throw e1;
+      
+      try {
+        const { data } = await api.get<any>(ENDPOINTS.SELLERS.GET_BY_ID(id));
+        return { ...data, id: data.id || data._id, avatar: data.avatar || data.avatarUrl };
+      } catch (e2: any) {
+        if (e2.response?.status !== 404) throw e2;
+        
+        const { data } = await api.get<any>(ENDPOINTS.ADMINS.GET_BY_ID(id));
+        return { ...data, id: data.id || data._id, avatar: data.avatar || data.avatarUrl };
       }
-      throw error;
     }
   },
 
@@ -86,32 +80,24 @@ export const usersService = {
     const payload: any = {};
     if (dto.username) payload.name = dto.username;
     if (dto.bio !== undefined) payload.bio = dto.bio;
+    if (dto.avatarUrl !== undefined) {
+      payload.avatar = dto.avatarUrl;
+      payload.avatarUrl = dto.avatarUrl;
+    }
     if (dto.expertise) payload.expertise = dto.expertise;
     if (dto.socialLinks) payload.socialLinks = dto.socialLinks;
 
     const storedUser = authService.getStoredUser();
-    let endpoint = storedUser?.role === 'admin' ? ENDPOINTS.ADMINS.UPDATE(id) : ENDPOINTS.USERS.UPDATE(id);
+    let endpoint = ENDPOINTS.USERS.UPDATE(id);
+    if (storedUser?.role === 'admin') endpoint = ENDPOINTS.ADMINS.UPDATE(id);
+    else if (storedUser?.role === 'seller') endpoint = ENDPOINTS.SELLERS.UPDATE(id);
 
-    try {
-      const { data } = await api.patch<any>(endpoint, payload);
-      return {
-        ...data,
-        id: data.id || data._id,
-        avatar: data.avatar || data.avatarUrl,
-      };
-    } catch (error: any) {
-      if (error.response?.status === 404 && storedUser?.role === 'admin') {
-        // Fallback to users collection if admin is not found in admins collection
-        endpoint = ENDPOINTS.USERS.UPDATE(id);
-        const { data } = await api.patch<any>(endpoint, payload);
-        return {
-          ...data,
-          id: data.id || data._id,
-          avatar: data.avatar || data.avatarUrl,
-        };
-      }
-      throw error;
-    }
+    const { data } = await api.patch<any>(endpoint, payload);
+    return {
+      ...data,
+      id: data.id || data._id,
+      avatar: data.avatar || data.avatarUrl,
+    };
   },
 
   /**
@@ -133,13 +119,8 @@ export const usersService = {
    * Upload avatar
    */
   async uploadAvatar(file: File): Promise<{ avatarUrl: string }> {
-    // Backend doesn't support avatar upload yet. 
-    // Mocking success to keep frontend working.
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({ avatarUrl: URL.createObjectURL(file) });
-      }, 500);
-    });
+    const response = await uploadService.uploadFile(file, 'avatars');
+    return { avatarUrl: response.url };
   },
 
   /**
