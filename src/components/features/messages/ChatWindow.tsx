@@ -18,11 +18,10 @@ export default function ChatWindow({
   conversation?: Conversation;
   onBack?: () => void
 }) {
-  const { messages: storeMessages, loadMessages, sendMessage, isTyping: globalTyping, sendTyping } = useChatStore();
+  const { messages: storeMessages, loadMessages, sendMessage, isTyping: globalTyping, sendTyping, replyingTo, setReplyingTo } = useChatStore();
   const [inputValue, setInputValue] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [isLoadingOlder, setIsLoadingOlder] = useState(false);
   const [page, setPage] = useState(1);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -57,7 +56,16 @@ export default function ChatWindow({
 
   const handleSend = (content: string, type: "text" | "audio" | "image" | "file" | "pdf" | "zip" = "text", fileName?: string) => {
     if (type === "text" && content.trim() === "") return;
-    sendMessage(otherUser.id, content, type);
+    
+    let textContent = content;
+    let attachmentUrl: string | undefined = undefined;
+    
+    if (type !== "text") {
+      attachmentUrl = content;
+      textContent = fileName || (type === "image" ? "Photo" : "Attachment");
+    }
+
+    sendMessage(otherUser.id, textContent, type, attachmentUrl, replyingTo?.id);
     setInputValue("");
     setReplyingTo(null);
     if (typingTimeoutRef.current) {
