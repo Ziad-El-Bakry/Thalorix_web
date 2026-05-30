@@ -7,6 +7,9 @@ import MessageBubble from "./MessageBubble";
 import MessageInput from "./MessageInput";
 import { X } from "lucide-react";
 import { useAvatar } from "@/store/useAvatarStore";
+import { useChatStore } from "@/store/useChatStore";
+import { authService } from "@/lib/api/services/auth.service";
+import ConnectionStatusBanner from "./ConnectionStatusBanner";
 
 export default function ChatWindow({
   conversation,
@@ -15,84 +18,79 @@ export default function ChatWindow({
   conversation?: Conversation;
   onBack?: () => void
 }) {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const { messages: storeMessages, loadMessages, sendMessage, isTyping: globalTyping, sendTyping, replyingTo, setReplyingTo } = useChatStore();
   const [inputValue, setInputValue] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
-  const [isTyping, setIsTyping] = useState(false);
   const [isLoadingOlder, setIsLoadingOlder] = useState(false);
+  const [page, setPage] = useState(1);
   const containerRef = useRef<HTMLDivElement>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { avatar: globalAvatar } = useAvatar();
 
   const otherUser = conversation?.participants?.[0] || { id: "1", name: "User", online: true, avatarUrl: "/images/avatar.png" };
+  const currentUserId = authService.getStoredUser()?.id || "current_user_id";
+
+  const messages = conversation ? storeMessages[conversation.id] || [] : [];
+  const isTyping = globalTyping[otherUser.id] || false;
 
   useEffect(() => {
     if (conversation) {
-      setMessages(conversation.messages || []);
-    } else {
-      setMessages([]);
+      setPage(1);
+      loadMessages(conversation.id, 1);
     }
-  }, [conversation]);
+  }, [conversation?.id, loadMessages]);
+
+  const handleInput = (val: string) => {
+    setInputValue(val);
+    if (!typingTimeoutRef.current) {
+      sendTyping(otherUser.id, true);
+    } else {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    typingTimeoutRef.current = setTimeout(() => {
+      sendTyping(otherUser.id, false);
+      typingTimeoutRef.current = null;
+    }, 2000);
+  };
 
   const handleSend = (content: string, type: "text" | "audio" | "image" | "file" | "pdf" | "zip" = "text", fileName?: string) => {
     if (type === "text" && content.trim() === "") return;
+    
+    let textContent = content;
+    let attachmentUrl: string | undefined = undefined;
+    
+    if (type !== "text") {
+      attachmentUrl = content;
+      textContent = fileName || (type === "image" ? "Photo" : "Attachment");
+    }
 
-    const newMsg: Message = {
-      id: String(Date.now()),
-      sender: { id: "1", name: "Emad", avatarUrl: globalAvatar || "/images/avatar.png" },
-      text: type === "text" ? content : undefined,
-      audioUrl: type === "audio" ? content : undefined,
-      imageUrl: type === "image" ? content : undefined,
-      fileUrl: (type === "pdf" || type === "zip" || type === "file") ? content : undefined,
-      fileType: (type === "pdf" || type === "zip" || type === "image" || type === "file") ? type as any : undefined,
-      fileName: fileName,
-      timestamp: new Date().toISOString(),
-      status: "sent",
-      replyToMessage: replyingTo || undefined,
-    };
-
-    setMessages((prev) => [...prev, newMsg]);
+    sendMessage(otherUser.id, textContent, type, attachmentUrl, replyingTo?.id);
     setInputValue("");
     setReplyingTo(null);
-
-    // Simulate typing and auto-reply
-    setIsTyping(true);
-    setTimeout(() => {
-      setIsTyping(false);
-      const autoReply: Message = {
-        id: String(Date.now() + 1),
-        sender: otherUser,
-        text: "Thanks for the message! I'll get back to you shortly.",
-        timestamp: new Date().toISOString(),
-        status: "delivered"
-      };
-      setMessages(prev => [...prev, autoReply]);
-    }, 2500);
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+      sendTyping(otherUser.id, false);
+      typingTimeoutRef.current = null;
+    }
   };
 
   const handleScroll = () => {
-    if (!containerRef.current || isLoadingOlder) return;
+    if (!containerRef.current || isLoadingOlder || !conversation) return;
     if (containerRef.current.scrollTop === 0) {
       setIsLoadingOlder(true);
-      setTimeout(() => {
-        const olderMessages = Array.from({ length: 5 }).map((_, i) => ({
-          id: `old_${Date.now()}_${i}`,
-          sender: otherUser,
-          text: `This is an older mock message ${i + 1}`,
-          timestamp: new Date(Date.now() - 86400000 * (i + 1)).toISOString(),
-          status: "read" as const
-        }));
-        // preserve scroll position
-        const prevHeight = containerRef.current!.scrollHeight;
-        setMessages(prev => [...olderMessages.reverse(), ...prev]);
+      const nextPage = page + 1;
+      setPage(nextPage);
+      const prevHeight = containerRef.current.scrollHeight;
+      
+      loadMessages(conversation.id, nextPage).finally(() => {
         setIsLoadingOlder(false);
         setTimeout(() => {
           if (containerRef.current) {
             containerRef.current.scrollTop = containerRef.current.scrollHeight - prevHeight;
           }
         }, 0);
-      }, 1000);
+      });
     }
   };
 
@@ -112,6 +110,7 @@ export default function ChatWindow({
 
   return (
     <div className="flex-1 flex flex-col h-full bg-[#f0f2f5] relative">
+      <ConnectionStatusBanner />
       <ChatHeader user={otherUser} onBack={onBack} onSearch={setSearchQuery} />
       <div ref={containerRef} onScroll={handleScroll} className="flex-1 p-4 overflow-y-auto space-y-4">
         {isLoadingOlder && (
@@ -154,7 +153,7 @@ export default function ChatWindow({
                 )}
                 <MessageBubble
                   message={m}
-                  isOwn={m.sender.id === "1"}
+                  isOwn={m.sender.id === currentUserId || m.sender.id === "me"}
                   onImageClick={(url: string) => setSelectedImage(url)}
                   onReply={(msg: Message) => setReplyingTo(msg)}
                 />
@@ -181,7 +180,7 @@ export default function ChatWindow({
 
       <MessageInput
         value={inputValue}
-        onChange={setInputValue}
+        onChange={handleInput}
         onSend={handleSend}
         replyingTo={replyingTo}
         onCancelReply={() => setReplyingTo(null)}

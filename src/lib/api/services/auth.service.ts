@@ -36,6 +36,8 @@ export interface User {
   expertise?: { name: string; percent: number }[];
   socialLinks?: { facebook: string; instagram: string };
   isVerified: boolean;
+  isBlocked?: boolean;
+  phone?: string;
   createdAt: string;
 }
 

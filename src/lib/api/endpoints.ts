@@ -38,6 +38,21 @@ export const ENDPOINTS = {
     CHANGE_PASSWORD: '/users/change-password',
     UPLOAD_AVATAR: '/users/upload/avatars',
     GET_CREDITS: '/users/credits',
+
+    // Social Connections
+    FOLLOW: (id: string) => `/users/${id}/follow`,
+    RELATIONSHIP: (id: string) => `/users/${id}/relationship`,
+    FRIEND_REQUEST: (id: string) => `/users/${id}/friend-request`,
+    ACCEPT_FRIEND: (id: string) => `/users/${id}/accept-friend`,
+    REJECT_FRIEND: (id: string) => `/users/${id}/reject-friend`,
+    BLOCK: (id: string) => `/users/${id}/block`,
+    UNBLOCK: (id: string) => `/users/${id}/unblock`,
+    FRIENDS: (id: string) => `/users/${id}/friends`,
+    FOLLOWERS: (id: string) => `/users/${id}/followers`,
+    FOLLOWING: (id: string) => `/users/${id}/following`,
+    MUTUAL_FRIENDS: (id: string) => `/users/${id}/mutual-friends`,
+    SUGGESTIONS: '/users/suggestions',
+    PENDING_FRIEND_REQUESTS: '/users/friend-requests/pending',
   },
 
   // ============================================
@@ -89,6 +104,16 @@ export const ENDPOINTS = {
     GET_COMMENTS: (id: string) => `/community/${id}/comments`,
     UPDATE_COMMENT: (id: string) => `/community/comment/${id}`,
     DELETE_COMMENT: (id: string) => `/community/comment/${id}`,
+    TOGGLE_LIKE: (id: string) => `/community/post/${id}/like`,
+  },
+
+  // ============================================
+  // CHAT
+  // ============================================
+  CHAT: {
+    CONVERSATIONS: '/chat/conversations',
+    MESSAGES: (conversationId: string) => `/chat/conversations/${conversationId}/messages`,
+    START: '/chat/conversations/start',
   },
 
   // ============================================

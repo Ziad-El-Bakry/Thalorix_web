@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { ChatList, ChatWindow } from "../../../components/features/messages";
 import { useChatState } from "../../../components/features/messages/useChatState";
 import { Conversation } from "../../../types/message";
-import { dummyConversations } from "../../../components/features/messages/ChatList";
+import { useChatStore } from "../../../store/useChatStore";
 
 const MIN_LIST_WIDTH = 280;
 const MAX_LIST_WIDTH = 560;
@@ -15,65 +15,46 @@ function MessagesContent() {
   const searchParams = useSearchParams();
   const userIdFromUrl = searchParams?.get("user");
 
-  const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
+  const { 
+    conversations, 
+    activeConversationId, 
+    setActiveConversation, 
+    init, 
+    cleanup, 
+    loadConversations 
+  } = useChatStore();
+
   const { setIsChatOpen } = useChatState();
-  const [conversations, setConversations] = useState<Conversation[]>(() => [...dummyConversations]);
+
   const [listWidth, setListWidth] = useState(DEFAULT_LIST_WIDTH);
   const isDragging = useRef(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const selectedConversation = conversations.find((c) => c.id === selectedChatId);
+  const selectedConversation = conversations.find((c) => c.id === activeConversationId);
 
   useEffect(() => {
-    setIsChatOpen(!!selectedChatId);
+    init();
+    loadConversations();
+    return () => cleanup();
+  }, [init, loadConversations, cleanup]);
+
+  useEffect(() => {
+    setIsChatOpen(!!activeConversationId);
     return () => setIsChatOpen(false);
-  }, [selectedChatId, setIsChatOpen]);
+  }, [activeConversationId, setIsChatOpen]);
 
   useEffect(() => {
-    if (userIdFromUrl) {
-      setConversations(prev => {
-        const existing = prev.find(c => c.participants.some(p => p.id === userIdFromUrl));
-        if (existing) {
-          // Wrap setSelectedChatId in setTimeout to avoid updating state during existing state transition
-          setTimeout(() => setSelectedChatId(existing.id), 0);
-          return prev;
-        } else {
-          const newChatId = "new_chat_" + userIdFromUrl;
-          const newConversation: Conversation = {
-            id: newChatId,
-            participants: [
-              {
-                id: userIdFromUrl,
-                name: userIdFromUrl === "1" ? "Adel Ghamri" : userIdFromUrl === "2" ? "Sara" : "User " + userIdFromUrl,
-                avatarUrl: userIdFromUrl === "1" ? "/images/profile1.png" : userIdFromUrl === "2" ? "/images/profile2.png" : "/images/avatar.png",
-                online: true,
-              }
-            ],
-            messages: [],
-            lastMessage: {
-              id: "fake_last_msg",
-              sender: { id: "2" },
-              text: "Start of your conversation",
-              timestamp: new Date().toISOString(),
-              status: "delivered"
-            } as any
-          };
-          setTimeout(() => setSelectedChatId(newChatId), 0);
-          
-          // Persist the newly created chat to the global dummy memory so it survives page unmounts
-          const dummyExists = dummyConversations.find(c => c.id === newConversation.id);
-          if (!dummyExists) {
-            dummyConversations.unshift(newConversation);
-          }
-          
-          if (!prev.find(c => c.id === newConversation.id)) {
-            return [newConversation, ...prev];
-          }
-          return prev;
-        }
-      });
+    if (userIdFromUrl && conversations.length > 0) {
+      const existing = conversations.find(c => c.participants.some(p => p.id === userIdFromUrl));
+      if (existing) {
+        setTimeout(() => setActiveConversation(existing.id), 0);
+      } else {
+        // We could create a temp conversation in the store here if needed.
+        // For now, if no conversation exists, we just wait for the user to send the first message 
+        // from the profile page or rely on the backend.
+      }
     }
-  }, [userIdFromUrl]);
+  }, [userIdFromUrl, conversations.length, setActiveConversation]);
 
   const onMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -102,7 +83,7 @@ function MessagesContent() {
     };
   }, []);
 
-  const mobileHeightClass = selectedChatId ? "h-[100vh]" : "h-[calc(100vh-74px)]";
+  const mobileHeightClass = activeConversationId ? "h-[100vh]" : "h-[calc(100vh-74px)]";
 
   return (
     <div
@@ -111,13 +92,13 @@ function MessagesContent() {
     >
       {/* Chat List Panel */}
       <div
-        className={`h-full flex-shrink-0 ${selectedChatId ? "hidden md:block md:w-[var(--list-width)]" : "w-full md:w-[var(--list-width)]"}`}
+        className={`h-full flex-shrink-0 ${activeConversationId ? "hidden md:block md:w-[var(--list-width)]" : "w-full md:w-[var(--list-width)]"}`}
         style={{ "--list-width": `${listWidth}px` } as React.CSSProperties}
       >
         <ChatList
           conversations={conversations}
-          selectedId={selectedChatId}
-          onSelect={setSelectedChatId}
+          selectedId={activeConversationId}
+          onSelect={setActiveConversation}
         />
       </div>
 
@@ -137,10 +118,10 @@ function MessagesContent() {
       </div>
 
       {/* Chat Window Panel */}
-      <div className={`flex-1 flex flex-col overflow-hidden h-full ${!selectedChatId ? "hidden md:flex" : "flex"}`}>
+      <div className={`flex-1 flex flex-col overflow-hidden h-full ${!activeConversationId ? "hidden md:flex" : "flex"}`}>
         <ChatWindow
           conversation={selectedConversation}
-          onBack={() => setSelectedChatId(null)}
+          onBack={() => setActiveConversation(null)}
         />
       </div>
     </div>

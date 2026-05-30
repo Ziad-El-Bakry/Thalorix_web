@@ -1,9 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { LayoutGrid, FileText, ShoppingBag, KeyRound } from "lucide-react";
+import { LayoutGrid, FileText, ShoppingBag, Users, Store } from "lucide-react";
 
-export type AdminTabId = "overview" | "posts" | "products" | "permissions";
+export type AdminTabId = "overview" | "users" | "sellers" | "posts" | "products";
 
 interface Tab {
   id: AdminTabId;
@@ -22,9 +22,10 @@ interface AdminTabsProps {
 export default function AdminTabs({ activeTab, onTabChange, postCount, productCount }: AdminTabsProps) {
   const tabs: Tab[] = [
     { id: "overview", label: "Overview", icon: LayoutGrid },
+    { id: "users", label: "Users", icon: Users },
+    { id: "sellers", label: "Sellers", icon: Store },
     { id: "posts", label: "Posts", icon: FileText, badge: postCount },
     { id: "products", label: "Products", icon: ShoppingBag, badge: productCount },
-    { id: "permissions", label: "Permissions", icon: KeyRound },
   ];
 
   return (
