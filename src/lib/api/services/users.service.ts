@@ -156,9 +156,111 @@ export const usersService = {
     // Mocking credits since it doesn't exist on backend
     return { credits: 100 };
   },
+  /**
+   * Toggle follow/unfollow
+   */
+  async toggleFollow(userId: string): Promise<any> {
+    const { data } = await api.post(ENDPOINTS.USERS.FOLLOW(userId));
+    return data;
+  },
+
+  /**
+   * Get Relationship Status
+   */
+  async getRelationship(userId: string): Promise<any> {
+    const { data } = await api.get(ENDPOINTS.USERS.RELATIONSHIP(userId));
+    return data;
+  },
+
+  /**
+   * Send Friend Request
+   */
+  async sendFriendRequest(userId: string): Promise<any> {
+    const { data } = await api.post(ENDPOINTS.USERS.FRIEND_REQUEST(userId));
+    return data;
+  },
+
+  /**
+   * Cancel Friend Request
+   */
+  async cancelFriendRequest(userId: string): Promise<any> {
+    const { data } = await api.delete(ENDPOINTS.USERS.FRIEND_REQUEST(userId));
+    return data;
+  },
+
+  /**
+   * Accept Friend Request
+   */
+  async acceptFriendRequest(userId: string): Promise<any> {
+    const { data } = await api.post(ENDPOINTS.USERS.ACCEPT_FRIEND(userId));
+    return data;
+  },
+
+  /**
+   * Reject Friend Request
+   */
+  async rejectFriendRequest(userId: string): Promise<any> {
+    const { data } = await api.post(ENDPOINTS.USERS.REJECT_FRIEND(userId));
+    return data;
+  },
+
+  /**
+   * Block User
+   */
+  async blockUser(userId: string): Promise<any> {
+    const { data } = await api.post(ENDPOINTS.USERS.BLOCK(userId));
+    return data;
+  },
+
+  /**
+   * Unblock User
+   */
+  async unblockUser(userId: string): Promise<any> {
+    const { data } = await api.post(ENDPOINTS.USERS.UNBLOCK(userId));
+    return data;
+  },
+
+  /**
+   * Get Friends
+   */
+  async getFriends(userId: string, params?: any): Promise<any> {
+    const { data } = await api.get(ENDPOINTS.USERS.FRIENDS(userId), { params });
+    return data;
+  },
+
+  /**
+   * Get Followers
+   */
+  async getFollowers(userId: string, params?: any): Promise<any> {
+    const { data } = await api.get(ENDPOINTS.USERS.FOLLOWERS(userId), { params });
+    return data;
+  },
+
+  /**
+   * Get Following
+   */
+  async getFollowing(userId: string, params?: any): Promise<any> {
+    const { data } = await api.get(ENDPOINTS.USERS.FOLLOWING(userId), { params });
+    return data;
+  },
+
+  /**
+   * Get Mutual Friends
+   */
+  async getMutualFriends(userId: string): Promise<any> {
+    const { data } = await api.get(ENDPOINTS.USERS.MUTUAL_FRIENDS(userId));
+    return data;
+  },
+
+  /**
+   * Get Suggestions
+   */
+  async getSuggestions(): Promise<any> {
+    const { data } = await api.get(ENDPOINTS.USERS.SUGGESTIONS);
+    return data;
+  },
 };
 // ```
-
 // ---
 
 // ## 📋 **ما تطلبه من الـ Backend Team**

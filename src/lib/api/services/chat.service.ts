@@ -12,5 +12,10 @@ export const chatService = {
       params: { page, limit }
     });
     return data;
+  },
+
+  startChat: async (userId: string) => {
+    const { data } = await api.post(ENDPOINTS.CHAT.START, { userId });
+    return data;
   }
 };

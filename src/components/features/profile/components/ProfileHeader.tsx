@@ -10,8 +10,14 @@ import {
   MessageCircle,
   Settings,
   Eye,
-  ChevronLeft
+  ChevronLeft,
+  UserPlus,
+  Clock,
+  UserCheck
 } from "lucide-react";
+import { usersService } from "@/lib/api/services/users.service";
+import { chatService } from "@/lib/api/services/chat.service";
+import { useRouter } from "next/navigation";
 
 interface ProfileHeaderProps {
   user: any;
@@ -30,6 +36,8 @@ interface ProfileHeaderProps {
   handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleCoverChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   triggerUpload: () => void;
+  relationship?: any;
+  setRelationship?: React.Dispatch<React.SetStateAction<any>>;
 }
 
 export default function ProfileHeader({
@@ -49,9 +57,72 @@ export default function ProfileHeader({
   handleFileChange,
   handleCoverChange,
   triggerUpload,
+  relationship,
+  setRelationship
 }: ProfileHeaderProps) {
-  const [isFriend, setIsFriend] = useState(false);
-  const [isFollowing, setIsFollowing] = useState(false);
+  const router = useRouter();
+  const [isMessageLoading, setIsMessageLoading] = useState(false);
+
+  const handleToggleFollow = async () => {
+    if (!user || !setRelationship) return;
+    const oldVal = relationship?.isFollowing;
+    setRelationship((prev: any) => ({ ...prev, isFollowing: !oldVal }));
+    try {
+      await usersService.toggleFollow(user.id || user._id);
+    } catch (e) {
+      setRelationship((prev: any) => ({ ...prev, isFollowing: oldVal }));
+    }
+  };
+
+  const handleToggleFriend = async () => {
+    if (!user || !setRelationship) return;
+    const isFriend = relationship?.isFriend;
+    const requestSent = relationship?.requestSent;
+    const requestReceived = relationship?.requestReceived;
+
+    // Optimistic Update logic
+    let tempRel = { ...relationship };
+    if (isFriend) {
+       // Cannot unfriend directly from this button yet unless we add unfriend logic.
+       return;
+    } else if (requestSent) {
+       tempRel.requestSent = false;
+    } else if (requestReceived) {
+       tempRel.isFriend = true;
+       tempRel.requestReceived = false;
+    } else {
+       tempRel.requestSent = true;
+    }
+    setRelationship(tempRel);
+
+    try {
+      if (isFriend) {
+        // Handle unfriend if needed
+      } else if (requestSent) {
+        await usersService.cancelFriendRequest(user.id || user._id);
+      } else if (requestReceived) {
+        await usersService.acceptFriendRequest(user.id || user._id);
+      } else {
+        await usersService.sendFriendRequest(user.id || user._id);
+      }
+    } catch (e) {
+      setRelationship(relationship); // Revert
+    }
+  };
+
+  const handleMessage = async () => {
+    if (!user) return;
+    setIsMessageLoading(true);
+    try {
+      const { conversationId } = await chatService.startChat(user.id || user._id);
+      router.push(`/dashboard/messages?conversation=${conversationId}`);
+    } catch (e) {
+      console.error("Failed to start chat", e);
+      router.push(`/dashboard/messages?user=${user.id || user._id}`);
+    } finally {
+      setIsMessageLoading(false);
+    }
+  };
   return (
     <>
       {!isOwnProfile && (
@@ -184,39 +255,48 @@ export default function ProfileHeader({
                   <motion.button 
                     whileHover={{ scale: 1.03 }} 
                     whileTap={{ scale: 0.97 }}
-                    onClick={() => setIsFriend(!isFriend)}
+                    onClick={handleToggleFriend}
                     className={`px-5 py-2 text-sm font-semibold rounded-full shadow-sm transition-all flex items-center gap-1.5 ${
-                      isFriend 
+                      relationship?.isFriend 
                         ? "bg-teal-600 hover:bg-teal-700 text-white" 
+                        : relationship?.requestSent 
+                        ? "bg-amber-500 hover:bg-amber-600 text-white"
+                        : relationship?.requestReceived
+                        ? "bg-indigo-600 hover:bg-indigo-700 text-white"
                         : "bg-[#103B40] hover:bg-[#1a4f55] text-white"
                     }`}
                   >
-                    {isFriend ? (
-                      <>
-                        <CheckCircle size={14} className="fill-current text-white" />
-                        <span>Friends</span>
-                      </>
+                    {relationship?.isFriend ? (
+                      <><UserCheck size={14} className="text-white" /><span>Friends</span></>
+                    ) : relationship?.requestSent ? (
+                      <><Clock size={14} className="text-white" /><span>Requested</span></>
+                    ) : relationship?.requestReceived ? (
+                      <><CheckCircle size={14} className="text-white" /><span>Accept Request</span></>
                     ) : (
-                      "Add Friend"
+                      <><UserPlus size={14} className="text-white" /><span>Add Friend</span></>
                     )}
                   </motion.button>
                   <motion.button 
                     whileHover={{ scale: 1.03 }} 
                     whileTap={{ scale: 0.97 }}
-                    onClick={() => setIsFollowing(!isFollowing)}
+                    onClick={handleToggleFollow}
                     className={`px-5 py-2 text-sm font-semibold rounded-full border transition-all ${
-                      isFollowing 
+                      relationship?.isFollowing 
                         ? "bg-teal-50 border-teal-200 text-teal-700 hover:bg-teal-100" 
                         : "bg-white border-[#103B40] text-[#103B40] hover:bg-gray-50"
                     }`}
                   >
-                    {isFollowing ? "Following" : "Follow"}
+                    {relationship?.isFollowing ? "Following" : "Follow"}
                   </motion.button>
-                  <Link href={`/dashboard/messages?user=${user?.id || user?._id}`} className="block">
-                    <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="px-5 py-2 bg-white text-gray-700 text-sm font-semibold rounded-full border border-gray-200 hover:bg-gray-50 transition-all flex items-center gap-1.5">
-                      <MessageCircle size={16} /> Message
-                    </motion.button>
-                  </Link>
+                  <motion.button 
+                    onClick={handleMessage}
+                    disabled={isMessageLoading}
+                    whileHover={{ scale: 1.03 }} 
+                    whileTap={{ scale: 0.97 }} 
+                    className="px-5 py-2 bg-white text-gray-700 text-sm font-semibold rounded-full border border-gray-200 hover:bg-gray-50 transition-all flex items-center gap-1.5"
+                  >
+                    <MessageCircle size={16} /> {isMessageLoading ? "Loading..." : "Message"}
+                  </motion.button>
                 </>
               )}
               {isOwnProfile && (
@@ -240,9 +320,9 @@ export default function ProfileHeader({
             className="flex items-center gap-0 mt-6 border-t border-gray-100 pt-5"
           >
             {[
-              { value: "1.4k", label: "Connections" },
-              { value: "3.2k", label: "Profile Views" },
-              { value: "18.4k", label: "Impressions" },
+              { value: user?.followersCount || "0", label: "Followers" },
+              { value: user?.followingCount || "0", label: "Following" },
+              { value: user?.friendsCount || "0", label: "Friends" },
               { value: "47", label: "Posts" },
             ].map((stat, i) => (
               <div key={stat.label} className={`flex-1 text-center ${i > 0 ? "border-l border-gray-100" : ""}`}>

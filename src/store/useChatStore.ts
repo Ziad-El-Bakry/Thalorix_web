@@ -196,7 +196,9 @@ export const useChatStore = create<ChatStore>((set, get) => ({
         // If page 1, replace. Otherwise prepend
         const updated = page === 1 ? msgs : [...msgs, ...existing];
         // Deduplicate
-        const unique = Array.from(new Map(updated.map(m => [m.id, m])).values());
+        const unique = updated.filter(
+          (msg: Message, index: number, self: Message[]) => self.findIndex((m: Message) => m.id === msg.id) === index
+        );
         
         return {
           messages: { ...state.messages, [conversationId]: unique }
