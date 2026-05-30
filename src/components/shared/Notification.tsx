@@ -3,20 +3,71 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-import { Bell, CheckCircle, Info, ShieldX, CircleX, MessageCircle } from "lucide-react";
+import { Bell, CheckCircle, Info, ShieldX, CircleX, MessageCircle, UserPlus, XCircle } from "lucide-react";
 import { useNotifications } from "./useNotifications";
+import { usersService } from "@/lib/api/services/users.service";
+
+interface NotificationItem {
+  id: string | number;
+  type?: string;
+  senderId?: string;
+  title: string;
+  desc: string;
+  time: string;
+  icon: React.ReactNode;
+  actionTaken?: "accepted" | "rejected" | null;
+}
 
 export default function Notifications({ alignClass = "-right-[90px] md:right-0 w-[310px] md:w-80" }: { alignClass?: string } = {}) {
     const [isOpen, setIsOpen] = useState(false);
     const { hasUnread, markNotificationsRead } = useNotifications();
+    const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
-    const notificationsList = [
+    const [notifications, setNotifications] = useState<NotificationItem[]>([
+        {
+            id: "friend_req_mamdouh",
+            type: "friend_request",
+            senderId: "69f226188370d9ca48c19342",
+            title: "Friend Request",
+            desc: "Mamdouh El Bakry sent you a friend request.",
+            time: "Just now",
+            icon: <UserPlus size={16} className="text-teal-500" />,
+            actionTaken: null,
+        },
         { id: 1, title: "Profile updated", desc: "Your personal details were saved successfully.", time: "2 min ago", icon: <CheckCircle size={16} className="text-green-500" /> },
         { id: 2, title: "Welcome to Thalorix", desc: "We're glad to have you here! Explore the dashboard.", time: "1 day ago", icon: <Info size={16} className="text-blue-500" /> },
         { id: 3, title: "Profile Deleted", desc: "Your personal details were deleted successfully.", time: "2 min ago", icon: <ShieldX size={16} className="text-red-500" /> },
         { id: 4, title: "Omar", desc: "Your personal details were deleted successfully.", time: "2 min ago", icon: <MessageCircle size={16} className="text-green-500" /> },
         { id: 5, title: "Welcome to Thalorix", desc: "Hey, I think there's a mistake on my Code...", time: "5 min ago", icon: <CircleX size={16} className="text-red-500" /> }
-    ];
+    ]);
+
+    const handleAcceptFriend = async (notifId: string, senderId: string) => {
+        setActionLoadingId(notifId);
+        try {
+            await usersService.acceptFriendRequest(senderId);
+            setNotifications(prev => 
+                prev.map(n => n.id === notifId ? { ...n, actionTaken: "accepted" } : n)
+            );
+        } catch (error) {
+            console.error("Failed to accept friend request:", error);
+        } finally {
+            setActionLoadingId(null);
+        }
+    };
+
+    const handleRejectFriend = async (notifId: string, senderId: string) => {
+        setActionLoadingId(notifId);
+        try {
+            await usersService.rejectFriendRequest(senderId);
+            setNotifications(prev => 
+                prev.map(n => n.id === notifId ? { ...n, actionTaken: "rejected" } : n)
+            );
+        } catch (error) {
+            console.error("Failed to reject friend request:", error);
+        } finally {
+            setActionLoadingId(null);
+        }
+    };
 
     return (
         <div className="relative">
@@ -54,15 +105,61 @@ export default function Notifications({ alignClass = "-right-[90px] md:right-0 w
                                 )}
                             </div>
                             <div className="max-h-[300px] overflow-y-auto">
-                                {notificationsList.length > 0 ? (
-                                    notificationsList.map((notif) => (
+                                {notifications.length > 0 ? (
+                                    notifications.map((notif) => (
                                         <div key={notif.id} className="p-4 border-b border-gray-50 hover:bg-gray-50 transition-colors flex gap-3 cursor-pointer">
                                             <div className="mt-1 flex-shrink-0">
                                                 {notif.icon}
                                             </div>
-                                            <div>
+                                            <div className="flex-1 min-w-0">
                                                 <p className="text-sm font-semibold text-gray-800">{notif.title}</p>
-                                                <p className="text-xs text-gray-500 mt-1">{notif.desc}</p>
+                                                <p className="text-xs text-gray-500 mt-1 leading-normal break-words">{notif.desc}</p>
+                                                
+                                                {notif.type === "friend_request" && notif.actionTaken === null && (
+                                                    <div className="flex gap-2 mt-2.5">
+                                                        <button 
+                                                            disabled={actionLoadingId !== null}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                if (notif.senderId) handleAcceptFriend(notif.id.toString(), notif.senderId);
+                                                            }}
+                                                            className="px-3.5 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-[11px] font-bold shadow-sm transition-all disabled:opacity-50"
+                                                        >
+                                                            {actionLoadingId === notif.id ? "Accepting..." : "Accept"}
+                                                        </button>
+                                                        <button 
+                                                            disabled={actionLoadingId !== null}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                if (notif.senderId) handleRejectFriend(notif.id.toString(), notif.senderId);
+                                                            }}
+                                                            className="px-3.5 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-[11px] font-bold transition-all disabled:opacity-50"
+                                                        >
+                                                            Decline
+                                                        </button>
+                                                    </div>
+                                                )}
+
+                                                {notif.type === "friend_request" && notif.actionTaken === "accepted" && (
+                                                    <motion.p 
+                                                        initial={{ opacity: 0, x: -5 }}
+                                                        animate={{ opacity: 1, x: 0 }}
+                                                        className="text-xs font-bold text-emerald-600 mt-2 flex items-center gap-1"
+                                                    >
+                                                        <CheckCircle size={14} /> Request Accepted!
+                                                    </motion.p>
+                                                )}
+
+                                                {notif.type === "friend_request" && notif.actionTaken === "rejected" && (
+                                                    <motion.p 
+                                                        initial={{ opacity: 0, x: -5 }}
+                                                        animate={{ opacity: 1, x: 0 }}
+                                                        className="text-xs font-bold text-red-600 mt-2 flex items-center gap-1"
+                                                    >
+                                                        <XCircle size={14} /> Request Declined
+                                                    </motion.p>
+                                                )}
+                                                
                                                 <p className="text-[10px] text-gray-400 mt-2">{notif.time}</p>
                                             </div>
                                         </div>

@@ -24,15 +24,15 @@ interface ChatStore {
 }
 
 const mapBackendMessage = (msg: any): Message => ({
-  id: msg._id,
+  id: msg._id || msg.id,
   sender: {
-    id: msg.sender._id || msg.sender,
-    name: msg.sender.name || "User",
-    avatarUrl: msg.sender.avatar || "/images/avatar.png",
+    id: msg.sender?._id || msg.sender?.id || msg.sender || "unknown",
+    name: msg.sender?.name || "User",
+    avatarUrl: msg.sender?.avatar || msg.sender?.avatarUrl || "/images/avatar.png",
   },
-  text: msg.content,
-  timestamp: msg.createdAt,
-  status: msg.isRead ? "read" : "delivered",
+  text: msg.content || msg.text,
+  timestamp: msg.createdAt || msg.timestamp || new Date().toISOString(),
+  status: msg.status || (msg.isRead ? "read" : "delivered"),
 });
 
 const mapBackendConversation = (conv: any, currentUserId: string): Conversation => {
@@ -96,12 +96,16 @@ export const useChatStore = create<ChatStore>((set, get) => ({
       set((state) => {
         // Add message to messages list
         const convMessages = state.messages[convId] || [];
+        
+        // Remove any optimistic message with same text that is still 'sending'
+        const filteredMsgs = convMessages.filter(m => !(m.status === "sending" && m.text === msg.text));
+        
         // Deduplication
-        if (convMessages.some(m => m.id === msg.id)) return state;
+        if (filteredMsgs.some(m => m.id === msg.id)) return state;
 
         const updatedMessages = {
           ...state.messages,
-          [convId]: [...convMessages, msg]
+          [convId]: [...filteredMsgs, msg]
         };
 
         // Update conversation list
@@ -139,10 +143,19 @@ export const useChatStore = create<ChatStore>((set, get) => ({
       
       set((state) => {
         const convMessages = state.messages[convId] || [];
-        // Find optimistic message and replace/update it
-        const updatedMsgs = convMessages.map(m => 
-          m.status === "sending" && m.text === msg.text ? { ...m, id: msg.id, status: "sent" as const } : m
-        );
+        
+        // If the message is already added by receive_message, just remove the optimistic one
+        const alreadyExists = convMessages.some(m => m.id === msg.id);
+        
+        let updatedMsgs;
+        if (alreadyExists) {
+          updatedMsgs = convMessages.filter(m => !(m.status === "sending" && m.text === msg.text));
+        } else {
+          updatedMsgs = convMessages.map(m => 
+            m.status === "sending" && m.text === msg.text ? { ...m, id: msg.id, status: "sent" as const } : m
+          );
+        }
+
         return {
           messages: { ...state.messages, [convId]: updatedMsgs }
         };
