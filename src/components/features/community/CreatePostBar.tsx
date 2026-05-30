@@ -44,6 +44,7 @@ export default function CreatePostBar({ userName = "User", userAvatar }: CreateP
     content: string;
     media?: File[];
     visibility: string;
+    link?: string;
   }) => {
     let imageUrl: string | undefined = undefined;
     let localMediaBlob: string | undefined = undefined;
@@ -64,6 +65,7 @@ export default function CreatePostBar({ userName = "User", userAvatar }: CreateP
       localMediaType: postData.media?.[0]?.type,
       isUploading: !!localMediaBlob,
       uploadProgress: localMediaBlob ? 0 : undefined,
+      link: postData.link,
       author: {
         name: currentUser?.name || currentUser?.username || userName,
         avatar: avatarSrc,
@@ -82,7 +84,7 @@ export default function CreatePostBar({ userName = "User", userAvatar }: CreateP
         imageUrl = uploadRes.url;
       }
         
-      const newPost = await communityService.createPost(postData.content, imageUrl);
+      const newPost = await communityService.createPost(postData.content, imageUrl, postData.link);
       finalizePost(tempId, newPost);
     } catch (error: any) {
       console.error("Failed to post:", error);

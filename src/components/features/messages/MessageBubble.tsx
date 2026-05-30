@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { motion, useAnimation } from "framer-motion";
-import { CheckCheck, FileText, Archive, Download, Play, Pause, Volume2, Reply } from "lucide-react";
+import { CheckCheck, FileText, Archive, Download, Play, Pause, Volume2, Reply, Clock } from "lucide-react";
 import MessageContextMenu from "./MessageContextMenu";
 import { useAvatar } from "@/store/useAvatarStore";
 
-export default function MessageBubble({ message, isOwn = false, onImageClick, onReply }: any) {
+const MessageBubble = React.memo(({ message, isOwn = false, onImageClick, onReply }: any) => {
   const { avatar: globalAvatar } = useAvatar();
 
   const handleFileDownload = () => {
@@ -237,13 +237,16 @@ export default function MessageBubble({ message, isOwn = false, onImageClick, on
                 hour12: true,
               })}
             </span>
-            {isOwn && message.status !== "failed" && (
+            {isOwn && (message.status === "sending" || message.status === "queued") && (
+              <Clock className={`w-3 h-3 ${message.status === "sending" ? "animate-pulse" : ""} text-white/50`} />
+            )}
+            {isOwn && (message.status === "sent" || message.status === "delivered" || message.status === "read") && (
               <CheckCheck
-                className={`w-3.5 h-3.5 ${message.status === "read" ? "text-blue-400" : "text-white/50"}`}
+                className={`w-3.5 h-3.5 ${message.status === "read" ? "text-blue-400" : "text-white/70"}`}
               />
             )}
             {isOwn && message.status === "failed" && (
-              <CheckCheck className="w-3.5 h-3.5 text-gray-400" />
+              <CheckCheck className="w-3.5 h-3.5 text-red-400" />
             )}
           </div>
         </div>
@@ -282,7 +285,8 @@ export default function MessageBubble({ message, isOwn = false, onImageClick, on
       )}
     </>
   );
-}
+});
+export default MessageBubble;
 
 function CustomAudioPlayer({ src, isOwn }: { src: string; isOwn?: boolean }) {
   const [isPlaying, setIsPlaying] = useState(false);

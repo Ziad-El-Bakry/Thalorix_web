@@ -93,6 +93,14 @@ export const ENDPOINTS = {
   },
 
   // ============================================
+  // CHAT
+  // ============================================
+  CHAT: {
+    CONVERSATIONS: '/chat/conversations',
+    MESSAGES: (conversationId: string) => `/chat/conversations/${conversationId}/messages`,
+  },
+
+  // ============================================
   // TEMPLATES
   // ============================================
   TEMPLATES: {

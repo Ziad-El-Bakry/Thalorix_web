@@ -7,19 +7,19 @@ export const communityService = {
     return data;
   },
 
-  createPost: async (content: string, image?: string) => {
+  createPost: async (content: string, image?: string, link?: string) => {
     // Note: userId is usually populated from token in backend, but schema requires it.
     // If backend requires it in DTO, we need to pass it, but usually backend infers it.
     // Let's assume frontend passes user ID from its context if required.
     // Actually, looking at the backend code, `createPost` takes `dto.userId`. So we must pass it.
     const user = JSON.parse(localStorage.getItem('user') || '{}');
-    const { data } = await api.post(ENDPOINTS.COMMUNITY.POST, { userId: user.id || user._id, userRole: user.role, content, image });
+    const { data } = await api.post(ENDPOINTS.COMMUNITY.POST, { userId: user.id || user._id, userRole: user.role, content, image, link });
     return data;
   },
 
-  updatePost: async (id: string, content: string, image?: string) => {
+  updatePost: async (id: string, content: string, image?: string, link?: string) => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
-    const { data } = await api.patch(ENDPOINTS.COMMUNITY.UPDATE_POST(id), { userId: user.id || user._id, content, image });
+    const { data } = await api.patch(ENDPOINTS.COMMUNITY.UPDATE_POST(id), { userId: user.id || user._id, content, image, link });
     return data;
   },
 

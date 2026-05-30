@@ -7,58 +7,7 @@ import ChatListItem from "./ChatListItem";
 import { MessageSquarePlus, MoreVertical, Search, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-export const dummyUser: User = {
-  id: "1",
-  name: "William",
-  avatarUrl: "/images/avatar.png",
-  online: true,
-};
-
-const names = ["Omar", "John", "Mahdy", "Tony", "Sara", "Emy", "Gemy", "Ghaly", "Ziad", "Ahmed", "Mohamed", "Ali"];
-
-export const dummyConversations: Conversation[] = Array.from({ length: 12 }).map((_, i) => ({
-  id: String(i + 1),
-  participants: [
-    {
-      id: String(i + 2),
-      name: names[i],
-      avatarUrl: "/images/avatar.png",
-      online: i >= 0 && i <= 3,
-    },
-  ],
-  messages: [
-    {
-      id: "lm" + i,
-      sender: {
-        id: "2",
-        name: names[i],
-        avatarUrl: "/images/avatar.png",
-      },
-      text: i % 3 === 0
-        ? "Hey, I think there's a mistake on my Code..."
-        : i % 3 === 1
-        ? "Can you review the PR before tomorrow?"
-        : "Meeting confirmed at 3pm today 👍",
-      timestamp: new Date(Date.now() - i * 8 * 60 * 1000).toISOString(),
-      status: i < 4 ? "read" : "delivered",
-    }
-  ],
-  lastMessage: {
-    id: "lm" + i,
-    sender: {
-      id: "2",
-      name: names[i],
-      avatarUrl: "/images/avatar.png",
-    },
-    text: i % 3 === 0
-      ? "Hey, I think there's a mistake on my Code..."
-      : i % 3 === 1
-      ? "Can you review the PR before tomorrow?"
-      : "Meeting confirmed at 3pm today 👍",
-    timestamp: new Date(Date.now() - i * 8 * 60 * 1000).toISOString(),
-    status: i < 4 ? "read" : "delivered",
-  },
-}));
+// The UI now uses real conversations passed from page.tsx via useChatStore
 
 export default function ChatList({
   conversations,
@@ -161,25 +110,8 @@ export default function ChatList({
                   <X size={20} />
                 </button>
               </div>
-              <div className="p-2 max-h-80 overflow-y-auto">
-                {names.slice(0, 5).map((name, i) => (
-                  <button
-                    key={name}
-                    onClick={() => {
-                      setIsModalOpen(false);
-                      router.push(`/dashboard/messages?user=new_${i}`);
-                    }}
-                    className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors text-left"
-                  >
-                    <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
-                      <img src="/images/avatar.png" alt={name} className="w-full h-full object-cover" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-sm text-gray-800">{name}</p>
-                      <p className="text-xs text-gray-500">Available</p>
-                    </div>
-                  </button>
-                ))}
+              <div className="p-4 text-center text-sm text-gray-500">
+                Search users functionality coming soon
               </div>
             </motion.div>
           </motion.div>

@@ -11,7 +11,7 @@ interface PostStore {
   posts: PostData[];
   isLoading: boolean;
   fetchFeed: (userId?: string) => Promise<void>;
-  addPost: (content: string, image?: string) => Promise<void>;
+  addPost: (content: string, image?: string, link?: string) => Promise<void>;
   deletePost: (id: string) => Promise<void>;
   editPost: (id: string, content: string) => Promise<void>;
   toggleLike: (postId: string, userId: string) => Promise<void>;
@@ -31,6 +31,7 @@ const mapBackendPost = (post: any): PostData => ({
   },
   content: post.content,
   image: post.image,
+  link: post.link,
   timestamp: dayjs(post.createdAt).fromNow(),
   likes: post.likesCount || 0,
   comments: post.commentsCount || 0,
@@ -51,9 +52,9 @@ export const usePostStore = create<PostStore>((set: any, get: any) => ({
       set({ isLoading: false });
     }
   },
-  addPost: async (content: string, image?: string) => {
+  addPost: async (content: string, image?: string, link?: string) => {
     try {
-      const newPost = await communityService.createPost(content, image);
+      const newPost = await communityService.createPost(content, image, link);
       set((state: any) => ({ posts: [mapBackendPost(newPost), ...state.posts] }));
     } catch (error) {
       console.error("Failed to create post:", error);
@@ -164,7 +165,7 @@ export const usePostStore = create<PostStore>((set: any, get: any) => ({
         imageUrl = uploadRes.url;
       }
         
-      const newPost = await communityService.createPost(post.content, imageUrl);
+      const newPost = await communityService.createPost(post.content, imageUrl, post.link);
       
       set((state: any) => ({
         posts: state.posts.map((p: PostData) => 

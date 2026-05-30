@@ -1,6 +1,7 @@
 import React from "react";
 import { ChatListItemProps } from "../../../types/message";
 import { CheckCheck } from "lucide-react";
+import { authService } from "@/lib/api/services/auth.service";
 
 const AVATAR_COLORS = [
   "bg-teal-600",
@@ -28,11 +29,11 @@ export default function ChatListItem({
   onClick,
   ...rest
 }: ChatListItemProps & React.HTMLAttributes<HTMLDivElement>) {
-  const other = conversation.participants[0];
+  const other = conversation.participants[0] || { name: "Unknown", avatarUrl: "/images/avatar.png" };
   const last = conversation.lastMessage;
   const colorClass = getAvatarColor(other.name);
-  // Simulated unread count for demo (odd IDs get unread)
-  const unread = !selected && parseInt(conversation.id) % 4 === 2 ? 2 : 0;
+  const unread = !selected ? (conversation.unreadCount || 0) : 0;
+  const currentUserId = authService.getStoredUser()?.id || "current_user_id";
 
   return (
     <div
@@ -71,7 +72,7 @@ export default function ChatListItem({
         {last && (
           <div className="flex items-center justify-between gap-1">
             <div className="flex items-center gap-1 min-w-0 flex-1">
-              {last.sender.id === "1" && (
+              {(last.sender.id === currentUserId || last.sender.id === "me") && (
                 <CheckCheck
                   className={`w-3.5 h-3.5 flex-shrink-0 ${
                     last.status === "read" ? "text-blue-500" : "text-gray-400"
@@ -79,7 +80,7 @@ export default function ChatListItem({
                 />
               )}
               <p className={`text-xs truncate ${unread ? "text-gray-700 font-medium" : "text-gray-500"}`}>
-                {last.text}
+                {last.text || (last.imageUrl ? "Photo" : last.fileUrl ? "Document" : last.audioUrl ? "Voice message" : "Message")}
               </p>
             </div>  
             {unread > 0 && (

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ThumbsUp, MessageCircle, Share2, MoreHorizontal, Send, Check } from "lucide-react";
+import { ThumbsUp, MessageCircle, Share2, MoreHorizontal, Send, Check, Link2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAvatar } from "@/store/useAvatarStore";
 import { authService } from "@/lib/api/services/auth.service";
@@ -24,6 +24,7 @@ export interface PostData {
   };
   content: string;
   image?: string;
+  link?: string;
   timestamp: string;
   likes: number;
   comments: number;
@@ -247,6 +248,20 @@ export default function PostCard({ post }: { post: PostData }) {
               >
                 {showMore ? "Show less" : "See more"}
               </button>
+            )}
+
+            {post.link && (
+              <div className="mt-3 flex">
+                <a
+                  href={post.link.startsWith("http") ? post.link : `https://${post.link}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-teal-50/50 hover:bg-teal-50 border border-teal-100/70 rounded-lg text-xs font-semibold text-teal-700 hover:text-teal-800 transition-all shadow-sm hover:shadow active:scale-[0.98]"
+                >
+                  <Link2 size={14} className="text-teal-500" />
+                  <span>{post.link}</span>
+                </a>
+              </div>
             )}
           </>
         )}
