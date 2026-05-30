@@ -52,6 +52,7 @@ export const ENDPOINTS = {
     FOLLOWING: (id: string) => `/users/${id}/following`,
     MUTUAL_FRIENDS: (id: string) => `/users/${id}/mutual-friends`,
     SUGGESTIONS: '/users/suggestions',
+    PENDING_FRIEND_REQUESTS: '/users/friend-requests/pending',
   },
 
   // ============================================

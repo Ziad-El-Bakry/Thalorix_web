@@ -221,6 +221,14 @@ export const usersService = {
   },
 
   /**
+   * Get pending friend requests
+   */
+  async getPendingFriendRequests(): Promise<any[]> {
+    const { data } = await api.get(ENDPOINTS.USERS.PENDING_FRIEND_REQUESTS);
+    return data;
+  },
+
+  /**
    * Get Friends
    */
   async getFriends(userId: string, params?: any): Promise<any> {

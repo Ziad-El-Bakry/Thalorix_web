@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { Bell, CheckCircle, Info, ShieldX, CircleX, MessageCircle, UserPlus, XCircle } from "lucide-react";
 import { useNotifications } from "./useNotifications";
 import { usersService } from "@/lib/api/services/users.service";
+import { authService } from "@/lib/api/services/auth.service";
 
 interface NotificationItem {
   id: string | number;
@@ -24,22 +25,42 @@ export default function Notifications({ alignClass = "-right-[90px] md:right-0 w
     const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
     const [notifications, setNotifications] = useState<NotificationItem[]>([
-        {
-            id: "friend_req_mamdouh",
-            type: "friend_request",
-            senderId: "69f226188370d9ca48c19342",
-            title: "Friend Request",
-            desc: "Mamdouh El Bakry sent you a friend request.",
-            time: "Just now",
-            icon: <UserPlus size={16} className="text-teal-500" />,
-            actionTaken: null,
-        },
         { id: 1, title: "Profile updated", desc: "Your personal details were saved successfully.", time: "2 min ago", icon: <CheckCircle size={16} className="text-green-500" /> },
         { id: 2, title: "Welcome to Thalorix", desc: "We're glad to have you here! Explore the dashboard.", time: "1 day ago", icon: <Info size={16} className="text-blue-500" /> },
         { id: 3, title: "Profile Deleted", desc: "Your personal details were deleted successfully.", time: "2 min ago", icon: <ShieldX size={16} className="text-red-500" /> },
         { id: 4, title: "Omar", desc: "Your personal details were deleted successfully.", time: "2 min ago", icon: <MessageCircle size={16} className="text-green-500" /> },
         { id: 5, title: "Welcome to Thalorix", desc: "Hey, I think there's a mistake on my Code...", time: "5 min ago", icon: <CircleX size={16} className="text-red-500" /> }
     ]);
+
+    useEffect(() => {
+        const fetchPendingRequests = async () => {
+            try {
+                const reqs = await usersService.getPendingFriendRequests();
+                const mappedReqs = reqs.map((r: any) => ({
+                    id: `friend_req_${r._id}`,
+                    type: "friend_request",
+                    senderId: r.senderId._id || r.senderId.id || r.senderId,
+                    title: "Friend Request",
+                    desc: `${r.senderId.name || r.senderId.username || "Someone"} sent you a friend request.`,
+                    time: "Just now",
+                    icon: <UserPlus size={16} className="text-teal-500" />,
+                    actionTaken: null,
+                }));
+
+                setNotifications(prev => {
+                    const nonFriendReqs = prev.filter(n => n.type !== "friend_request");
+                    return [...mappedReqs, ...nonFriendReqs];
+                });
+            } catch (error) {
+                console.error("Failed to fetch pending friend requests:", error);
+            }
+        };
+
+        const storedUser = authService.getStoredUser();
+        if (storedUser && isOpen) {
+            fetchPendingRequests();
+        }
+    }, [isOpen]);
 
     const handleAcceptFriend = async (notifId: string, senderId: string) => {
         setActionLoadingId(notifId);

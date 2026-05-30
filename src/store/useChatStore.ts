@@ -11,16 +11,19 @@ interface ChatStore {
   socketConnected: boolean;
   isTyping: Record<string, boolean>; // userId -> isTyping
   offlineQueue: any[]; // Stored offline messages
+  replyingTo: Message | null;
   
   // Actions
   init: () => void;
   cleanup: () => void;
   setActiveConversation: (id: string | null) => void;
+  setReplyingTo: (msg: Message | null) => void;
   loadConversations: () => Promise<void>;
   loadMessages: (conversationId: string, page?: number) => Promise<void>;
-  sendMessage: (receiverId: string, content: string, type?: string) => void;
+  sendMessage: (receiverId: string, content: string, type?: string, attachmentUrl?: string, replyToId?: string) => void;
   sendTyping: (receiverId: string, isTyping: boolean) => void;
   markAsRead: (conversationId: string) => void;
+  deleteMessage: (messageId: string, conversationId: string) => void;
 }
 
 const mapBackendMessage = (msg: any): Message => ({
@@ -33,6 +36,9 @@ const mapBackendMessage = (msg: any): Message => ({
   text: msg.content || msg.text,
   timestamp: msg.createdAt || msg.timestamp || new Date().toISOString(),
   status: msg.status || (msg.isRead ? "read" : "delivered"),
+  attachmentUrl: msg.attachmentUrl,
+  isDeleted: msg.isDeleted,
+  replyToMessage: msg.replyTo ? mapBackendMessage(msg.replyTo) : undefined,
 });
 
 const mapBackendConversation = (conv: any, currentUserId: string): Conversation => {
@@ -59,6 +65,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   socketConnected: false,
   isTyping: {},
   offlineQueue: [],
+  replyingTo: null,
 
   init: () => {
     const socket = socketService.connect();
@@ -173,6 +180,18 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     socket.on("user_stopped_typing", ({ userId }) => {
       set((state) => ({ isTyping: { ...state.isTyping, [userId]: false } }));
     });
+
+    socket.on("message_deleted", ({ messageId, conversationId }) => {
+      set((state) => {
+        const convMessages = state.messages[conversationId] || [];
+        const updatedMsgs = convMessages.map(m => 
+          m.id === messageId ? { ...m, isDeleted: true, text: "This message was deleted", attachmentUrl: undefined } : m
+        );
+        return {
+          messages: { ...state.messages, [conversationId]: updatedMsgs }
+        };
+      });
+    });
   },
 
   cleanup: () => {
@@ -181,11 +200,13 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   },
 
   setActiveConversation: (id) => {
-    set({ activeConversationId: id });
+    set({ activeConversationId: id, replyingTo: null });
     if (id) {
       get().markAsRead(id);
     }
   },
+
+  setReplyingTo: (msg) => set({ replyingTo: msg }),
 
   loadConversations: async () => {
     try {
@@ -222,7 +243,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     }
   },
 
-  sendMessage: (receiverId, content, type = "text") => {
+  sendMessage: (receiverId, content, type = "text", attachmentUrl, replyToId) => {
     const socket = socketService.getSocket();
     const state = get();
     
@@ -234,6 +255,9 @@ export const useChatStore = create<ChatStore>((set, get) => ({
       id: `opt_${Date.now()}`,
       sender: { id: "me", name: "Me" }, // Will be fixed by backend
       text: content,
+      type: type as any,
+      attachmentUrl,
+      replyToMessage: state.replyingTo || undefined,
       timestamp: new Date().toISOString(),
       status: "sending"
     };
@@ -242,15 +266,16 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     set((state) => {
       const existing = state.messages[convId] || [];
       return {
-        messages: { ...state.messages, [convId]: [...existing, optimisticMsg] }
+        messages: { ...state.messages, [convId]: [...existing, optimisticMsg] },
+        replyingTo: null // clear reply state
       };
     });
 
     if (state.socketConnected && socket) {
-      socket.emit("send_message", { receiverId, content });
+      socket.emit("send_message", { receiverId, content, attachmentUrl, replyTo: replyToId });
     } else {
       // Queue for offline
-      const newQueue = [...state.offlineQueue, { receiverId, content, optimisticId: optimisticMsg.id }];
+      const newQueue = [...state.offlineQueue, { receiverId, content, attachmentUrl, replyTo: replyToId, optimisticId: optimisticMsg.id }];
       set({ offlineQueue: newQueue });
       localStorage.setItem("chat_offline_queue", JSON.stringify(newQueue));
       
@@ -290,5 +315,22 @@ export const useChatStore = create<ChatStore>((set, get) => ({
         c.id === conversationId ? { ...c, unreadCount: 0 } : c
       )
     }));
+  },
+
+  deleteMessage: (messageId: string, conversationId: string) => {
+    const socket = socketService.getSocket();
+    if (socket && get().socketConnected) {
+      socket.emit("delete_message", { messageId, conversationId });
+    }
+    // Optimistically delete
+    set((state) => {
+      const convMessages = state.messages[conversationId] || [];
+      const updatedMsgs = convMessages.map(m => 
+        m.id === messageId ? { ...m, isDeleted: true, text: "This message was deleted", attachmentUrl: undefined } : m
+      );
+      return {
+        messages: { ...state.messages, [conversationId]: updatedMsgs }
+      };
+    });
   }
 }));
