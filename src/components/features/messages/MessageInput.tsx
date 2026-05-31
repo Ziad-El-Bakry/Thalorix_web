@@ -3,8 +3,9 @@
 import React, { useState, useRef } from "react";
 import { Paperclip, Send, Image as ImageIcon, FileText, Archive, Square, X, Loader2 } from "lucide-react";
 import { uploadService } from "@/lib/api/services/upload.service";
+import { useChatStore } from "@/store/useChatStore";
 
-export default function MessageInput({ value, onChange, onSend, replyingTo, onCancelReply }: any) {
+export default function MessageInput({ value, onChange, onSend, replyingTo, onCancelReply, receiverId }: any) {
   const [showAttachments, setShowAttachments] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
@@ -13,6 +14,24 @@ export default function MessageInput({ value, onChange, onSend, replyingTo, onCa
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const { sendMediaMessage, sendTyping } = useChatStore();
+
+  const handleInputChange = (val: string) => {
+    onChange(val);
+    
+    // Debounce typing (Fix 7)
+    if (!typingTimeoutRef.current && val.trim().length > 0) {
+      sendTyping(receiverId, true);
+    }
+    
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    
+    typingTimeoutRef.current = setTimeout(() => {
+      sendTyping(receiverId, false);
+      typingTimeoutRef.current = null;
+    }, 500);
+  };
 
   const handleAttachmentClick = (type: string) => {
     if (!fileInputRef.current) return;
@@ -42,9 +61,9 @@ export default function MessageInput({ value, onChange, onSend, replyingTo, onCa
         setIsUploading(true);
         const blob = new Blob(chunks, { type: "audio/webm" });
         try {
-          // Upload audio to Cloudinary
-          const res = await uploadService.uploadFile(blob, "messages");
-          onSend(res.url, "audio");
+          // Upload audio with optimistic UI
+          setIsUploading(true); // Small indicator for audio
+          sendMediaMessage(receiverId, blob, "audio", "Voice Message", replyingTo?.id);
         } catch (error) {
           console.error("Failed to upload audio:", error);
           alert("Failed to upload audio message.");
@@ -72,22 +91,23 @@ export default function MessageInput({ value, onChange, onSend, replyingTo, onCa
     const file = e.target.files?.[0];
     if (!file) return;
     
+    // Fix 8: Strict Validation Frontend
+    const forbiddenExts = /\.(exe|bat|cmd|ps1|js|sh)$/i;
+    if (forbiddenExts.test(file.name)) {
+      alert("This file type is not allowed for security reasons.");
+      e.target.value = "";
+      return;
+    }
+    
     let type: any = "file";
     if (file.type.startsWith("image/")) type = "image";
     else if (file.type === "application/pdf" || file.name.endsWith(".pdf")) type = "pdf";
     else if (file.type.includes("zip") || file.name.endsWith(".zip")) type = "zip";
     
-    setIsUploading(true);
-    try {
-      const res = await uploadService.uploadFile(file, "messages");
-      onSend(res.url, type, file.name);
-    } catch (error) {
-      console.error("Failed to upload file:", error);
-      alert("Failed to upload file.");
-    } finally {
-      setIsUploading(false);
-      e.target.value = "";
-    }
+    // Optimistic Upload Flow
+    sendMediaMessage(receiverId, file, type, file.name, replyingTo?.id);
+    onCancelReply();
+    e.target.value = "";
   };
 
   const fmtTime = (s: number) =>
@@ -145,7 +165,7 @@ export default function MessageInput({ value, onChange, onSend, replyingTo, onCa
               className="flex-1 bg-transparent text-white placeholder-white/40 focus:outline-none text-sm"
               placeholder={isUploading ? "Uploading..." : "Your message..."}
               value={value}
-              onChange={(e) => onChange(e.target.value)}
+              onChange={(e) => handleInputChange(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && value.trim() && !isUploading && onSend(value, "text")}
               disabled={isUploading}
             />

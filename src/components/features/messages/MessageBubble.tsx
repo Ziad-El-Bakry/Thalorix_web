@@ -240,13 +240,17 @@ const MessageBubble = React.memo(({ message, isOwn = false, onImageClick, onRepl
                   hour12: true,
                 })}
               </span>
-              {isOwn && (message.status === "sending" || message.status === "queued") && (
-                <Clock className={`w-3 h-3 ${message.status === "sending" ? "animate-pulse" : ""} text-white/50`} />
+              {isOwn && message.status === "sending" && (
+                <Clock className={`w-3 h-3 animate-pulse text-white/50`} />
               )}
-              {isOwn && (message.status === "sent" || message.status === "delivered" || message.status === "read") && (
-                <CheckCheck
-                  className={`w-3.5 h-3.5 ${message.status === "read" ? "text-blue-400" : "text-white/70"}`}
-                />
+              {isOwn && message.status === "sent" && (
+                <CheckCheck className={`w-3.5 h-3.5 text-white/50`} />
+              )}
+              {isOwn && message.status === "delivered" && (
+                <CheckCheck className={`w-3.5 h-3.5 text-white/80`} />
+              )}
+              {isOwn && message.status === "read" && (
+                <CheckCheck className={`w-3.5 h-3.5 text-[#34B7F1]`} />
               )}
               {isOwn && message.status === "failed" && (
                 <CheckCheck className="w-3.5 h-3.5 text-red-400" />

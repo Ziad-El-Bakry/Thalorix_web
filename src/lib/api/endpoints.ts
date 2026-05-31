@@ -126,6 +126,15 @@ export const ENDPOINTS = {
     UPDATE: (id: string) => `/templates/${id}`,
     DELETE: (id: string) => `/templates/${id}`,
   },
-
+// ============================================
+  // CATEGORIES
+  // ============================================
+  CATEGORIES: {
+    CREATE: '/categories',
+    GET_ALL: '/categories',
+    GET_BY_ID: (id: string) => `/categories/${id}`,
+    UPDATE: (id: string) => `/categories/${id}`,
+    DELETE: (id: string) => `/categories/${id}`,
+  },
   // ... rest of endpoints
 } as const;

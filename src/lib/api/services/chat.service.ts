@@ -17,5 +17,10 @@ export const chatService = {
   startChat: async (userId: string) => {
     const { data } = await api.post(ENDPOINTS.CHAT.START, { userId });
     return data;
+  },
+
+  deleteConversation: async (conversationId: string) => {
+    const { data } = await api.delete(`/chat/conversations/${conversationId}`);
+    return data;
   }
 };

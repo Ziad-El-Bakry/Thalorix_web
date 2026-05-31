@@ -4,8 +4,9 @@ import React, { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Conversation, User } from "../../../types/message";
 import ChatListItem from "./ChatListItem";
-import { MessageSquarePlus, MoreVertical, Search, X } from "lucide-react";
+import { MessageSquarePlus, MoreVertical, Search, X, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useChatStore } from "@/store/useChatStore";
 
 // The UI now uses real conversations passed from page.tsx via useChatStore
 
@@ -22,6 +23,7 @@ export default function ChatList({
   const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const listRef = React.useRef<HTMLDivElement>(null);
+  const { deleteConversation } = useChatStore();
 
   React.useEffect(() => {
     if (selectedId && listRef.current) {
@@ -80,13 +82,26 @@ export default function ChatList({
           </div>
         ) : (
           filtered.map((conv) => (
-            <ChatListItem
-              key={conv.id}
-              conversation={conv}
-              selected={conv.id === selectedId}
-              onClick={() => onSelect(conv.id)}
-              data-id={conv.id}
-            />
+            <div key={conv.id} className="relative group">
+              <ChatListItem
+                conversation={conv}
+                selected={conv.id === selectedId}
+                onClick={() => onSelect(conv.id)}
+                data-id={conv.id}
+              />
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (confirm("Are you sure you want to delete this conversation?")) {
+                    deleteConversation(conv.participants[0].id);
+                  }
+                }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-2 text-red-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
+                title="Delete Conversation"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
           ))
         )}
       </div>

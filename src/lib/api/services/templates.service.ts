@@ -1,52 +1,84 @@
-// lib/api/services/templates.service.ts
-import { api } from '../axios';
+import axiosInstance from '../axios';
 import { ENDPOINTS } from '../endpoints';
 
-export interface CreateTemplatePayload {
+// ============================================
+// TYPES & INTERFACES
+// ============================================
+export interface Template {
+  id?: string;
+  _id?: string;
   title: string;
   description: string;
-  price: number;
-  categoryId: string;
-  fileUrl: File; // The actual template file
-  image?: File; // The thumbnail image
+  // ضيف أي حقول تانية الباك إند بيحتاجها أو بيرجعها (زي الـ categoryId مثلاً)
 }
 
+export interface Category {
+  id?: string;
+  _id?: string;
+  name: string;
+  description?: string;
+}
+
+// ============================================
+// SERVICES
+// ============================================
 export const templatesService = {
-  /**
-   * Create a new template (Seller only)
-   * This sends FormData since the backend handles Cloudinary upload for templates directly.
-   */
-  async createTemplate(payload: CreateTemplatePayload): Promise<any> {
-    const formData = new FormData();
-    formData.append('title', payload.title);
-    formData.append('description', payload.description);
-    formData.append('price', payload.price.toString());
-    formData.append('categoryId', payload.categoryId);
-    formData.append('fileUrl', payload.fileUrl);
-    if (payload.image) {
-      formData.append('image', payload.image);
-    }
-
-    const token = localStorage.getItem('access_token');
-    const response = await fetch(api.defaults.baseURL + ENDPOINTS.TEMPLATES.CREATE, {
-      method: 'POST',
-      body: formData,
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `Template creation failed with status ${response.status}`);
-    }
-
-    return response.json();
+  // جلب كل الـ Templates
+  getAll: async (): Promise<Template[]> => {
+    const response = await axiosInstance.get(ENDPOINTS.TEMPLATES.GET_ALL);
+    return response.data.templates || response.data;
   },
 
-  /**
-   * Get all templates
-   */
-  async getAllTemplates(): Promise<any[]> {
-    const { data } = await api.get(ENDPOINTS.TEMPLATES.GET_ALL);
-    return data;
+  // جلب Template معين بالـ ID
+  getById: async (id: string): Promise<Template> => {
+    const response = await axiosInstance.get(ENDPOINTS.TEMPLATES.GET_BY_ID(id));
+    return response.data;
+  },
+
+  // إنشاء Template جديد
+  create: async (data: Partial<Template>): Promise<Template> => {
+    const response = await axiosInstance.post(ENDPOINTS.TEMPLATES.CREATE, data);
+    return response.data;
+  },
+
+  // تعديل Template
+  update: async (id: string, data: Partial<Template>): Promise<Template> => {
+    const response = await axiosInstance.patch(ENDPOINTS.TEMPLATES.UPDATE(id), data);
+    return response.data;
+  },
+
+  // حذف Template
+  delete: async (id: string): Promise<void> => {
+    await axiosInstance.delete(ENDPOINTS.TEMPLATES.DELETE(id));
+  },
+};
+
+export const categoriesService = {
+  
+  getAll: async (): Promise<Category[]> => {
+    const response = await axiosInstance.get(ENDPOINTS.CATEGORIES.GET_ALL);
+    return response.data.categories || response.data;
+  },
+
+  
+  getById: async (id: string): Promise<Category> => {
+    const response = await axiosInstance.get(ENDPOINTS.CATEGORIES.GET_BY_ID(id));
+    return response.data;
+  },
+
+  create: async (data: Partial<Category>): Promise<Category> => {
+    const response = await axiosInstance.post(ENDPOINTS.CATEGORIES.CREATE, data);
+    return response.data;
+  },
+
+  
+  update: async (id: string, data: Partial<Category>): Promise<Category> => {
+    const response = await axiosInstance.patch(ENDPOINTS.CATEGORIES.UPDATE(id), data);
+    return response.data;
+  },
+
+ 
+  delete: async (id: string): Promise<void> => {
+    await axiosInstance.delete(ENDPOINTS.CATEGORIES.DELETE(id));
   },
 };
