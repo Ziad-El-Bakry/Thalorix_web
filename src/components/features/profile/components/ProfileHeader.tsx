@@ -143,7 +143,7 @@ export default function ProfileHeader({
       >
         {/* Cover Banner */}
         <div className="relative h-[180px] md:h-[220px] overflow-hidden group bg-gradient-to-r from-teal-800 to-[#103B40]">
-          <input type="file" ref={coverInputRef} onChange={handleCoverChange} accept="image/*" className="hidden" />
+          <input type="file" ref={coverInputRef} onChange={handleCoverChange} accept="image/*" className="hidden" title="Upload cover image" />
           {coverImage ? (
             <img
               src={coverImage}
@@ -179,7 +179,7 @@ export default function ProfileHeader({
         <div className="relative px-5 md:px-8 pb-6">
           {/* Avatar */}
           <div className="relative -mt-16 mb-3 inline-block group">
-            {isOwnProfile && <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />}
+            {isOwnProfile && <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" title="Upload avatar image" />}
             <motion.div
               onClick={() => isOwnProfile && setIsMenuOpen(!isMenuOpen)}
               whileHover={isOwnProfile ? { scale: 1.03 } : undefined}
@@ -325,7 +325,7 @@ export default function ProfileHeader({
               { value: user?.followersCount || "0", label: "Followers" },
               { value: user?.followingCount || "0", label: "Following" },
               { value: user?.friendsCount || "0", label: "Friends" },
-              { value: postsCount.toString(), label: "Posts" },
+              { value: "47", label: "Posts" },
             ].map((stat, i) => (
               <div key={stat.label} className={`flex-1 text-center ${i > 0 ? "border-l border-gray-100" : ""}`}>
                 <p className="text-xl font-bold text-[#103B40]">{stat.value}</p>

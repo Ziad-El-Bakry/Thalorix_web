@@ -2,7 +2,8 @@
 
 import UserHeader from "@/components/ui/UserHeader";
 import TemplateList from "@/components/features/marketplace/shared/TemplateList";
-import { Search, Filter, LayoutGrid, Upload } from "lucide-react";
+import { Search, Filter, LayoutGrid, Upload, ShoppingCart, History } from "lucide-react";
+import { useCartStore } from "@/store/useCartStore";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import {
@@ -23,6 +24,7 @@ export default function MarketplacePage() {
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState("User");
   const [isSeller, setIsSeller] = useState(false);
+  const cartItems = useCartStore((state) => state.items);
 
   useEffect(() => {
     const user = authService.getStoredUser() as any;
@@ -64,6 +66,25 @@ export default function MarketplacePage() {
             <h2 className="text-[#103B40] font-bold text-2xl">All Templates</h2>
           </div>
           <div className="flex items-center gap-2">
+            <Link
+              href="/dashboard/marketplace/history"
+              className="flex items-center gap-2 bg-white text-[#123E41] px-4 py-3.5 rounded-xl transition-colors font-medium text-sm shadow-sm border border-teal-50 hover:bg-teal-50"
+            >
+              <History size={18} />
+              <span className="hidden sm:inline">History</span>
+            </Link>
+            <Link
+              href="/dashboard/marketplace/cart"
+              className="flex items-center gap-2 bg-white text-[#123E41] px-4 py-3.5 rounded-xl transition-colors font-medium text-sm shadow-sm border border-teal-50 hover:bg-teal-50 relative"
+            >
+              <ShoppingCart size={18} />
+              <span className="hidden sm:inline">Cart</span>
+              {cartItems.length > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full">
+                  {cartItems.length}
+                </span>
+              )}
+            </Link>
             {isSeller && (
               <Link
                 href="/dashboard/marketplace/upload"
