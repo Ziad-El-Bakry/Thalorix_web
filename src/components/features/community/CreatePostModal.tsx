@@ -31,6 +31,7 @@ interface CreatePostModalProps {
     content: string;
     media?: File[];
     visibility: string;
+    link?: string;
   }) => void;
 }
 
@@ -43,6 +44,8 @@ export default function CreatePostModal({
   onPost,
 }: CreatePostModalProps) {
   const [content, setContent] = useState("");
+  const [link, setLink] = useState("");
+  const [showLinkInput, setShowLinkInput] = useState(false);
   const [activeTab, setActiveTab] = useState<PostTab>(initialTab);
   const [visibility, setVisibility] = useState("Anyone");
   const [showVisibilityMenu, setShowVisibilityMenu] = useState(false);
@@ -59,6 +62,8 @@ export default function CreatePostModal({
     if (isOpen) {
       setActiveTab(initialTab);
       setContent("");
+      setLink("");
+      setShowLinkInput(false);
       setMediaFiles([]);
       setMediaPreviews([]);
       setShowVisibilityMenu(false);
@@ -134,22 +139,18 @@ export default function CreatePostModal({
     handleMediaSelect(e.dataTransfer.files);
   };
 
-  const handlePost = async () => {
-    if (!content.trim() && mediaFiles.length === 0) return;
-    setIsPosting(true);
-    try {
-      await onPost?.({
-        content,
-        media: mediaFiles.length > 0 ? mediaFiles : undefined,
-        visibility,
-      });
-      onClose();
-    } finally {
-      setIsPosting(false);
-    }
+  const handlePost = () => {
+    if (!content.trim() && mediaFiles.length === 0 && !link.trim()) return;
+    onPost?.({
+      content,
+      media: mediaFiles.length > 0 ? mediaFiles : undefined,
+      visibility,
+      link: link.trim() || undefined,
+    });
+    onClose();
   };
 
-  const canPost = (content.trim().length > 0 || mediaFiles.length > 0) && !isPosting;
+  const canPost = (content.trim().length > 0 || mediaFiles.length > 0 || link.trim().length > 0);
 
   const visibilityOptions = [
     { label: "Anyone", icon: Globe, desc: "Anyone on the platform" },
@@ -302,8 +303,40 @@ export default function CreatePostModal({
                 className="w-full resize-none text-sm text-gray-800 placeholder-gray-400 focus:outline-none min-h-[120px] leading-relaxed"
               />
 
+              {/* Link Input Field */}
+              <AnimatePresence>
+                {showLinkInput && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0, marginTop: 0 }}
+                    animate={{ height: "auto", opacity: 1, marginTop: 12 }}
+                    exit={{ height: 0, opacity: 0, marginTop: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus-within:ring-2 focus-within:ring-teal-200/50 transition-all">
+                      <LinkIcon size={16} className="text-gray-400 flex-shrink-0" />
+                      <input
+                        type="url"
+                        value={link}
+                        onChange={(e) => setLink(e.target.value)}
+                        placeholder="Add a link (e.g. https://thalorix-web.vercel.app/)"
+                        className="flex-1 bg-transparent text-xs text-gray-700 placeholder-gray-400 focus:outline-none"
+                      />
+                      {link && (
+                        <button
+                          type="button"
+                          onClick={() => setLink("")}
+                          className="text-gray-400 hover:text-gray-600"
+                        >
+                          <X size={14} />
+                        </button>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               {/* Hashtag suggestion */}
-              {content.length === 0 && (
+              {content.length === 0 && !showLinkInput && (
                 <button className="flex items-center gap-1.5 text-teal-600 text-sm font-medium hover:text-teal-700 transition-colors mt-1">
                   <Hash size={16} />
                   Add hashtag
@@ -359,10 +392,20 @@ export default function CreatePostModal({
               </AnimatePresence>
             </div>
 
-            {/* Emoji row */}
-            <div className="px-5 py-2 flex items-center gap-2">
-              <button className="p-1.5 rounded-full hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600">
+            {/* Emoji and Link row */}
+            <div className="px-5 py-2 flex items-center gap-3">
+              <button 
+                type="button"
+                className="p-1.5 rounded-full hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600"
+              >
                 <Smile size={20} />
+              </button>
+              <button 
+                type="button"
+                onClick={() => setShowLinkInput(!showLinkInput)}
+                className={`p-1.5 rounded-full hover:bg-gray-100 transition-colors ${showLinkInput ? "text-teal-600 bg-teal-50" : "text-gray-400 hover:text-gray-600"}`}
+              >
+                <LinkIcon size={20} />
               </button>
             </div>
 
@@ -376,7 +419,7 @@ export default function CreatePostModal({
                     whileTap={{ scale: 0.95 }}
                     onClick={() => {
                       setActiveTab(btn.tab);
-                      if (btn.tab === "photo") {
+                      if (btn.tab === "photo" || btn.tab === "video") {
                         fileInputRef.current?.click();
                       }
                     }}
@@ -400,20 +443,22 @@ export default function CreatePostModal({
                 </motion.button>
               </div>
 
-              {/* Post button */}
-              <motion.button
-                whileHover={canPost ? { scale: 1.03 } : undefined}
-                whileTap={canPost ? { scale: 0.97 } : undefined}
-                onClick={handlePost}
-                disabled={!canPost || isPosting}
-                className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${
-                  canPost && !isPosting
-                    ? "bg-[#103B40] text-white hover:bg-[#1a4f55] shadow-sm"
-                    : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                }`}
-              >
-                {isPosting ? "Posting..." : "Post"}
-              </motion.button>
+              <div className="flex gap-2">
+                <button
+                  disabled={!canPost}
+                  onClick={() => {
+                    handlePost();
+                    onClose();
+                  }}
+                  className={`px-4 py-2 rounded-full font-semibold transition-all ${
+                    canPost
+                      ? "bg-teal-600 text-white hover:bg-teal-700 shadow-sm"
+                      : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                  }`}
+                >
+                  Post
+                </button>
+              </div>
 
               {/* Hidden file input */}
               <input

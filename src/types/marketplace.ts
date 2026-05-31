@@ -1,9 +1,18 @@
 export interface Template {
-  id: string | number;
+  _id?: string;
+  id?: string;
   title: string;
   description: string;
   price: number;
-  imageSrc: string;
+  fileUrl?: string;
+  image?: string;
+  imageUrl?: string;
+  categoryId?: any;
+  sellerId?: any;
+  status?: string;
+  isActive?: boolean;
+  
+  // Optional frontend-specific mock fields
   rating?: number;
   reviewCount?: number;
   downloads?: number;

@@ -10,7 +10,7 @@ interface MessageContextMenuProps {
   onClose: () => void;
   onReply: () => void;
   onSelect: () => void;
-  onDelete: () => void;
+  onDelete?: () => void;
   isOwn: boolean;
 }
 
@@ -90,7 +90,7 @@ export default function MessageContextMenu({
             <div className="h-px bg-gray-100 my-1 mx-2" />
             <button
               onClick={() => {
-                onDelete();
+                onDelete?.();
                 onClose();
               }}
               className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"

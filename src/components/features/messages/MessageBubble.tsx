@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from "react";
+import Link from "next/link";
 import { motion, useAnimation } from "framer-motion";
-import { CheckCheck, FileText, Archive, Download, Play, Pause, Volume2, Reply } from "lucide-react";
+import { CheckCheck, FileText, Archive, Download, Play, Pause, Volume2, Reply, Clock } from "lucide-react";
 import MessageContextMenu from "./MessageContextMenu";
 import { useAvatar } from "@/store/useAvatarStore";
 
-export default function MessageBubble({ message, isOwn = false, onImageClick, onReply }: any) {
+const MessageBubble = React.memo(({ message, isOwn = false, onImageClick, onReply, onDelete }: any) => {
   const { avatar: globalAvatar } = useAvatar();
 
   const handleFileDownload = () => {
@@ -69,17 +70,25 @@ export default function MessageBubble({ message, isOwn = false, onImageClick, on
   };
 
   const onSelect = () => console.log("Select message:", message.id);
-  const onDelete = () => console.log("Delete message:", message.id);
+  const handleDelete = () => {
+    if (onDelete) onDelete(message.id);
+  };
 
   const renderContent = () => {
-    if (message.imageUrl) {
+    if (message.isDeleted) {
+      return <p className="italic text-gray-500 text-sm">This message was deleted</p>;
+    }
+
+    const fileUrl = message.attachmentUrl || message.imageUrl || message.fileUrl;
+    
+    if (fileUrl && (message.type === 'image' || fileUrl.match(/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i))) {
       return (
         <div
           className="relative group cursor-pointer mb-1"
-          onClick={() => onImageClick && onImageClick(message.imageUrl)}
+          onClick={() => onImageClick && onImageClick(fileUrl)}
         >
           <img
-            src={message.imageUrl}
+            src={fileUrl}
             alt="Sent image"
             className="rounded-xl max-w-full h-auto border border-black/5 max-h-[280px] object-cover w-full"
           />
@@ -92,36 +101,36 @@ export default function MessageBubble({ message, isOwn = false, onImageClick, on
       );
     }
 
-    if (message.fileType === "pdf") {
+    if (fileUrl && (message.type === "pdf" || fileUrl.match(/\.pdf(\?.*)?$/i))) {
       return (
         <div
           className="flex items-center gap-3 p-3 bg-black/10 rounded-xl border border-black/5 min-w-[200px] mb-2 cursor-pointer hover:bg-black/15 active:bg-black/20 transition-colors"
-          onClick={handleFileDownload}
+          onClick={() => window.open(fileUrl, '_blank')}
         >
           <div className="bg-red-500 p-2 rounded-lg shrink-0 shadow-sm">
             <FileText className="text-white w-5 h-5" />
           </div>
           <div className="flex-1 overflow-hidden">
             <p className="text-sm font-medium truncate leading-tight">{message.fileName || "Document.pdf"}</p>
-            <p className="text-[11px] opacity-60 uppercase mt-0.5 font-medium tracking-wide">PDF · Tap to download</p>
+            <p className="text-[11px] opacity-60 uppercase mt-0.5 font-medium tracking-wide">PDF · Tap to view</p>
           </div>
           <Download className="w-4 h-4 opacity-50 shrink-0" />
         </div>
       );
     }
 
-    if (message.fileType === "zip") {
+    if (fileUrl && (message.type === "zip" || fileUrl.match(/\.zip(\?.*)?$/i))) {
       return (
         <div
           className="flex items-center gap-3 p-3 bg-black/10 rounded-xl border border-black/5 min-w-[200px] mb-2 cursor-pointer hover:bg-black/15 active:bg-black/20 transition-colors"
-          onClick={handleFileDownload}
+          onClick={() => window.open(fileUrl, '_blank')}
         >
           <div className="bg-amber-500 p-2 rounded-lg shrink-0 shadow-sm">
             <Archive className="text-white w-5 h-5" />
           </div>
           <div className="flex-1 overflow-hidden">
             <p className="text-sm font-medium truncate leading-tight">{message.fileName || "Archive.zip"}</p>
-            <p className="text-[11px] opacity-60 uppercase mt-0.5 font-medium tracking-wide">ZIP · Tap to download</p>
+            <p className="text-[11px] opacity-60 uppercase mt-0.5 font-medium tracking-wide">ZIP · Tap to view</p>
           </div>
           <Download className="w-4 h-4 opacity-50 shrink-0" />
         </div>
@@ -181,79 +190,94 @@ export default function MessageBubble({ message, isOwn = false, onImageClick, on
       </div>
       
       {!isOwn && (
-        <img
-          src={message.sender?.avatarUrl || "/images/avatar.png"}
-          alt={message.sender?.name || "User"}
-          className="w-7 h-7 rounded-full object-cover flex-shrink-0 mt-auto mb-1 ring-1 ring-black/5 z-10 shadow-md"
-        />
+        <Link href={`/dashboard/profile/${message.sender?.id}`} className="hover:opacity-85 transition-opacity z-10 mt-auto mb-1">
+          <img
+            src={message.sender?.avatarUrl || "/images/avatar.png"}
+            alt={message.sender?.name || "User"}
+            className="w-7 h-7 rounded-full object-cover flex-shrink-0 ring-1 ring-black/5 shadow-md"
+          />
+        </Link>
       )}
 
-      <motion.div 
+      {/* Swipable Message Bubble */}
+      <motion.div
         drag="x"
         dragConstraints={{ left: 0, right: 0 }}
-        dragElastic={0.2}
+        dragElastic={0.1}
         onDrag={handleDrag}
         onDragEnd={handleDragEnd}
         animate={controls}
-        className="flex flex-col max-w-[80%] sm:max-w-[340px] md:max-w-[420px] z-10"
+        className={`flex ${isOwn ? "justify-end" : "justify-start"} mb-1.5 w-full`}
       >
-        <div
-          onContextMenu={handleContextMenu}
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEndOrMove}
-          onTouchMove={handleTouchEndOrMove}
-          className={`w-fit min-w-[100px] p-3 pb-5 relative shadow-sm cursor-pointer hover:brightness-[0.98] transition-all ${isOwn
-              ? message.status === "failed"
-                ? "bg-red-50 text-black rounded-2xl rounded-tr-sm"
-                : "bg-[#103B40] text-white rounded-2xl rounded-tr-sm"
-              : "bg-white text-gray-800 rounded-2xl rounded-tl-sm"
-            }`}
-        >
-          {/* Quoted Reply Block */}
-          {message.replyToMessage && (
-            <div className={`mb-2 p-2 rounded-lg border-l-4 text-xs ${isOwn ? 'bg-black/10 border-white/50' : 'bg-gray-100 border-[#6FA5A9]'}`}>
-              <span className={`font-semibold block mb-0.5 ${isOwn ? 'text-[#9EC8FF]' : 'text-[#103B40]'}`}>
-                {message.replyToMessage.sender?.id === "1" ? "You" : message.replyToMessage.sender?.name}
-              </span>
-              <p className={`truncate opacity-90 ${isOwn ? 'text-white' : 'text-gray-600'}`}>
-                {message.replyToMessage.text || 
-                 (message.replyToMessage.imageUrl ? "Photo" : 
-                 message.replyToMessage.fileUrl ? "Document" : 
-                 message.replyToMessage.audioUrl ? "Voice message" : "Message")}
-              </p>
-            </div>
-          )}
-
-          {renderContent()}
-
-          <div className="flex items-center gap-1 absolute bottom-1.5 right-2.5">
-            <span suppressHydrationWarning className={`text-[10px] ${isOwn && message.status !== "failed" ? "text-white/60" : "text-gray-400"}`}>
-              {new Date(message.timestamp).toLocaleTimeString([], {
-                hour: "numeric",
-                minute: "2-digit",
-                hour12: true,
-              })}
-            </span>
-            {isOwn && message.status !== "failed" && (
-              <CheckCheck
-                className={`w-3.5 h-3.5 ${message.status === "read" ? "text-blue-400" : "text-white/50"}`}
-              />
+        <div className={`flex items-end max-w-[85%] ${isOwn ? "flex-row-reverse" : "flex-row"} group`}>
+          {/* Main Bubble */}
+          <div
+            className={`relative flex flex-col min-w-[100px] break-words shadow-sm w-fit
+            ${message.isDeleted ? (isOwn ? "bg-teal-900/60" : "bg-white/60") : (isOwn ? "bg-[#103B40]" : "bg-white")} 
+            ${isOwn ? "rounded-2xl rounded-tr-sm text-white" : "rounded-2xl rounded-tl-sm text-gray-800 border border-gray-100"}
+            ${message.imageUrl || (message.attachmentUrl && message.attachmentUrl.match(/\.(jpg|jpeg|png|gif|webp)/i)) ? "p-1.5 pb-6" : "px-3 pt-2.5 pb-6"}
+            `}
+            onContextMenu={handleContextMenu}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchEndOrMove}
+            onTouchEnd={handleTouchEndOrMove}
+          >
+            {/* Render Reply Banner if exists */}
+            {message.replyToMessage && !message.isDeleted && (
+              <div className={`mb-1.5 p-2 rounded-lg text-xs border-l-4 ${isOwn ? "bg-black/10 border-white/50 text-white/90" : "bg-gray-100 border-teal-500 text-gray-700"}`}>
+                <span className="font-semibold block mb-0.5">{message.replyToMessage.sender?.name || "User"}</span>
+                <span className="truncate opacity-80 block max-w-xs">{message.replyToMessage.text || "Attachment"}</span>
+              </div>
             )}
-            {isOwn && message.status === "failed" && (
-              <CheckCheck className="w-3.5 h-3.5 text-gray-400" />
+
+            {renderContent()}
+
+            <div className="flex items-center gap-1 absolute bottom-1.5 right-2.5">
+              <span suppressHydrationWarning className={`text-[10px] ${isOwn && message.status !== "failed" ? "text-white/60" : "text-gray-400"}`}>
+                {new Date(message.timestamp).toLocaleTimeString([], {
+                  hour: "numeric",
+                  minute: "2-digit",
+                  hour12: true,
+                })}
+              </span>
+              {isOwn && message.status === "sending" && (
+                <Clock className={`w-3 h-3 animate-pulse text-white/50`} />
+              )}
+              {isOwn && message.status === "sent" && (
+                <CheckCheck className={`w-3.5 h-3.5 text-white/50`} />
+              )}
+              {isOwn && message.status === "delivered" && (
+                <CheckCheck className={`w-3.5 h-3.5 text-white/80`} />
+              )}
+              {isOwn && message.status === "read" && (
+                <CheckCheck className={`w-3.5 h-3.5 text-[#34B7F1]`} />
+              )}
+              {isOwn && message.status === "failed" && (
+                <CheckCheck className="w-3.5 h-3.5 text-red-400" />
+              )}
+            </div>
+          </div>
+
+          {/* Hover Menu (Delete, Reply) */}
+          <div className={`hidden md:group-hover:flex items-center px-2 gap-1.5 ${isOwn ? "flex-row-reverse" : "flex-row"}`}>
+            <button
+              onClick={handleMenuReply}
+              className="p-1.5 text-gray-400 hover:text-teal-600 hover:bg-teal-50 rounded-full transition-colors tooltip-trigger relative"
+              title="Reply"
+            >
+              <Reply className="w-4 h-4" />
+            </button>
+            {isOwn && !message.isDeleted && (
+              <button
+                onClick={handleDelete}
+                className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                title="Delete"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+              </button>
             )}
           </div>
         </div>
-
-        {isOwn && message.status === "failed" && (
-          <div className="flex items-center gap-1 justify-end mt-1 text-[11px] font-medium">
-            <span className="text-red-500">Failed to send</span>
-            <button className="flex items-center gap-1 text-[#103B40] hover:text-[#0d2e32] transition-colors ml-1">
-              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /></svg>
-              Retry
-            </button>
-          </div>
-        )}
       </motion.div>
 
       {isOwn && (
@@ -272,14 +296,15 @@ export default function MessageBubble({ message, isOwn = false, onImageClick, on
           y={contextMenu.y}
           onClose={() => setContextMenu(null)}
           onReply={handleMenuReply}
+          onDelete={isOwn && !message.isDeleted ? handleDelete : undefined}
           onSelect={onSelect}
-          onDelete={onDelete}
           isOwn={isOwn}
         />
       )}
     </>
   );
-}
+});
+export default MessageBubble;
 
 function CustomAudioPlayer({ src, isOwn }: { src: string; isOwn?: boolean }) {
   const [isPlaying, setIsPlaying] = useState(false);

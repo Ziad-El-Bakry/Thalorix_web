@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ThumbsUp, MessageCircle, Share2, MoreHorizontal, Send, Check } from "lucide-react";
+import { ThumbsUp, MessageCircle, Share2, MoreHorizontal, Send, Check, Link2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAvatar } from "@/store/useAvatarStore";
 import { authService } from "@/lib/api/services/auth.service";
@@ -24,25 +24,31 @@ export interface PostData {
   };
   content: string;
   image?: string;
+  link?: string;
   timestamp: string;
   likes: number;
   comments: number;
   shares: number;
   liked?: boolean;
+  isUploading?: boolean;
+  uploadProgress?: number;
+  uploadError?: string;
+  localMediaBlob?: string;
+  localMediaFile?: any;
+  localMediaType?: string;
 }
 
 // individual comment
 interface CommentData {
   id: string;
   author: string;
+  authorId?: string;
   avatar: string;
   text: string;
   time: string;
 }
 
 export default function PostCard({ post }: { post: PostData }) {
-  const [liked, setLiked] = useState(post.liked ?? false);
-  const [likeCount, setLikeCount] = useState(post.likes);
   const [commentCount, setCommentCount] = useState(post.comments);
   const [showComments, setShowComments] = useState(false);
   const [commentsLoading, setCommentsLoading] = useState(false);
@@ -56,7 +62,7 @@ export default function PostCard({ post }: { post: PostData }) {
   const currentUserName = currentUser?.name || currentUser?.username || "User";
   const isPostOwner = post.author.name === currentUserName || (currentUser?.id && post.author.id === currentUser.id);
 
-  const { deletePost, editPost } = usePostStore();
+  const { deletePost, editPost, toggleLike, retryPost } = usePostStore();
   const [isPostDropdownOpen, setIsPostDropdownOpen] = useState(false);
   const [isEditingPost, setIsEditingPost] = useState(false);
   const [editPostContent, setEditPostContent] = useState(post.content);
@@ -69,8 +75,9 @@ export default function PostCard({ post }: { post: PostData }) {
   const isLongContent = post.content.length > CONTENT_LIMIT;
 
   const handleLike = () => {
-    setLiked(!liked);
-    setLikeCount((prev) => (liked ? prev - 1 : prev + 1));
+    if (currentUser?.id) {
+      toggleLike(post.id, currentUser.id);
+    }
   };
 
   const handleShowComments = async () => {
@@ -83,6 +90,7 @@ export default function PostCard({ post }: { post: PostData }) {
         setComments(data.map((c: any) => ({
           id: c._id,
           author: c.userId?.name || c.userId?.username || "User",
+          authorId: c.userId?._id || c.userId?.id,
           avatar: c.userId?.avatarUrl || "/images/avatar.png",
           text: c.content,
           time: dayjs(c.createdAt).fromNow(),
@@ -103,6 +111,7 @@ export default function PostCard({ post }: { post: PostData }) {
       const newComment: CommentData = {
         id: c._id,
         author: c.userId?.name || currentUserName,
+        authorId: c.userId?._id || c.userId?.id || currentUser?.id,
         avatar: c.userId?.avatarUrl || globalAvatar || "/images/avatar.png",
         text: c.content,
         time: "Just now",
@@ -127,10 +136,12 @@ export default function PostCard({ post }: { post: PostData }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={post.id.startsWith("temp_") ? { opacity: 0, scale: 0.95 } : { opacity: 0, y: 15 }}
+      animate={post.id.startsWith("temp_") ? { opacity: 1, scale: 1 } : { opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}
-      className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
+      className={`bg-white rounded-xl shadow-sm border overflow-hidden ${
+        post.uploadError ? "border-red-200" : "border-gray-100"
+      }`}
     >
       {/* Author row */}
       <div className="flex items-start justify-between px-4 pt-4 pb-2">
@@ -238,18 +249,74 @@ export default function PostCard({ post }: { post: PostData }) {
                 {showMore ? "Show less" : "See more"}
               </button>
             )}
+
+            {post.link && (
+              <div className="mt-3 flex">
+                <a
+                  href={post.link.startsWith("http") ? post.link : `https://${post.link}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-teal-50/50 hover:bg-teal-50 border border-teal-100/70 rounded-lg text-xs font-semibold text-teal-700 hover:text-teal-800 transition-all shadow-sm hover:shadow active:scale-[0.98]"
+                >
+                  <Link2 size={14} className="text-teal-500" />
+                  <span>{post.link}</span>
+                </a>
+              </div>
+            )}
           </>
         )}
       </div>
 
-      {/* Image */}
-      {post.image && (
-        <div className="border-t border-b border-gray-100">
-          <img
-            src={post.image}
-            alt="Post media"
-            className="w-full max-h-[400px] object-cover"
-          />
+      {/* Media (Image or Video) */}
+      {(post.image || post.localMediaBlob) && (
+        <div className="border-t border-b border-gray-100 bg-black flex justify-center relative">
+          {(post.image && (post.image.match(/\.(mp4|webm|ogg|mov)$/i) || post.image.includes('/video/upload/'))) || 
+           (post.localMediaType && post.localMediaType.startsWith('video/')) ? (
+            <video
+              src={post.image || post.localMediaBlob}
+              controls={!post.isUploading}
+              className={`w-full max-h-[400px] object-contain ${post.isUploading ? 'opacity-40' : ''}`}
+            />
+          ) : (
+            <img
+              src={post.image || post.localMediaBlob}
+              alt="Post media"
+              className={`w-full max-h-[400px] object-cover ${post.isUploading ? 'opacity-40' : ''}`}
+            />
+          )}
+
+          {post.isUploading && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-sm z-10">
+              <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin mb-3" />
+              <div className="w-48 bg-white/20 rounded-full h-1.5 overflow-hidden">
+                <div 
+                  className="bg-teal-400 h-full transition-all duration-300"
+                  style={{ width: `${post.uploadProgress || 0}%` }}
+                />
+              </div>
+              <p className="text-white text-xs mt-2 font-medium">Uploading... {post.uploadProgress || 0}%</p>
+            </div>
+          )}
+
+          {post.uploadError && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-red-900/60 backdrop-blur-sm z-10 p-4 text-center">
+              <p className="text-white text-sm font-semibold mb-2">{post.uploadError}</p>
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => retryPost(post.id)}
+                  className="px-4 py-1.5 bg-teal-100 text-teal-700 rounded-full text-xs font-bold hover:bg-teal-200 transition-colors"
+                >
+                  Retry Upload
+                </button>
+                <button 
+                  onClick={() => deletePost(post.id)}
+                  className="px-4 py-1.5 bg-red-100 text-red-700 rounded-full text-xs font-bold hover:bg-red-200 transition-colors"
+                >
+                  Discard Post
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -259,7 +326,7 @@ export default function PostCard({ post }: { post: PostData }) {
           <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-teal-500 text-white text-[10px]">
             👍
           </span>
-          <span>{likeCount}</span>
+          <span>{post.likes}</span>
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -276,15 +343,18 @@ export default function PostCard({ post }: { post: PostData }) {
       <div className="h-px bg-gray-100 mx-4" />
 
       {/* Action buttons */}
-      <div className="flex items-center justify-around px-2 py-1">
+      <div className="flex items-center justify-around px-2 py-1 relative">
+        {(post.isUploading || post.uploadError) && (
+          <div className="absolute inset-0 bg-white/50 z-10 cursor-not-allowed" />
+        )}
         <motion.button
           whileTap={{ scale: 0.93 }}
           onClick={handleLike}
           className={`flex items-center gap-2 flex-1 justify-center py-2.5 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-gray-50 ${
-            liked ? "text-teal-600" : "text-gray-500"
+            post.liked ? "text-teal-600" : "text-gray-500"
           }`}
         >
-          <ThumbsUp size={18} className={liked ? "fill-teal-600" : ""} />
+          <ThumbsUp size={18} className={post.liked ? "fill-teal-600" : ""} />
           <span className="hidden sm:inline">Like</span>
         </motion.button>
 
@@ -322,21 +392,29 @@ export default function PostCard({ post }: { post: PostData }) {
             <div className="h-px bg-gray-100 mx-4" />
             <div className="px-4 py-3 space-y-3">
               {/* Existing comments */}
-              {comments.map((comment) => (
-                <div key={comment.id} className="flex gap-2 group">
-                  <Image
-                    src={comment.avatar}
-                    alt={comment.author}
-                    width={32}
-                    height={32}
-                    className="w-8 h-8 rounded-full object-cover flex-shrink-0"
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-start gap-2">
-                      <div className="bg-gray-50 rounded-xl px-3.5 py-2 flex-1 relative">
-                        <span className="text-xs font-semibold text-gray-800">
-                          {comment.author}
-                        </span>
+              {comments.map((comment) => {
+                const commentProfileHref = comment.authorId 
+                  ? (comment.authorId === currentUser?.id ? "/dashboard/profile" : `/dashboard/profile/${comment.authorId}`)
+                  : "#";
+                return (
+                  <div key={comment.id} className="flex gap-2 group">
+                    <Link href={commentProfileHref} className="shrink-0 hover:opacity-85 transition-opacity">
+                      <Image
+                        src={comment.avatar}
+                        alt={comment.author}
+                        width={32}
+                        height={32}
+                        className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                      />
+                    </Link>
+                    <div className="flex-1">
+                      <div className="flex items-start gap-2">
+                        <div className="bg-gray-50 rounded-xl px-3.5 py-2 flex-1 relative">
+                          <Link href={commentProfileHref} className="hover:text-teal-700 hover:underline transition-colors block w-fit">
+                            <span className="text-xs font-semibold text-gray-800 cursor-pointer">
+                              {comment.author}
+                            </span>
+                          </Link>
                         
                         {editingCommentId === comment.id ? (
                           <div className="mt-1 space-y-2">
@@ -441,7 +519,7 @@ export default function PostCard({ post }: { post: PostData }) {
                     </div>
                   </div>
                 </div>
-              ))}
+              );})}
 
               {/* Comment input */}
               <div className="flex items-center gap-2">

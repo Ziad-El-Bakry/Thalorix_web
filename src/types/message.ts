@@ -59,6 +59,9 @@ export interface Message {
     emoji: string;
     users: string[];
   }[];
+  attachmentUrl?: string;
+
+  isDeleted?: boolean;
 }
 
 // -------------------------------

@@ -24,6 +24,7 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
   const router = useRouter();
   const searchParams = useSearchParams();
   const [user, setUser] = useState<any>(null);
+  const [relationship, setRelationship] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
@@ -37,7 +38,7 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [activeProfileTab, setActiveProfileTab] = useState<"posts" | "projects" | "media">("posts");
+  const [activeProfileTab, setActiveProfileTab] = useState<"posts" | "projects" | "media" | "friends" | "followers" | "following">("posts");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
   const [coverImage, setCoverImage] = useState<string>("/images/profile-cover.png");
@@ -87,9 +88,19 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
     const fetchUserData = async () => {
       try {
         let idToFetch = userId;
+        const storedUser = authService.getStoredUser();
+
+        // 🚀 Optimistic UI: Pre-load local stored user data instantly for own profile
+        if (isOwnProfile && storedUser) {
+          setUser(storedUser);
+          if (storedUser.avatar) {
+            setDisplayAvatar(storedUser.avatar);
+            setGlobalAvatar(storedUser.avatar);
+          }
+        }
+
         if (!idToFetch) {
-          const storedUser = authService.getStoredUser();
-          idToFetch = storedUser?.id;
+          idToFetch = storedUser?.id || (storedUser as any)?._id;
         }
 
         // Mock users for feed placeholders
@@ -107,9 +118,22 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
 
         if (idToFetch) {
           const data = await usersService.getUserById(idToFetch);
-          setUser(data);
-          if (data && data.avatar && !isOwnProfile) {
-            setDisplayAvatar(data.avatar);
+          if (data) {
+            setUser(data);
+            if (!isOwnProfile) {
+              try {
+                const relData = await usersService.getRelationship(idToFetch);
+                setRelationship(relData);
+              } catch (err) {
+                console.warn("Failed to fetch relationship data", err);
+              }
+            }
+            if (data.avatar) {
+              setDisplayAvatar(data.avatar);
+              if (isOwnProfile) {
+                setGlobalAvatar(data.avatar);
+              }
+            }
           }
         }
       } catch (error: any) {
@@ -117,6 +141,11 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
           console.warn("User unauthorized, token might be expired.");
         } else {
           console.warn("Failed to fetch user data:", error?.message || error);
+        }
+        // Graceful fallback to stored user if API failed for own profile
+        const storedUser = authService.getStoredUser();
+        if (isOwnProfile && storedUser) {
+          setUser(storedUser);
         }
       } finally {
         setLoading(false);
@@ -311,10 +340,10 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
          ═══════════════════════════════════════ */}
       <ProfileHeader
         user={user}
-        userName={userName}
+        userName={user?.name || user?.username || "Developer"}
         isOwnProfile={isOwnProfile}
         coverImage={coverImage}
-        activeAvatar={activeAvatar}
+        activeAvatar={displayAvatar}
         displayRole={displayRole}
         getRoleIcon={getRoleIcon}
         isMenuOpen={isMenuOpen}
@@ -326,6 +355,8 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
         handleFileChange={handleFileChange}
         handleCoverChange={handleCoverChange}
         triggerUpload={triggerUpload}
+        relationship={relationship}
+        setRelationship={setRelationship}
       />
 
       {/* ═══════════════════════════════════════
@@ -335,8 +366,9 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
         <ProfileLeftSidebar userBio={userBio} expertiseData={expertiseData} />
         
         <ProfileFeed
+          userId={user?.id || user?._id || userId}
           isOwnProfile={isOwnProfile}
-          userName={userName}
+          userName={user?.name || user?.username || "Developer"}
           activeProfileTab={activeProfileTab}
           setActiveProfileTab={setActiveProfileTab}
           posts={posts}
