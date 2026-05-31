@@ -96,7 +96,7 @@ export const usersService = {
     const { data } = await api.patch<any>(ENDPOINTS.USERS.UPDATE(id), dto);
     
     if (storedUser && (storedUser.id === id || storedUser.id === data._id)) {
-      const avatarUrl = data.avatarUrl || data.avatar || data.logo || dto.avatarUrl || "/images/avatar.png";
+      const avatarUrl = data.avatarUrl || data.avatar || data.logo || dto.avatar || (dto as any).avatarUrl || "/images/avatar.png";
       const updatedUser = { ...storedUser, ...data, id: data._id || id, avatar: avatarUrl, avatarUrl };
       localStorage.setItem('user', JSON.stringify(updatedUser));
     }

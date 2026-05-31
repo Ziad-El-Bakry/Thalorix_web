@@ -7,7 +7,7 @@ export const categoriesService = {
   // جلب كل الـ Categories
   getAll: async (): Promise<Category[]> => {
     const response = await axiosInstance.get(ENDPOINTS.CATEGORIES.GET_ALL);
-    return response.data.categories || response.data;
+    return response.data.data || response.data.categories || response.data;
   },
 
   // جلب Category معينة بالـ ID

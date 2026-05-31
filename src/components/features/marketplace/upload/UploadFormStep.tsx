@@ -2,13 +2,17 @@
 
 import { CloudUpload, Info, Gift, DollarSign } from "lucide-react";
 import { motion } from "framer-motion";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { categoriesService } from "@/lib/api/services/categories.service";
+import { Category } from "@/types";
 
 export interface TemplateFormData {
   title: string;
   description: string;
   price: number;
+  categoryId: string;
   file: File;
+  image?: File;
   tags: string;
 }
 
@@ -20,11 +24,33 @@ export default function UploadFormStep({ onNext }: UploadFormStepProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [image, setImage] = useState<File | null>(null);
   const [isPaid, setIsPaid] = useState(false);
   const [price, setPrice] = useState(0);
+  const [categoryId, setCategoryId] = useState("");
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [tags, setTags] = useState("");
   const [error, setError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const cats = await categoriesService.getAll();
+        setCategories(cats);
+        if (cats.length > 0) {
+          setCategoryId((cats[0]._id || cats[0].id) as string || "");
+        }
+      } catch (err) {
+        console.error("Failed to load categories", err);
+      } finally {
+        setCategoriesLoading(false);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   const handleSubmit = () => {
     if (!title || title.length < 3) {
@@ -35,12 +61,16 @@ export default function UploadFormStep({ onNext }: UploadFormStepProps) {
       setError("Description must be at least 50 characters.");
       return;
     }
+    if (!categoryId) {
+      setError("Please select a category.");
+      return;
+    }
     if (!file) {
       setError("Please select a template file.");
       return;
     }
     setError("");
-    onNext({ title, description, price: isPaid ? price : 0, file, tags });
+    onNext({ title, description, price: isPaid ? price : 0, categoryId, file, image: image || undefined, tags });
   };
   return (
     <motion.div 
@@ -70,6 +100,31 @@ export default function UploadFormStep({ onNext }: UploadFormStepProps) {
             onChange={(e) => setTitle(e.target.value)}
             className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-[#123E41]"
           />
+        </div>
+
+        {/* Category */}
+        <div>
+          <label className="block text-sm font-bold text-[#103B40] mb-2">
+            Category<span className="text-red-500">*</span>
+          </label>
+          <select 
+            value={categoryId}
+            onChange={(e) => setCategoryId(e.target.value)}
+            disabled={categoriesLoading || categories.length === 0}
+            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-[#123E41] disabled:bg-gray-100 disabled:text-gray-500"
+          >
+            {categoriesLoading ? (
+              <option>Loading categories...</option>
+            ) : categories.length === 0 ? (
+              <option>No categories found</option>
+            ) : (
+              categories.map((cat) => (
+                <option key={cat._id || cat.id} value={cat._id || cat.id}>
+                  {cat.name}
+                </option>
+              ))
+            )}
+          </select>
         </div>
 
         {/* Description */}
@@ -132,6 +187,35 @@ export default function UploadFormStep({ onNext }: UploadFormStepProps) {
                 <span className="font-semibold text-blue-600">Include:</span> <span className="text-blue-400">README, source code, documentation</span>
             </div>
           </div>
+        </div>
+
+        {/* Cover Image */}
+        <div>
+          <label className="block text-sm font-bold text-[#103B40] mb-2">
+            Cover Image <span className="text-gray-400 font-normal">(Optional)</span>
+          </label>
+          <div 
+            onClick={() => imageInputRef.current?.click()}
+            className="bg-white border border-gray-200 rounded-xl p-4 flex items-center gap-4 cursor-pointer hover:bg-gray-50 transition-colors"
+          >
+            <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+              <CloudUpload className="text-gray-400" size={20} />
+            </div>
+            <div className="flex-1">
+              {image ? (
+                <p className="text-sm text-[#123E41] font-bold">{image.name}</p>
+              ) : (
+                <p className="text-sm text-gray-700 font-medium">Click to upload thumbnail/cover</p>
+              )}
+            </div>
+          </div>
+          <input 
+            type="file" 
+            ref={imageInputRef} 
+            onChange={(e) => setImage(e.target.files?.[0] || null)} 
+            className="hidden" 
+            accept="image/*" 
+          />
         </div>
 
         {/* Pricing Model */}
