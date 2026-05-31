@@ -1,28 +1,41 @@
+// src/lib/api/services/templates.service.ts
 import axiosInstance from '../axios';
 import { ENDPOINTS } from '../endpoints';
+import { Template, Category } from '../../../types'; // بنسحبهم جاهزين من هنا ومنكررش تعريفهم تحت
 
-// ============================================
-// TYPES & INTERFACES
-// ============================================
-export interface Template {
-  id?: string;
-  _id?: string;
+export interface CreateTemplatePayload {
   title: string;
   description: string;
-  // ضيف أي حقول تانية الباك إند بيحتاجها أو بيرجعها (زي الـ categoryId مثلاً)
-}
-
-export interface Category {
-  id?: string;
-  _id?: string;
-  name: string;
-  description?: string;
+  price: number;
+  categoryId: string;
+  fileUrl: File;
+  image?: File;
 }
 
 // ============================================
-// SERVICES
+// TEMPLATES SERVICE
 // ============================================
 export const templatesService = {
+  // إنشاء Template جديد (فورم داتا)
+  createTemplate: async (payload: CreateTemplatePayload): Promise<any> => {
+    const formData = new FormData();
+    formData.append('title', payload.title);
+    formData.append('description', payload.description);
+    formData.append('price', payload.price.toString());
+    formData.append('categoryId', payload.categoryId);
+    formData.append('fileUrl', payload.fileUrl);
+    if (payload.image) {
+      formData.append('image', payload.image);
+    }
+
+    const response = await axiosInstance.post(ENDPOINTS.TEMPLATES.CREATE, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
   // جلب كل الـ Templates
   getAll: async (): Promise<Template[]> => {
     const response = await axiosInstance.get(ENDPOINTS.TEMPLATES.GET_ALL);
@@ -50,35 +63,5 @@ export const templatesService = {
   // حذف Template
   delete: async (id: string): Promise<void> => {
     await axiosInstance.delete(ENDPOINTS.TEMPLATES.DELETE(id));
-  },
-};
-
-export const categoriesService = {
-  
-  getAll: async (): Promise<Category[]> => {
-    const response = await axiosInstance.get(ENDPOINTS.CATEGORIES.GET_ALL);
-    return response.data.categories || response.data;
-  },
-
-  
-  getById: async (id: string): Promise<Category> => {
-    const response = await axiosInstance.get(ENDPOINTS.CATEGORIES.GET_BY_ID(id));
-    return response.data;
-  },
-
-  create: async (data: Partial<Category>): Promise<Category> => {
-    const response = await axiosInstance.post(ENDPOINTS.CATEGORIES.CREATE, data);
-    return response.data;
-  },
-
-  
-  update: async (id: string, data: Partial<Category>): Promise<Category> => {
-    const response = await axiosInstance.patch(ENDPOINTS.CATEGORIES.UPDATE(id), data);
-    return response.data;
-  },
-
- 
-  delete: async (id: string): Promise<void> => {
-    await axiosInstance.delete(ENDPOINTS.CATEGORIES.DELETE(id));
   },
 };
