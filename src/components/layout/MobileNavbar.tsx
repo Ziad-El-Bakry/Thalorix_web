@@ -38,11 +38,13 @@ export default function MobileNavbar() {
   const { hasUnreadMessages, markMessagesRead } = useNotifications();
   const { isChatOpen } = useChatState();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isSeller, setIsSeller] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
     const user = authService.getStoredUser();
     setIsAdmin(user?.role === "admin");
+    setIsSeller(user?.role === "seller");
   }, []);
 
   useEffect(() => {
@@ -161,7 +163,12 @@ export default function MobileNavbar() {
           >
             <nav className="flex flex-col px-4 py-4 space-y-2 text-white">
               {NAV.map((item) => {
-                let isActive = pathname === item.href;
+                let itemHref = item.href;
+                if (item.label === "Profile" && isSeller) {
+                  itemHref = "/dashboard/seller/profile";
+                }
+
+                let isActive = pathname === itemHref;
                 
                 if (pathname?.startsWith("/dashboard/marketplace")) {
                   if (item.label === "Marketplace") isActive = true;
@@ -170,8 +177,8 @@ export default function MobileNavbar() {
                 const Icon = item.icon;
                 return (
                   <Link
-                    key={item.href}
-                    href={item.href}
+                    key={itemHref}
+                    href={itemHref}
                     onClick={() => {
                       setIsOpen(false);
                       if (item.label === "Message") {

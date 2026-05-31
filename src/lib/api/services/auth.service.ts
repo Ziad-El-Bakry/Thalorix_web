@@ -34,11 +34,36 @@ export interface User {
   avatar?: string;
   bio?: string;
   expertise?: { name: string; percent: number }[];
-  socialLinks?: { facebook: string; instagram: string };
+  socialLinks?: {
+    facebook?: string;
+    instagram?: string;
+    linkedin?: string;
+    twitter?: string;
+    website?: string;
+  };
   isVerified: boolean;
   isBlocked?: boolean;
   phone?: string;
   createdAt: string;
+  
+  // Seller fields
+  storeName?: string;
+  storeDescription?: string;
+  address?: string;
+  logo?: string;
+  banner?: string;
+  businessCategory?: string;
+  website?: string;
+  businessType?: string;
+  taxNumber?: string;
+  verificationDocuments?: string[];
+  followersCount?: number;
+  followers?: string[];
+  followingCount?: number;
+  ratings?: number;
+  reviewsCount?: number;
+  salesCount?: number;
+  downloadsCount?: number;
 }
 
 export interface AuthResponse {

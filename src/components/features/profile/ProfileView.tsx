@@ -119,6 +119,10 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
         if (idToFetch) {
           const data = await usersService.getUserById(idToFetch);
           if (data) {
+            if (data.role === "seller") {
+              router.replace(`/dashboard/seller/${idToFetch}`);
+              return;
+            }
             setUser(data);
             if (!isOwnProfile) {
               try {
@@ -357,6 +361,7 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
         triggerUpload={triggerUpload}
         relationship={relationship}
         setRelationship={setRelationship}
+        postsCount={posts.length}
       />
 
       {/* ═══════════════════════════════════════
