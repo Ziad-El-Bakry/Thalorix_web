@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  /* config options here */
   images: {
     remotePatterns: [
       {
@@ -14,7 +15,7 @@ const nextConfig: NextConfig = {
       beforeFiles: [
         {
           source: '/api/:path*',
-          destination: 'https://thalorix-back-end--omarshabour1.replit.app/api/:path*',
+          destination: 'http://localhost:5000/api/:path*',
         },
       ],
     };
