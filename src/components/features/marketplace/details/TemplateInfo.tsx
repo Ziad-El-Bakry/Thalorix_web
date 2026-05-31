@@ -8,7 +8,7 @@ interface TemplateInfoProps {
 }
 
 export default function TemplateInfo({ template }: TemplateInfoProps) {
-  const sellerName = (template as any).developerId?.name || "Unknown Seller";
+  const sellerName = (template as any).sellerId?.name || "Unknown Seller";
   return (
     <div className="space-y-8">
       <div>

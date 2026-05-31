@@ -35,7 +35,7 @@ export default function TemplateList({ templates }: TemplateListProps) {
           price={template.price}
           imageSrc={template.image || template.imageUrl || ""}
           category={(template as any).categoryId?.name}
-          seller={(template as any).developerId?.name}
+          seller={(template as any).sellerId?.name}
         />
       ))}
       {templates.length === 0 && (

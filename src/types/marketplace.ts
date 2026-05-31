@@ -8,7 +8,7 @@ export interface Template {
   image?: string;
   imageUrl?: string;
   categoryId?: any;
-  developerId?: any;
+  sellerId?: any;
   status?: string;
   isActive?: boolean;
   
