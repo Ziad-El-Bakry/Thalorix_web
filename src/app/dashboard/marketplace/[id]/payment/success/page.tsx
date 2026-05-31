@@ -1,17 +1,51 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { ChevronLeft, Check, Mail, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ChevronLeft, Check, Mail, Download, X } from "lucide-react";
 import UserHeader from "@/components/ui/UserHeader";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { Template } from "@/types";
+import { templatesService } from "@/lib/api/services/templates.service";
 
 export default function PaymentSuccessPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const id = Array.isArray(params?.id) ? params.id[0] : (params?.id || "1");
-  const isFree = id === "2" || id === "5";
+  const sessionId = searchParams?.get("session_id");
+
+  const [template, setTemplate] = useState<Template | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [showReceipt, setShowReceipt] = useState(false);
+
+  const isFree = template?.price === 0 || template?.price === undefined;
+
+  useEffect(() => {
+    const fetchTemplate = async () => {
+      try {
+        const data = await templatesService.getById(id);
+        setTemplate(data);
+      } catch (err) {
+        console.error("Failed to load template", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchTemplate();
+  }, [id]);
+
+  if (isLoading) {
+    return (
+      <div className="w-full h-full flex justify-center items-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#123E41]"></div>
+      </div>
+    );
+  }
+
+  if (!template) {
+    return <div className="text-center p-10">Template not found</div>;
+  }
 
   return (
     <div className="w-full max-w-[1200px] mx-auto flex flex-col h-full overflow-y-auto custom-scrollbar pb-10">
@@ -46,7 +80,7 @@ export default function PaymentSuccessPage() {
           transition={{ delay: 0.2 }}
           className="text-2xl font-bold text-[#103B40] mb-2 text-center"
         >
-          {isFree ? "Template Downloaded" : "Payment Completed"}<br/>Successfully
+          Payment Completed<br/>Successfully
         </motion.h2>
         
         <motion.p 
@@ -55,7 +89,7 @@ export default function PaymentSuccessPage() {
           transition={{ delay: 0.3 }}
           className="text-sm text-[#103B40]/70 text-center max-w-[340px] mb-8 font-medium"
         >
-          {isFree ? "Your template has been added to your library." : "Your payment has been processed and the template has been added to your library."}
+          Your payment has been processed and the template is ready to download.
         </motion.p>
 
         <motion.div 
@@ -67,34 +101,39 @@ export default function PaymentSuccessPage() {
           <div className="p-6 space-y-6">
             <div className="flex justify-between items-center text-sm">
               <span className="text-gray-900 font-medium w-32">Template</span>
-              <span className="font-bold text-gray-900 text-right">Business Dashboard UI Kit</span>
+              <span className="font-bold text-gray-900 text-right">{template.title}</span>
             </div>
             
             <div className="h-px w-full bg-gray-100"></div>
             
             <div className="flex justify-between items-center text-sm">
               <span className="text-gray-900 font-medium w-32">Transaction ID</span>
-              <span className="font-bold text-gray-900 text-right">TXN-2847563</span>
+              <span className="font-bold text-gray-900 text-right">{sessionId ? `${sessionId.substring(0, 15)}...` : "N/A"}</span>
             </div>
             
             <div className="h-px w-full border-t-2 border-dashed border-gray-100"></div>
             
             <div className="flex justify-between items-center text-sm">
-              <span className="text-gray-900 font-medium w-32">{isFree ? "Total Cost" : "Amount Paid"}</span>
-              <span className="font-bold text-gray-900 text-right text-base">{isFree ? "$0.00" : "$58.80"}</span>
+              <span className="text-gray-900 font-medium w-32">Amount Paid</span>
+              <span className="font-bold text-gray-900 text-right text-base">${template.price.toFixed(2)}</span>
             </div>
           </div>
         </motion.div>
 
         <div className="w-full max-w-[460px] space-y-3">
-          <Link href="/dashboard/marketplace" className="block w-full bg-[#123E41] text-white font-bold py-3.5 rounded-xl hover:bg-[#0d2c2e] transition-colors shadow-sm text-center">
-            Go to My Library
-          </Link>
-          <button onClick={() => setShowReceipt(true)} className="w-full flex items-center justify-center gap-2 bg-white border border-gray-200 text-[#123E41] font-bold py-3.5 rounded-xl hover:bg-gray-50 transition-colors shadow-sm text-center">
-            <Mail size={18} /> View Email Receipt
-          </button>
-          <Link href={`/dashboard/marketplace/${id}`} className="block w-full bg-[#A5C9D3]/30 text-[#123E41] font-bold py-3.5 rounded-xl hover:bg-[#A5C9D3]/50 transition-colors shadow-sm text-center">
-            View Template
+          {template.fileUrl ? (
+            <a href={template.fileUrl} download target="_blank" rel="noopener noreferrer" className="block w-full">
+              <button className="w-full flex items-center justify-center gap-2 bg-[#123E41] text-white font-bold py-3.5 rounded-xl hover:bg-[#0d2c2e] transition-colors shadow-sm text-center">
+                <Download size={18} /> Download Template File
+              </button>
+            </a>
+          ) : (
+            <button disabled className="w-full flex items-center justify-center gap-2 bg-gray-300 text-gray-500 font-bold py-3.5 rounded-xl cursor-not-allowed">
+              File Unavailable
+            </button>
+          )}
+          <Link href="/dashboard/marketplace" className="block w-full bg-white border border-gray-200 text-[#123E41] font-bold py-3.5 rounded-xl hover:bg-gray-50 transition-colors shadow-sm text-center">
+            Back to Marketplace
           </Link>
         </div>
       </div>
