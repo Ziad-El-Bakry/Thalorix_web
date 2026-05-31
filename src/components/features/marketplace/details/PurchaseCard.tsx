@@ -7,6 +7,7 @@ import { Template } from "@/types";
 import { useCartStore } from "@/store/useCartStore";
 import { usePurchaseStore } from "@/store/usePurchaseStore";
 import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 
 interface PurchaseCardProps {
   template: Template;
@@ -18,7 +19,7 @@ export default function PurchaseCard({ template }: PurchaseCardProps) {
   const { hasPurchased, addPurchases } = usePurchaseStore();
   const router = useRouter();
 
-  const templateId = template.id || template._id as string;
+  const templateId = (template.id || template._id) as string;
   const isPurchased = hasPurchased(templateId);
   const inCart = items.some(item => (item.id || item._id) === templateId);
 
@@ -28,6 +29,38 @@ export default function PurchaseCard({ template }: PurchaseCardProps) {
       window.open(template.fileUrl, '_blank');
     }
   };
+
+  // Derived metadata
+  const getFileFormat = () => {
+    if (!template.fileUrl) return "ZIP";
+    const parts = template.fileUrl.split('.');
+    const ext = parts.pop();
+    if (ext && ext.length <= 4 && parts.length > 0) {
+      return ext.toUpperCase();
+    }
+    return "ZIP";
+  };
+  const fileFormat = getFileFormat();
+  const licenseType = isFree ? "Free Use" : "Commercial";
+  
+  // Fetch file size dynamically from Cloudinary URL if possible
+  const [fileSize, setFileSize] = useState<string>("Unknown");
+
+  useEffect(() => {
+    if (template.fileUrl) {
+      fetch(template.fileUrl, { method: 'HEAD' })
+        .then(res => {
+          const bytes = res.headers.get('content-length');
+          if (bytes && parseInt(bytes) > 0) {
+            const mb = (parseInt(bytes) / (1024 * 1024)).toFixed(1);
+            setFileSize(`${mb} MB`);
+          } else {
+            setFileSize("Unknown");
+          }
+        })
+        .catch(() => setFileSize("Unknown"));
+    }
+  }, [template.fileUrl]);
 
   return (
     <motion.div
@@ -43,19 +76,19 @@ export default function PurchaseCard({ template }: PurchaseCardProps) {
         <div className="grid grid-cols-2 gap-4 mb-8">
           <div className="bg-teal-50/50 rounded-xl p-3 border border-teal-50">
             <p className="text-xs text-gray-500 mb-1">File Format</p>
-            <p className="text-sm font-semibold text-[#103B40]">PPTX, KEY</p>
+            <p className="text-sm font-semibold text-[#103B40]">{fileFormat}</p>
           </div>
           <div className="bg-teal-50/50 rounded-xl p-3 border border-teal-50">
             <p className="text-xs text-gray-500 mb-1">File Size</p>
-            <p className="text-sm font-semibold text-[#103B40]">12.5 MB</p>
+            <p className="text-sm font-semibold text-[#103B40]">{fileSize}</p>
           </div>
           <div className="bg-teal-50/50 rounded-xl p-3 border border-teal-50">
             <p className="text-xs text-gray-500 mb-1">Dimensions</p>
-            <p className="text-sm font-semibold text-[#103B40]">16:9 Ratio</p>
+            <p className="text-sm font-semibold text-[#103B40]">Responsive</p>
           </div>
           <div className="bg-teal-50/50 rounded-xl p-3 border border-teal-50">
             <p className="text-xs text-gray-500 mb-1">License</p>
-            <p className="text-sm font-semibold text-[#103B40]">Commercial</p>
+            <p className="text-sm font-semibold text-[#103B40]">{licenseType}</p>
           </div>
         </div>
 
