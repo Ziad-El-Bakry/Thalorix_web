@@ -1,9 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { Eye } from "lucide-react";
+import { Eye, ShoppingCart, Check, Download } from "lucide-react";
 import { motion } from "framer-motion";
 import { Template } from "@/types";
+import { useCartStore } from "@/store/useCartStore";
+import { usePurchaseStore } from "@/store/usePurchaseStore";
+import { useRouter } from "next/navigation";
 
 interface PurchaseCardProps {
   template: Template;
@@ -11,6 +14,21 @@ interface PurchaseCardProps {
 
 export default function PurchaseCard({ template }: PurchaseCardProps) {
   const isFree = template.price <= 0;
+  const { addToCart, items } = useCartStore();
+  const { hasPurchased, addPurchases } = usePurchaseStore();
+  const router = useRouter();
+
+  const templateId = template.id || template._id as string;
+  const isPurchased = hasPurchased(templateId);
+  const inCart = items.some(item => (item.id || item._id) === templateId);
+
+  const handleGetFree = () => {
+    addPurchases([template]);
+    if (template.fileUrl) {
+      window.open(template.fileUrl, '_blank');
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
@@ -42,15 +60,41 @@ export default function PurchaseCard({ template }: PurchaseCardProps) {
         </div>
 
         <div className="space-y-3">
-          {template.fileUrl ? (
-            <a href={template.fileUrl} download target="_blank" rel="noopener noreferrer" className="block w-full">
-              <button className="w-full bg-[#123E41] text-white py-3.5 rounded-xl hover:bg-[#0d2c2e] transition-colors font-medium">
-                {isFree ? "Download Template" : `Buy Template - $${template.price.toFixed(2)}`}
+          {isPurchased ? (
+            <a href={template.fileUrl || "#"} download target="_blank" rel="noopener noreferrer" className="block w-full">
+              <button className="w-full bg-[#123E41] text-white py-3.5 rounded-xl hover:bg-[#0d2c2e] transition-colors font-medium flex justify-center items-center gap-2">
+                <Download size={18} />
+                Download Template
               </button>
             </a>
+          ) : isFree ? (
+            <button 
+              onClick={handleGetFree}
+              disabled={!template.fileUrl}
+              className={`w-full py-3.5 rounded-xl transition-colors font-medium flex justify-center items-center gap-2 ${
+                template.fileUrl ? "bg-[#123E41] text-white hover:bg-[#0d2c2e]" : "bg-gray-300 text-gray-500 cursor-not-allowed"
+              }`}
+            >
+              <Download size={18} />
+              Get for Free
+            </button>
+          ) : inCart ? (
+            <Link href="/dashboard/marketplace/cart" className="block w-full">
+              <button className="w-full bg-green-600 text-white py-3.5 rounded-xl hover:bg-green-700 transition-colors font-medium flex justify-center items-center gap-2">
+                <Check size={18} />
+                Go to Cart
+              </button>
+            </Link>
           ) : (
-            <button disabled className="w-full bg-gray-300 text-gray-500 py-3.5 rounded-xl transition-colors font-medium cursor-not-allowed">
-              Template File Unavailable
+            <button 
+              onClick={() => addToCart(template)}
+              disabled={!template.fileUrl}
+              className={`w-full py-3.5 rounded-xl transition-colors font-medium flex justify-center items-center gap-2 ${
+                template.fileUrl ? "bg-[#123E41] text-white hover:bg-[#0d2c2e]" : "bg-gray-300 text-gray-500 cursor-not-allowed"
+              }`}
+            >
+              <ShoppingCart size={18} />
+              Add to Cart - ${template.price.toFixed(2)}
             </button>
           )}
           <button className="w-full bg-[#A5C9D3]/30 text-[#123E41] py-3.5 rounded-xl hover:bg-[#A5C9D3]/50 transition-colors font-medium flex items-center justify-center gap-2">

@@ -323,7 +323,7 @@ export default function ProfileHeader({
               { value: user?.followersCount || "0", label: "Followers" },
               { value: user?.followingCount || "0", label: "Following" },
               { value: user?.friendsCount || "0", label: "Friends" },
-              { value: "47", label: "Posts" },
+              { value: user?.postsCount || "0", label: "Posts" },
             ].map((stat, i) => (
               <div key={stat.label} className={`flex-1 text-center ${i > 0 ? "border-l border-gray-100" : ""}`}>
                 <p className="text-xl font-bold text-[#103B40]">{stat.value}</p>
