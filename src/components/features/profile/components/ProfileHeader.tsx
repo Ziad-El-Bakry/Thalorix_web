@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { usersService } from "@/lib/api/services/users.service";
 import { chatService } from "@/lib/api/services/chat.service";
+import { useChatStore } from "@/store/useChatStore";
 import { useRouter } from "next/navigation";
 
 interface ProfileHeaderProps {
@@ -64,6 +65,8 @@ export default function ProfileHeader({
 }: ProfileHeaderProps) {
   const router = useRouter();
   const [isMessageLoading, setIsMessageLoading] = useState(false);
+  const onlineUserIds = useChatStore((state) => state.onlineUserIds);
+  const isOnline = !isOwnProfile && user && onlineUserIds.includes(user.id || user._id);
 
   const handleToggleFollow = async () => {
     if (!user || !setRelationship) return;
@@ -192,6 +195,9 @@ export default function ProfileHeader({
                 </div>
               )}
             </motion.div>
+            {isOnline && (
+              <span className="absolute bottom-1 right-1 w-5 h-5 bg-green-500 rounded-full border-[3px] border-white z-20 shadow-md animate-pulse" />
+            )}
             {isOwnProfile && (
               <motion.button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -238,6 +244,16 @@ export default function ProfileHeader({
                 <span className="inline-flex items-center gap-1 text-[11px] font-bold text-teal-700 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-full">
                   <CheckCircle size={12} /> VERIFIED
                 </span>
+                {!isOwnProfile && (
+                  <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full border ${
+                    isOnline 
+                      ? "text-green-700 bg-green-50 border-green-200" 
+                      : "text-gray-500 bg-gray-50 border-gray-200"
+                  }`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? "bg-green-500 animate-pulse" : "bg-gray-400"}`} />
+                    {isOnline ? "ONLINE" : "OFFLINE"}
+                  </span>
+                )}
               </div>
               <p className="text-sm text-gray-600 font-medium mb-1">
                 Full Stack Developer · React · Node.js · Cloud Architecture
@@ -325,7 +341,7 @@ export default function ProfileHeader({
               { value: user?.followersCount || "0", label: "Followers" },
               { value: user?.followingCount || "0", label: "Following" },
               { value: user?.friendsCount || "0", label: "Friends" },
-              { value: "47", label: "Posts" },
+              { value: postsCount.toString(), label: "Posts" },
             ].map((stat, i) => (
               <div key={stat.label} className={`flex-1 text-center ${i > 0 ? "border-l border-gray-100" : ""}`}>
                 <p className="text-xl font-bold text-[#103B40]">{stat.value}</p>

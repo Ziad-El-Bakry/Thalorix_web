@@ -14,6 +14,7 @@ interface ChatStore {
   isTyping: Record<string, boolean>; // userId -> isTyping
   offlineQueue: any[]; // Stored offline messages
   replyingTo: Message | null;
+  onlineUserIds: string[]; // List of currently online user IDs
   
   // Actions
   init: () => void;
@@ -45,7 +46,7 @@ const mapBackendMessage = (msg: any): Message => ({
   replyToMessage: msg.replyTo ? mapBackendMessage(msg.replyTo) : undefined,
 });
 
-const mapBackendConversation = (conv: any, currentUserId: string): Conversation => {
+const mapBackendConversation = (conv: any, currentUserId: string, onlineUserIds: string[] = []): Conversation => {
   const otherUser = conv.participants.find((p: any) => p._id !== currentUserId) || conv.participants[0];
   return {
     id: conv._id,
@@ -53,7 +54,7 @@ const mapBackendConversation = (conv: any, currentUserId: string): Conversation 
       id: otherUser._id,
       name: otherUser.name || "User",
       avatarUrl: otherUser.avatar || "/images/avatar.png",
-      online: false, // We'll update this via socket later
+      online: onlineUserIds.includes(otherUser._id),
     }],
     messages: [], // Loaded separately
     lastMessage: conv.lastMessage ? mapBackendMessage(conv.lastMessage) : undefined,
@@ -70,6 +71,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   isTyping: {},
   offlineQueue: [],
   replyingTo: null,
+  onlineUserIds: [],
 
   init: () => {
     const socket = socketService.connect();
@@ -201,6 +203,48 @@ export const useChatStore = create<ChatStore>((set, get) => ({
         };
       });
     });
+
+    socket.on("online_users", (userIds: string[]) => {
+      set({ onlineUserIds: userIds });
+      set((state) => ({
+        conversations: state.conversations.map((c) => {
+          const otherParticipant = c.participants[0];
+          if (otherParticipant) {
+            return {
+              ...c,
+              participants: [{ ...otherParticipant, online: userIds.includes(otherParticipant.id) }],
+            };
+          }
+          return c;
+        }),
+      }));
+    });
+
+    socket.on("user_status", ({ userId, status }) => {
+      set((state) => {
+        const currentOnline = [...state.onlineUserIds];
+        if (status === "online") {
+          if (!currentOnline.includes(userId)) currentOnline.push(userId);
+        } else {
+          const idx = currentOnline.indexOf(userId);
+          if (idx > -1) currentOnline.splice(idx, 1);
+        }
+
+        return {
+          onlineUserIds: currentOnline,
+          conversations: state.conversations.map((c) => {
+            const otherParticipant = c.participants[0];
+            if (otherParticipant && otherParticipant.id === userId) {
+              return {
+                ...c,
+                participants: [{ ...otherParticipant, online: status === "online" }],
+              };
+            }
+            return c;
+          }),
+        };
+      });
+    });
   },
 
   cleanup: () => {
@@ -221,7 +265,8 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     try {
       const data = await chatService.getConversations();
       const currentUserId = useAuthStore.getState().currentUserId || "current_user_id";
-      const parsed = data.map((c: any) => mapBackendConversation(c, currentUserId));
+      const onlineUserIds = get().onlineUserIds;
+      const parsed = data.map((c: any) => mapBackendConversation(c, currentUserId, onlineUserIds));
       set({ conversations: parsed });
     } catch (e) {
       console.error("Failed to load conversations", e);

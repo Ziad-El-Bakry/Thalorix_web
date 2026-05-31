@@ -261,13 +261,19 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
 
   const activeAvatar = isOwnProfile ? globalAvatar : displayAvatar;
 
-  const globalPosts = usePostStore((state: any) => state.posts);
+  const { posts: globalPosts, fetchFeed } = usePostStore();
   const posts = globalPosts
     .filter((p: any) => isOwnProfile ? (p.author.name === userName || p.author.name === "Emad" || p.id.startsWith("p") || p.author.id === "1") : (user && p.author.name === user.name))
     .map((p: any) => ({
       ...p,
       author: { ...p.author, name: isOwnProfile ? userName : p.author.name, avatar: isOwnProfile ? activeAvatar : p.author.avatar }
     }));
+
+  useEffect(() => {
+    if (globalPosts.length === 0) {
+      fetchFeed();
+    }
+  }, [fetchFeed, globalPosts.length]);
 
   if (loading) {
     return (
