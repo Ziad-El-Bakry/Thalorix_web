@@ -19,13 +19,13 @@ export default function SellerAbout({ seller }: SellerAboutProps) {
 
         <div className="pt-2 space-y-4">
           {seller.email && (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 min-w-0">
               <div className="w-8 h-8 bg-teal-50 rounded-lg flex items-center justify-center text-teal-600 shrink-0">
                 <Mail size={16} />
               </div>
-              <div>
+              <div className="min-w-0 flex-1">
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Contact Email</p>
-                <a href={`mailto:${seller.email}`} className="text-sm font-semibold text-gray-800 hover:text-teal-700">
+                <a href={`mailto:${seller.email}`} className="text-sm font-semibold text-gray-800 hover:text-teal-700 block truncate">
                   {seller.email}
                 </a>
               </div>
@@ -33,13 +33,13 @@ export default function SellerAbout({ seller }: SellerAboutProps) {
           )}
 
           {seller.website && (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 min-w-0">
               <div className="w-8 h-8 bg-teal-50 rounded-lg flex items-center justify-center text-teal-600 shrink-0">
                 <Globe size={16} />
               </div>
-              <div>
+              <div className="min-w-0 flex-1">
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Website</p>
-                <a href={seller.website.startsWith("http") ? seller.website : `https://${seller.website}`} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-teal-700 hover:underline">
+                <a href={seller.website.startsWith("http") ? seller.website : `https://${seller.website}`} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-teal-700 hover:underline block truncate">
                   {seller.website}
                 </a>
               </div>

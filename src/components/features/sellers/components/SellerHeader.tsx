@@ -33,15 +33,15 @@ export default function SellerHeader({
         {seller.banner ? (
           <img src={seller.banner} alt={seller.storeName || seller.name} className="w-full h-full object-cover" />
         ) : (
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-teal-800 via-emerald-950 to-slate-900 opacity-80" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-teal-600 via-emerald-950 to-slate-900 opacity-80" />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
       </div>
 
       {/* Brand row */}
-      <div className="px-6 sm:px-8 pb-8 relative flex flex-col md:flex-row items-center md:items-end gap-6 -mt-16 sm:-mt-20">
+      <div className="px-6 sm:px-8 pb-8 relative flex flex-col md:flex-row items-center md:items-end gap-6 md:gap-6 -mt-16 sm:-mt-20">
         {/* Store Logo */}
-        <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-white bg-slate-50 overflow-hidden shadow-2xl relative z-10 flex-shrink-0 flex items-center justify-center">
+        <div className="w-42 h-42 sm:w-50 sm:h-50 rounded-full border-4 border-white bg-slate-50 overflow-hidden shadow-2xl relative z-10 flex-shrink-0 flex items-center justify-center">
           {seller.logo ? (
             <img src={seller.logo} alt={seller.storeName || seller.name} className="w-full h-full object-cover" />
           ) : (
@@ -52,7 +52,7 @@ export default function SellerHeader({
         </div>
 
         {/* Store Name & Location Info */}
-        <div className="flex-1 text-center md:text-left pt-2">
+        <div className="flex-1 text-center md:text-left pt-2 md:pl-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-center md:justify-start gap-2.5 mb-2">
             <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
               {seller.storeName || seller.name || "Store Name"}
