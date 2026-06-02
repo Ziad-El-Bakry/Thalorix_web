@@ -7,6 +7,12 @@ import { ChevronLeft, Download, History } from "lucide-react";
 import { usePurchaseStore } from "@/store/usePurchaseStore";
 import Image from "next/image";
 
+const isValidImage = (src?: string) => {
+  if (!src) return false;
+  if (src.startsWith("/mnt/")) return false;
+  return true;
+};
+
 export default function HistoryPage() {
   const { purchasedItems } = usePurchaseStore();
 
@@ -52,20 +58,24 @@ export default function HistoryPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {purchasedItems.map((item) => (
-              <motion.div 
-                key={item.id || item._id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-white rounded-[20px] overflow-hidden p-4 shadow-sm hover:shadow-md transition-shadow duration-300 border border-teal-50 flex flex-col h-full"
-              >
-                <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden mb-4 bg-gray-100">
-                  {item.image || item.imageUrl ? (
-                    <Image src={item.image || item.imageUrl || ""} alt={item.title} fill className="object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400 bg-[#E2E3EA] text-sm">No Cover</div>
-                  )}
-                </div>
+            {purchasedItems.map((item) => {
+              const imagePath = item.image || item.imageUrl;
+              const hasValidImage = isValidImage(imagePath);
+
+              return (
+                <motion.div 
+                  key={item.id || item._id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-white rounded-[20px] overflow-hidden p-4 shadow-sm hover:shadow-md transition-shadow duration-300 border border-teal-50 flex flex-col h-full"
+                >
+                  <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden mb-4 bg-gray-100">
+                    {hasValidImage ? (
+                      <Image src={imagePath as string} alt={item.title} fill className="object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-400 bg-[#E2E3EA] text-sm">No Cover</div>
+                    )}
+                  </div>
                 <div className="px-1 mb-4 flex-1 flex flex-col">
                   <h3 className="font-bold text-[#103B40] text-lg leading-tight mb-2 line-clamp-2">{item.title}</h3>
                   <p className="text-xs text-gray-500 mb-3 flex-1">{item.description}</p>
@@ -85,8 +95,9 @@ export default function HistoryPage() {
                   )}
                 </div>
               </motion.div>
-            ))}
-          </div>
+            );
+          })}
+        </div>
         )}
       </div>
     </div>

@@ -9,6 +9,12 @@ import { usePurchaseStore } from "@/store/usePurchaseStore";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
+const isValidImage = (src?: string) => {
+  if (!src) return false;
+  if (src.startsWith("/mnt/")) return false;
+  return true;
+};
+
 export default function CartPage() {
   const { items, removeFromCart, clearCart, getTotal } = useCartStore();
   const { addPurchases } = usePurchaseStore();
@@ -16,9 +22,33 @@ export default function CartPage() {
 
   const handleCheckout = () => {
     if (items.length === 0) return;
-    addPurchases(items);
-    clearCart();
-    router.push("/dashboard/marketplace/history");
+
+    // Filter free and paid items
+    const freeItems = items.filter(item => item.price <= 0);
+    const paidItems = items.filter(item => item.price > 0);
+
+    if (freeItems.length > 0) {
+      addPurchases(freeItems);
+    }
+
+    if (paidItems.length > 0) {
+      alert("Free templates have been added to your library! Redirecting to secure checkout for your paid templates.");
+      
+      // Remove only free items from the cart, keeping paid items
+      items.forEach(item => {
+        if (item.price <= 0) {
+          removeFromCart(item.id || item._id as string);
+        }
+      });
+
+      // Redirect to the first paid item's payment page
+      const firstPaid = paidItems[0];
+      router.push(`/dashboard/marketplace/${firstPaid.id || firstPaid._id}/payment`);
+    } else {
+      // If all items are free, complete checkout normally
+      clearCart();
+      router.push("/dashboard/marketplace/history");
+    }
   };
 
   return (
@@ -64,15 +94,19 @@ export default function CartPage() {
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-4">
-              {items.map((item) => (
-                <div key={item.id || item._id} className="bg-white rounded-[20px] p-4 shadow-sm border border-teal-50 flex gap-4 items-center">
-                  <div className="relative w-24 h-24 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-                    {item.image || item.imageUrl ? (
-                      <Image src={item.image || item.imageUrl || ""} alt={item.title} fill className="object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400 bg-[#E2E3EA] text-xs">No Cover</div>
-                    )}
-                  </div>
+              {items.map((item) => {
+                const imagePath = item.image || item.imageUrl;
+                const hasValidImage = isValidImage(imagePath);
+
+                return (
+                  <div key={item.id || item._id} className="bg-white rounded-[20px] p-4 shadow-sm border border-teal-50 flex gap-4 items-center">
+                    <div className="relative w-24 h-24 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                      {hasValidImage ? (
+                        <Image src={imagePath as string} alt={item.title} fill className="object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-400 bg-[#E2E3EA] text-xs">No Cover</div>
+                      )}
+                    </div>
                   <div className="flex-1">
                     <h3 className="font-bold text-[#103B40] text-lg mb-1">{item.title}</h3>
                     <p className="text-sm text-gray-500 mb-2 line-clamp-1">{item.description}</p>
@@ -87,8 +121,9 @@ export default function CartPage() {
                     <Trash2 size={20} />
                   </button>
                 </div>
-              ))}
-            </div>
+              );
+            })}
+          </div>
             
             <div className="lg:col-span-1">
               <div className="bg-white rounded-[20px] p-6 shadow-sm border border-teal-50 sticky top-6">

@@ -8,6 +8,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Template } from "@/types";
 import { templatesService } from "@/lib/api/services/templates.service";
+import { usePurchaseStore } from "@/store/usePurchaseStore";
 
 export default function PaymentSuccessPage() {
   const params = useParams();
@@ -18,6 +19,7 @@ export default function PaymentSuccessPage() {
   const [template, setTemplate] = useState<Template | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showReceipt, setShowReceipt] = useState(false);
+  const { addPurchases } = usePurchaseStore();
 
   const isFree = template?.price === 0 || template?.price === undefined;
 
@@ -26,6 +28,9 @@ export default function PaymentSuccessPage() {
       try {
         const data = await templatesService.getById(id);
         setTemplate(data);
+        if (data) {
+          addPurchases([data]);
+        }
       } catch (err) {
         console.error("Failed to load template", err);
       } finally {

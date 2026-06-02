@@ -18,12 +18,20 @@ const itemVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
 };
 
+const isValidImage = (src?: string) => {
+  if (!src) return false;
+  if (src.startsWith("/mnt/")) return false;
+  return true;
+};
+
 export default function TemplateCard({ id, title, price, imageSrc, category, seller }: TemplateCardProps) {
+  const hasValidImage = isValidImage(imageSrc);
+
   return (
     <motion.div variants={itemVariants} className="bg-white rounded-[20px] overflow-hidden p-4 shadow-xl hover:shadow-2xl transition-shadow duration-300 flex flex-col h-full">
       <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden mb-4 bg-gray-100">
-        {imageSrc ? (
-          <Image src={imageSrc} alt={title} fill className="object-cover" />
+        {hasValidImage ? (
+          <Image src={imageSrc as string} alt={title} fill className="object-cover" />
         ) : (
           <div className="w-full h-full flex flex-col justify-center items-center text-gray-400 bg-[#E2E3EA]">
             <span className="text-sm font-medium">No Cover</span>

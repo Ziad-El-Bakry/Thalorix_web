@@ -8,8 +8,16 @@ interface ImageGalleryProps {
   template: Template;
 }
 
+const isValidImage = (src?: string) => {
+  if (!src) return false;
+  if (src.startsWith("/mnt/")) return false;
+  return true;
+};
+
 export default function ImageGallery({ template }: ImageGalleryProps) {
   const mainImage = template.image || template.imageUrl;
+  const hasValidImage = isValidImage(mainImage);
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
@@ -18,8 +26,8 @@ export default function ImageGallery({ template }: ImageGalleryProps) {
       className="w-full bg-white rounded-2xl p-4 shadow-sm mb-8"
     >
       <div className="relative w-full aspect-[21/9] bg-[#E2E3EA] rounded-xl overflow-hidden mb-4">
-        {mainImage ? (
-          <Image src={mainImage} alt={template.title} fill className="object-cover" />
+        {hasValidImage ? (
+          <Image src={mainImage as string} alt={template.title} fill className="object-cover" />
         ) : (
           <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
              <span className="font-medium text-lg">No Presentation Image</span>

@@ -38,7 +38,10 @@ export default function MarketplacePage() {
     const fetchTemplates = async () => {
       try {
         const data = await templatesService.getAll();
-        setTemplates(data);
+        const sortedData = data.sort((a: any, b: any) => {
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        });
+        setTemplates(sortedData);
       } catch (err) {
         console.error("Failed to load templates", err);
       } finally {
