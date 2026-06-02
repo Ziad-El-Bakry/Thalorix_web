@@ -39,8 +39,9 @@ export default function UploadFlow() {
         title: data.title,
         description: data.description,
         price: data.price,
-        categoryId: "60d5ecb8b392d7001f8e8e31", // Default category ID for now since we don't have a category selector
+        categoryId: data.categoryId, 
         fileUrl: data.file,
+        image: data.image,
       });
 
       clearInterval(interval);

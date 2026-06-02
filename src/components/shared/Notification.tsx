@@ -36,7 +36,8 @@ export default function Notifications({ alignClass = "-right-[90px] md:right-0 w
         const fetchPendingRequests = async () => {
             try {
                 const reqs = await usersService.getPendingFriendRequests();
-                const mappedReqs = reqs.map((r: any) => ({
+                const validReqs = reqs.filter((r: any) => r && r.senderId);
+                const mappedReqs = validReqs.map((r: any) => ({
                     id: `friend_req_${r._id}`,
                     type: "friend_request",
                     senderId: r.senderId._id || r.senderId.id || r.senderId,

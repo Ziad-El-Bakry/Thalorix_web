@@ -30,10 +30,12 @@ export default function Sidebar() {
   const pathname = usePathname();
   const { hasUnreadMessages, markMessagesRead } = useNotifications();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isSeller, setIsSeller] = useState(false);
 
   useEffect(() => {
     const user = authService.getStoredUser();
     setIsAdmin(user?.role === "admin");
+    setIsSeller(user?.role === "seller");
   }, []);
   return (
     <motion.aside
@@ -102,7 +104,12 @@ export default function Sidebar() {
       <nav className="flex-1">
         <ul className="space-y-3">
           {NAV.map((item) => {
-            let isActive = pathname === item.href;
+            let itemHref = item.href;
+            if (item.label === "Profile" && isSeller) {
+              itemHref = "/dashboard/seller/profile";
+            }
+
+            let isActive = pathname === itemHref;
             
             // If viewing another person's profile, highlight Community instead of Profile
             if (pathname?.startsWith("/dashboard/profile/") && pathname !== "/dashboard/profile") {
@@ -110,17 +117,22 @@ export default function Sidebar() {
               if (item.label === "Profile") isActive = false;
             }
 
+            if (pathname?.startsWith("/dashboard/seller/") && pathname !== "/dashboard/seller/profile") {
+              if (item.label === "Community") isActive = true;
+              if (item.label === "Profile") isActive = false;
+            }
+ 
             // If viewing marketplace related pages, highlight Marketplace
             if (pathname?.startsWith("/dashboard/marketplace")) {
               if (item.label === "Marketplace") isActive = true;
             }
-
+ 
             const Icon = item.icon;
-
+ 
             return (
-              <li key={item.href}>
+              <li key={itemHref}>
                 <Link 
-                  href={item.href}
+                  href={itemHref}
                   className="block focus:outline-none focus-visible:outline-none outline-none"
                   onClick={() => {
                     if (item.label === "Message") {

@@ -1,14 +1,20 @@
 "use client";
 
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
 import { usePathname } from "next/navigation";
 //import { motion, AnimatePresence } from "framer-motion";
 import Sidebar from "@/components/layout/Sidebar";
 import MobileNavbar from "@/components/layout/MobileNavbar";
 import NavigationLoader from "@/components/layout/NavigationLoader";
+import { useAuthStore } from "@/store/useAuthStore";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const { initAuth } = useAuthStore();
+
+  useEffect(() => {
+    initAuth();
+  }, [initAuth]);
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">

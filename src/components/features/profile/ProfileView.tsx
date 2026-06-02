@@ -119,6 +119,10 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
         if (idToFetch) {
           const data = await usersService.getUserById(idToFetch);
           if (data) {
+            if (data.role === "seller") {
+              router.replace(`/dashboard/seller/${idToFetch}`);
+              return;
+            }
             setUser(data);
             if (!isOwnProfile) {
               try {
@@ -234,6 +238,23 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
     }
   };
 
+  const handleResetAvatar = async () => {
+    if (user?.id || user?._id) {
+      try {
+        await usersService.updateProfile(user.id || user._id, { avatarUrl: "" });
+        setDisplayAvatar("");
+        setGlobalAvatar("");
+        const updatedUser = { ...user, avatar: "" };
+        setUser(updatedUser);
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+        fireToast("Profile photo reset to default!");
+      } catch (error) {
+        console.error("Failed to reset avatar:", error);
+        fireToast("Failed to reset avatar. Please try again.");
+      }
+    }
+  };
+
   const handleCoverChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && isOwnProfile) {
@@ -257,13 +278,19 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
 
   const activeAvatar = isOwnProfile ? globalAvatar : displayAvatar;
 
-  const globalPosts = usePostStore((state: any) => state.posts);
+  const { posts: globalPosts, fetchFeed } = usePostStore();
   const posts = globalPosts
     .filter((p: any) => isOwnProfile ? (p.author.name === userName || p.author.name === "Emad" || p.id.startsWith("p") || p.author.id === "1") : (user && p.author.name === user.name))
     .map((p: any) => ({
       ...p,
       author: { ...p.author, name: isOwnProfile ? userName : p.author.name, avatar: isOwnProfile ? activeAvatar : p.author.avatar }
     }));
+
+  useEffect(() => {
+    if (globalPosts.length === 0) {
+      fetchFeed();
+    }
+  }, [fetchFeed, globalPosts.length]);
 
   if (loading) {
     return (
@@ -354,9 +381,11 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
         coverInputRef={coverInputRef}
         handleFileChange={handleFileChange}
         handleCoverChange={handleCoverChange}
+        handleResetAvatar={handleResetAvatar}
         triggerUpload={triggerUpload}
         relationship={relationship}
         setRelationship={setRelationship}
+        postsCount={posts.length}
       />
 
       {/* ═══════════════════════════════════════

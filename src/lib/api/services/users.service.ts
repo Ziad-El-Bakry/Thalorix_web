@@ -63,7 +63,8 @@ export const usersService = {
       if (!data || (!data.id && !data._id)) {
         throw { response: { status: 404 } };
       }
-      return { ...data, id: data.id || data._id, avatar: data.avatar || data.avatarUrl };
+      const avatarUrl = data.avatarUrl || data.avatar || data.logo || "/images/avatar.png";
+      return { ...data, id: data.id || data._id, avatar: avatarUrl, avatarUrl };
     } catch (e1: any) {
       if (e1.response?.status !== 404) throw e1;
       
@@ -72,7 +73,8 @@ export const usersService = {
         if (!data || (!data.id && !data._id)) {
           throw { response: { status: 404 } };
         }
-        return { ...data, id: data.id || data._id, avatar: data.avatar || data.avatarUrl };
+        const avatarUrl = data.avatarUrl || data.avatar || data.logo || "/images/avatar.png";
+        return { ...data, id: data.id || data._id, avatar: avatarUrl, avatarUrl };
       } catch (e2: any) {
         if (e2.response?.status !== 404) throw e2;
         
@@ -80,7 +82,8 @@ export const usersService = {
         if (!data || (!data.id && !data._id)) {
           throw { response: { status: 404 } };
         }
-        return { ...data, id: data.id || data._id, avatar: data.avatar || data.avatarUrl };
+        const avatarUrl = data.avatarUrl || data.avatar || data.logo || "/images/avatar.png";
+        return { ...data, id: data.id || data._id, avatar: avatarUrl, avatarUrl };
       }
     }
   },
@@ -89,7 +92,14 @@ export const usersService = {
    * Update user details (JSON)
    */
   async updateUser(id: string, dto: Partial<User>): Promise<User> {
-    const { data } = await api.patch<User>(ENDPOINTS.USERS.UPDATE(id), dto);
+    const storedUser = authService.getStoredUser();
+    const { data } = await api.patch<any>(ENDPOINTS.USERS.UPDATE(id), dto);
+    
+    if (storedUser && (storedUser.id === id || storedUser.id === data._id)) {
+      const avatarUrl = data.avatarUrl || data.avatar || data.logo || dto.avatar || (dto as any).avatarUrl || "/images/avatar.png";
+      const updatedUser = { ...storedUser, ...data, id: data._id || id, avatar: avatarUrl, avatarUrl };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    }
     return data;
   },
 
@@ -98,7 +108,7 @@ export const usersService = {
    */
   async updateProfile(id: string, dto: UpdateProfileDto): Promise<User> {
     const storedUser = authService.getStoredUser();
-    
+
     // Backend expects JSON with 'name' instead of 'username', and 'bio', 'expertise', 'socialLinks'.
     const payload: any = {};
     if (dto.username) payload.name = dto.username;
@@ -119,6 +129,13 @@ export const usersService = {
 
     const { data } = await api.patch<any>(endpoint, payload);
     const userObj = data.user || data.seller || data;
+
+    if (storedUser && (storedUser.id === id || storedUser.id === (userObj as any)._id)) {
+      const avatarUrl = (userObj as any).avatarUrl || userObj.avatar || (userObj as any).logo || dto.avatarUrl || "/images/avatar.png";
+      const updatedUser = { ...storedUser, ...userObj, id: (userObj as any)._id || id, avatar: avatarUrl, avatarUrl };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    }
+
     return {
       ...userObj,
       id: userObj.id || userObj._id,

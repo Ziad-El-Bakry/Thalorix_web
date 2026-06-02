@@ -13,10 +13,12 @@ import {
   ChevronLeft,
   UserPlus,
   Clock,
-  UserCheck
+  UserCheck,
+  Trash2
 } from "lucide-react";
 import { usersService } from "@/lib/api/services/users.service";
 import { chatService } from "@/lib/api/services/chat.service";
+import { useChatStore } from "@/store/useChatStore";
 import { useRouter } from "next/navigation";
 
 interface ProfileHeaderProps {
@@ -35,9 +37,11 @@ interface ProfileHeaderProps {
   coverInputRef: React.RefObject<HTMLInputElement | null>;
   handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleCoverChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleResetAvatar?: () => void;
   triggerUpload: () => void;
   relationship?: any;
   setRelationship?: React.Dispatch<React.SetStateAction<any>>;
+  postsCount?: number;
 }
 
 export default function ProfileHeader({
@@ -56,12 +60,16 @@ export default function ProfileHeader({
   coverInputRef,
   handleFileChange,
   handleCoverChange,
+  handleResetAvatar,
   triggerUpload,
   relationship,
-  setRelationship
+  setRelationship,
+  postsCount = 0
 }: ProfileHeaderProps) {
   const router = useRouter();
   const [isMessageLoading, setIsMessageLoading] = useState(false);
+  const onlineUserIds = useChatStore((state) => state.onlineUserIds);
+  const isOnline = !isOwnProfile && user && onlineUserIds.includes(user.id || user._id);
 
   const handleToggleFollow = async () => {
     if (!user || !setRelationship) return;
@@ -141,7 +149,7 @@ export default function ProfileHeader({
       >
         {/* Cover Banner */}
         <div className="relative h-[180px] md:h-[220px] overflow-hidden group bg-gradient-to-r from-teal-800 to-[#103B40]">
-          <input type="file" ref={coverInputRef} onChange={handleCoverChange} accept="image/*" className="hidden" />
+          <input type="file" ref={coverInputRef} onChange={handleCoverChange} accept="image/*" className="hidden" title="Upload cover image" />
           {coverImage ? (
             <img
               src={coverImage}
@@ -177,7 +185,7 @@ export default function ProfileHeader({
         <div className="relative px-5 md:px-8 pb-6">
           {/* Avatar */}
           <div className="relative -mt-16 mb-3 inline-block group">
-            {isOwnProfile && <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />}
+            {isOwnProfile && <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" title="Upload avatar image" />}
             <motion.div
               onClick={() => isOwnProfile && setIsMenuOpen(!isMenuOpen)}
               whileHover={isOwnProfile ? { scale: 1.03 } : undefined}
@@ -190,6 +198,9 @@ export default function ProfileHeader({
                 </div>
               )}
             </motion.div>
+            {isOnline && (
+              <span className="absolute bottom-1 right-1 w-5 h-5 bg-green-500 rounded-full border-[3px] border-white z-20 shadow-md animate-pulse" />
+            )}
             {isOwnProfile && (
               <motion.button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -223,6 +234,14 @@ export default function ProfileHeader({
                   >
                     <Eye size={16} className="text-[#103B40]" /> Preview Image
                   </button>
+                  {handleResetAvatar && (
+                    <button
+                      onClick={() => { setIsMenuOpen(false); handleResetAvatar(); }}
+                      className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 flex items-center gap-3 transition-colors font-medium border-t border-gray-50"
+                    >
+                      <Trash2 size={16} /> Reset Default
+                    </button>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -236,6 +255,16 @@ export default function ProfileHeader({
                 <span className="inline-flex items-center gap-1 text-[11px] font-bold text-teal-700 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-full">
                   <CheckCircle size={12} /> VERIFIED
                 </span>
+                {!isOwnProfile && (
+                  <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full border ${
+                    isOnline 
+                      ? "text-green-700 bg-green-50 border-green-200" 
+                      : "text-gray-500 bg-gray-50 border-gray-200"
+                  }`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? "bg-green-500 animate-pulse" : "bg-gray-400"}`} />
+                    {isOnline ? "ONLINE" : "OFFLINE"}
+                  </span>
+                )}
               </div>
               <p className="text-sm text-gray-600 font-medium mb-1">
                 Full Stack Developer · React · Node.js · Cloud Architecture
@@ -323,7 +352,7 @@ export default function ProfileHeader({
               { value: user?.followersCount || "0", label: "Followers" },
               { value: user?.followingCount || "0", label: "Following" },
               { value: user?.friendsCount || "0", label: "Friends" },
-              { value: "47", label: "Posts" },
+              { value: postsCount.toString(), label: "Posts" },
             ].map((stat, i) => (
               <div key={stat.label} className={`flex-1 text-center ${i > 0 ? "border-l border-gray-100" : ""}`}>
                 <p className="text-xl font-bold text-[#103B40]">{stat.value}</p>

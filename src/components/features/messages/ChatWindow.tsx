@@ -8,7 +8,7 @@ import MessageInput from "./MessageInput";
 import { X } from "lucide-react";
 import { useAvatar } from "@/store/useAvatarStore";
 import { useChatStore } from "@/store/useChatStore";
-import { authService } from "@/lib/api/services/auth.service";
+import { useAuthStore } from "@/store/useAuthStore";
 import ConnectionStatusBanner from "./ConnectionStatusBanner";
 
 export default function ChatWindow({
@@ -27,9 +27,13 @@ export default function ChatWindow({
   const containerRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { avatar: globalAvatar } = useAvatar();
+  const { currentUserId, initAuth } = useAuthStore();
+
+  useEffect(() => {
+    initAuth();
+  }, [initAuth]);
 
   const otherUser = conversation?.participants?.[0] || { id: "1", name: "User", online: true, avatarUrl: "/images/avatar.png" };
-  const currentUserId = authService.getStoredUser()?.id || "current_user_id";
 
   const messages = conversation ? storeMessages[conversation.id] || [] : [];
   const isTyping = globalTyping[otherUser.id] || false;
@@ -43,15 +47,6 @@ export default function ChatWindow({
 
   const handleInput = (val: string) => {
     setInputValue(val);
-    if (!typingTimeoutRef.current) {
-      sendTyping(otherUser.id, true);
-    } else {
-      clearTimeout(typingTimeoutRef.current);
-    }
-    typingTimeoutRef.current = setTimeout(() => {
-      sendTyping(otherUser.id, false);
-      typingTimeoutRef.current = null;
-    }, 2000);
   };
 
   const handleSend = (content: string, type: "text" | "audio" | "image" | "file" | "pdf" | "zip" = "text", fileName?: string) => {
@@ -153,7 +148,7 @@ export default function ChatWindow({
                 )}
                 <MessageBubble
                   message={m}
-                  isOwn={m.sender.id === currentUserId || m.sender.id === "me"}
+                  isOwn={m.sender.id === currentUserId}
                   onImageClick={(url: string) => setSelectedImage(url)}
                   onReply={(msg: Message) => setReplyingTo(msg)}
                 />
@@ -184,6 +179,7 @@ export default function ChatWindow({
         onSend={handleSend}
         replyingTo={replyingTo}
         onCancelReply={() => setReplyingTo(null)}
+        receiverId={otherUser.id}
       />
 
       {/* Fullscreen Image Modal */}

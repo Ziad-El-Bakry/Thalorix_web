@@ -2,7 +2,8 @@
 
 import UserHeader from "@/components/ui/UserHeader";
 import TemplateList from "@/components/features/marketplace/shared/TemplateList";
-import { Search, Filter, LayoutGrid, Upload } from "lucide-react";
+import { Search, Filter, LayoutGrid, Upload, ShoppingCart, History } from "lucide-react";
+import { useCartStore } from "@/store/useCartStore";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import {
@@ -15,13 +16,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useState, useEffect } from "react";
 import { authService } from "@/lib/api/services/auth.service";
+import { templatesService } from "@/lib/api/services/templates.service";
+import { Template } from "@/types";
 
 export default function MarketplacePage() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [category, setCategory] = useState("All Categories");
-  const [sortBy, setSortBy] = useState("Newest First");
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState("User");
   const [isSeller, setIsSeller] = useState(false);
+  const cartItems = useCartStore((state) => state.items);
 
   useEffect(() => {
     const user = authService.getStoredUser() as any;
@@ -31,6 +34,21 @@ export default function MarketplacePage() {
         setIsSeller(true);
       }
     }
+
+    const fetchTemplates = async () => {
+      try {
+        const data = await templatesService.getAll();
+        const sortedData = data.sort((a: any, b: any) => {
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        });
+        setTemplates(sortedData);
+      } catch (err) {
+        console.error("Failed to load templates", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTemplates();
   }, []);
 
   return (
@@ -40,81 +58,55 @@ export default function MarketplacePage() {
           <UserHeader name={userName} compact={true} />
         </div>
 
-        {/* Search Bar */}
+        {/* Header Actions */}
         <motion.div 
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4, delay: 0.1 }}
-          className="flex items-center gap-4 mt-2 mb-2"
+          className="flex justify-between items-center gap-4 mt-2 mb-2"
         >
-          <div className="flex-1 relative">
-            <input
-              type="text"
-              placeholder="Search"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#123E41] text-white placeholder-gray-300 rounded-xl py-3.5 px-4 outline-none focus:ring-2 focus:ring-teal-500/50 pr-12 transition-all"
-            />
-            <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none" size={20} />
+          <div className="flex-1">
+            <h2 className="text-[#103B40] font-bold text-2xl">All Templates</h2>
           </div>
           <div className="flex items-center gap-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button suppressHydrationWarning className={`p-3.5 rounded-xl flex-shrink-0 flex items-center justify-center transition-colors focus:ring-2 focus:ring-teal-500/50 outline-none ${category !== "All Categories" ? "bg-teal-600 text-white" : "bg-[#123E41] text-white hover:bg-[#0d2c2e]"}`} title="Categories">
-                  <LayoutGrid size={20} />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuLabel>Categories</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setCategory("All Categories")} className={category === "All Categories" ? "bg-slate-100 font-medium" : ""}>All Categories</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setCategory("E-Commerce")} className={category === "E-Commerce" ? "bg-slate-100 font-medium" : ""}>E-Commerce</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setCategory("Social Media")} className={category === "Social Media" ? "bg-slate-100 font-medium" : ""}>Social Media</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setCategory("Restaurant")} className={category === "Restaurant" ? "bg-slate-100 font-medium" : ""}>Restaurant</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setCategory("Portfolio")} className={category === "Portfolio" ? "bg-slate-100 font-medium" : ""}>Portfolio</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setCategory("Dashboard")} className={category === "Dashboard" ? "bg-slate-100 font-medium" : ""}>Dashboard</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button suppressHydrationWarning className={`p-3.5 rounded-xl flex-shrink-0 flex items-center justify-center transition-colors focus:ring-2 focus:ring-teal-500/50 outline-none ${sortBy !== "Newest First" ? "bg-teal-600 text-white" : "bg-[#123E41] text-white hover:bg-[#0d2c2e]"}`} title="Filter/Sort">
-                  <Filter size={20} />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuLabel>Sort By</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setSortBy("Newest First")} className={sortBy === "Newest First" ? "bg-slate-100 font-medium" : ""}>Newest First</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSortBy("Popularity")} className={sortBy === "Popularity" ? "bg-slate-100 font-medium" : ""}>Popularity</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSortBy("Price: Low to High")} className={sortBy === "Price: Low to High" ? "bg-slate-100 font-medium" : ""}>Price: Low to High</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSortBy("Price: High to Low")} className={sortBy === "Price: High to Low" ? "bg-slate-100 font-medium" : ""}>Price: High to Low</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
+            <Link
+              href="/dashboard/marketplace/history"
+              className="flex items-center gap-2 bg-white text-[#123E41] px-4 py-3.5 rounded-xl transition-colors font-medium text-sm shadow-sm border border-teal-50 hover:bg-teal-50"
+            >
+              <History size={18} />
+              <span className="hidden sm:inline">History</span>
+            </Link>
+            <Link
+              href="/dashboard/marketplace/cart"
+              className="flex items-center gap-2 bg-white text-[#123E41] px-4 py-3.5 rounded-xl transition-colors font-medium text-sm shadow-sm border border-teal-50 hover:bg-teal-50 relative"
+            >
+              <ShoppingCart size={18} />
+              <span className="hidden sm:inline">Cart</span>
+              {cartItems.length > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full">
+                  {cartItems.length}
+                </span>
+              )}
+            </Link>
             {isSeller && (
               <Link
                 href="/dashboard/marketplace/upload"
-                className="hidden sm:flex items-center gap-2 bg-[#123E41] hover:bg-[#0d2c2e] text-white px-4 py-3.5 rounded-xl transition-colors font-medium text-sm ml-2 shadow-sm"
+                className="flex items-center gap-2 bg-[#123E41] hover:bg-[#0d2c2e] text-white px-4 py-3.5 rounded-xl transition-colors font-medium text-sm ml-2 shadow-sm"
               >
                 <Upload size={18} />
-                <span>Upload Template</span>
-              </Link>
-            )}
-            
-            {isSeller && (
-              <Link
-                href="/dashboard/marketplace/upload"
-                className="sm:hidden p-3.5 rounded-xl flex-shrink-0 flex items-center justify-center bg-[#123E41] hover:bg-[#0d2c2e] text-white transition-colors shadow-sm ml-2"
-                title="Upload Template"
-              >
-                <Upload size={20} />
+                <span className="hidden sm:inline">Upload Template</span>
               </Link>
             )}
           </div>
         </motion.div>
 
-        <TemplateList searchQuery={searchQuery} category={category} sortBy={sortBy} />
+        {loading ? (
+          <div className="flex justify-center items-center py-20 text-[#123E41]">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#123E41]"></div>
+          </div>
+        ) : (
+          <TemplateList templates={templates} />
+        )}
       </div>
     </div>
   );

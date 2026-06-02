@@ -12,8 +12,26 @@ export interface Seller {
   storeName?: string;
   storeDescription?: string;
   logo?: string;
+  banner?: string;
   address?: string;
+  businessCategory?: string;
+  website?: string;
+  socialLinks?: {
+    facebook?: string;
+    instagram?: string;
+    linkedin?: string;
+    twitter?: string;
+    website?: string;
+  };
+  businessType?: string;
+  taxNumber?: string;
+  verificationDocuments?: string[];
   ratings?: number;
+  reviewsCount?: number;
+  salesCount?: number;
+  downloadsCount?: number;
+  followersCount?: number;
+  followingCount?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -70,6 +88,54 @@ export const sellersService = {
    */
   async deleteSeller(id: string): Promise<{ message: string }> {
     const { data } = await api.delete<{ message: string }>(`/seller/${id}`);
+    return data;
+  },
+
+  /**
+   * Get templates owned by a specific seller
+   */
+  async getSellerTemplates(id: string): Promise<any[]> {
+    const { data } = await api.get<any[]>(`/seller/${id}/templates`);
+    return data;
+  },
+
+  /**
+   * Get reviews left for a specific seller
+   */
+  async getSellerReviews(id: string): Promise<any[]> {
+    const { data } = await api.get<any[]>(`/seller/${id}/reviews`);
+    return data;
+  },
+
+  /**
+   * Submit a customer review for a seller
+   */
+  async addSellerReview(id: string, review: { rating: number; comment: string }): Promise<any> {
+    const { data } = await api.post<any>(`/seller/${id}/reviews`, review);
+    return data;
+  },
+
+  /**
+   * Upload logo directly to seller endpoint
+   */
+  async uploadLogo(file: File): Promise<{ message: string; seller: Seller }> {
+    const formData = new FormData();
+    formData.append("file", file);
+    const { data } = await api.post<{ message: string; seller: Seller }>(`/seller/logo`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return data;
+  },
+
+  /**
+   * Upload banner directly to seller endpoint
+   */
+  async uploadBanner(file: File): Promise<{ message: string; seller: Seller }> {
+    const formData = new FormData();
+    formData.append("file", file);
+    const { data } = await api.post<{ message: string; seller: Seller }>(`/seller/banner`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
     return data;
   },
 };

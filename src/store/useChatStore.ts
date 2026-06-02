@@ -1,7 +1,9 @@
 import { create } from "zustand";
 import { socketService } from "@/lib/api/services/socket.service";
-import { chatService } from "@/lib/api/services/chat.service";
 import { authService } from "@/lib/api/services/auth.service";
+import { uploadService } from "@/lib/api/services/upload.service";
+import { chatService } from "@/lib/api/services/chat.service";
+import { useAuthStore } from "@/store/useAuthStore";
 import { Conversation, Message } from "@/types/message";
 
 interface ChatStore {
@@ -12,6 +14,7 @@ interface ChatStore {
   isTyping: Record<string, boolean>; // userId -> isTyping
   offlineQueue: any[]; // Stored offline messages
   replyingTo: Message | null;
+  onlineUserIds: string[]; // List of currently online user IDs
   
   // Actions
   init: () => void;
@@ -21,9 +24,11 @@ interface ChatStore {
   loadConversations: () => Promise<void>;
   loadMessages: (conversationId: string, page?: number) => Promise<void>;
   sendMessage: (receiverId: string, content: string, type?: string, attachmentUrl?: string, replyToId?: string) => void;
+  sendMediaMessage: (receiverId: string, file: File | Blob, type: string, fileName?: string, replyToId?: string) => Promise<void>;
   sendTyping: (receiverId: string, isTyping: boolean) => void;
   markAsRead: (conversationId: string) => void;
   deleteMessage: (messageId: string, conversationId: string) => void;
+  deleteConversation: (receiverId: string) => void;
 }
 
 const mapBackendMessage = (msg: any): Message => ({
@@ -31,7 +36,7 @@ const mapBackendMessage = (msg: any): Message => ({
   sender: {
     id: msg.sender?._id || msg.sender?.id || msg.sender || "unknown",
     name: msg.sender?.name || "User",
-    avatarUrl: msg.sender?.avatar || msg.sender?.avatarUrl || "/images/avatar.png",
+    avatarUrl: msg.sender?.avatar || msg.sender?.avatarUrl || msg.sender?.logo || "/images/avatar.png",
   },
   text: msg.content || msg.text,
   timestamp: msg.createdAt || msg.timestamp || new Date().toISOString(),
@@ -41,15 +46,15 @@ const mapBackendMessage = (msg: any): Message => ({
   replyToMessage: msg.replyTo ? mapBackendMessage(msg.replyTo) : undefined,
 });
 
-const mapBackendConversation = (conv: any, currentUserId: string): Conversation => {
+const mapBackendConversation = (conv: any, currentUserId: string, onlineUserIds: string[] = []): Conversation => {
   const otherUser = conv.participants.find((p: any) => p._id !== currentUserId) || conv.participants[0];
   return {
     id: conv._id,
     participants: [{
       id: otherUser._id,
       name: otherUser.name || "User",
-      avatarUrl: otherUser.avatar || "/images/avatar.png",
-      online: false, // We'll update this via socket later
+      avatarUrl: otherUser.avatar || otherUser.avatarUrl || otherUser.logo || "/images/avatar.png",
+      online: onlineUserIds.includes(otherUser._id),
     }],
     messages: [], // Loaded separately
     lastMessage: conv.lastMessage ? mapBackendMessage(conv.lastMessage) : undefined,
@@ -66,6 +71,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   isTyping: {},
   offlineQueue: [],
   replyingTo: null,
+  onlineUserIds: [],
 
   init: () => {
     const socket = socketService.connect();
@@ -81,6 +87,11 @@ export const useChatStore = create<ChatStore>((set, get) => ({
 
     socket.on("connect", () => {
       set({ socketConnected: true });
+      // Refetch conversations and current active chat on reconnect
+      get().loadConversations();
+      if (get().activeConversationId) {
+        get().loadMessages(get().activeConversationId as string, 1);
+      }
       // Flush offline queue
       const queue = get().offlineQueue;
       if (queue.length > 0) {
@@ -192,6 +203,48 @@ export const useChatStore = create<ChatStore>((set, get) => ({
         };
       });
     });
+
+    socket.on("online_users", (userIds: string[]) => {
+      set({ onlineUserIds: userIds });
+      set((state) => ({
+        conversations: state.conversations.map((c) => {
+          const otherParticipant = c.participants[0];
+          if (otherParticipant) {
+            return {
+              ...c,
+              participants: [{ ...otherParticipant, online: userIds.includes(otherParticipant.id) }],
+            };
+          }
+          return c;
+        }),
+      }));
+    });
+
+    socket.on("user_status", ({ userId, status }) => {
+      set((state) => {
+        const currentOnline = [...state.onlineUserIds];
+        if (status === "online") {
+          if (!currentOnline.includes(userId)) currentOnline.push(userId);
+        } else {
+          const idx = currentOnline.indexOf(userId);
+          if (idx > -1) currentOnline.splice(idx, 1);
+        }
+
+        return {
+          onlineUserIds: currentOnline,
+          conversations: state.conversations.map((c) => {
+            const otherParticipant = c.participants[0];
+            if (otherParticipant && otherParticipant.id === userId) {
+              return {
+                ...c,
+                participants: [{ ...otherParticipant, online: status === "online" }],
+              };
+            }
+            return c;
+          }),
+        };
+      });
+    });
   },
 
   cleanup: () => {
@@ -211,9 +264,9 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   loadConversations: async () => {
     try {
       const data = await chatService.getConversations();
-      const currentUser = authService.getStoredUser();
-      const currentUserId = currentUser?.id || "current_user_id";
-      const parsed = data.map((c: any) => mapBackendConversation(c, currentUserId));
+      const currentUserId = useAuthStore.getState().currentUserId || "current_user_id";
+      const onlineUserIds = get().onlineUserIds;
+      const parsed = data.map((c: any) => mapBackendConversation(c, currentUserId, onlineUserIds));
       set({ conversations: parsed });
     } catch (e) {
       console.error("Failed to load conversations", e);
@@ -253,7 +306,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
 
     const optimisticMsg: Message = {
       id: `opt_${Date.now()}`,
-      sender: { id: "me", name: "Me" }, // Will be fixed by backend
+      sender: { id: useAuthStore.getState().currentUserId || "me", name: "Me" }, // Will be fixed by backend
       text: content,
       type: type as any,
       attachmentUrl,
@@ -286,6 +339,56 @@ export const useChatStore = create<ChatStore>((set, get) => ({
           messages: {
             ...state.messages,
             [convId]: existing.map(m => m.id === optimisticMsg.id ? { ...m, status: "failed" } : m)
+          }
+        };
+      });
+    }
+  },
+
+  sendMediaMessage: async (receiverId, file, type, fileName, replyToId) => {
+    const socket = socketService.getSocket();
+    const state = get();
+    
+    const conv = state.conversations.find(c => c.participants[0].id === receiverId);
+    const convId = conv?.id || `temp_${Date.now()}`;
+    const tempId = `opt_${Date.now()}`;
+    const tempUrl = URL.createObjectURL(file as Blob);
+
+    const optimisticMsg: Message = {
+      id: tempId,
+      sender: { id: useAuthStore.getState().currentUserId || "me", name: "Me" },
+      text: fileName || "Attachment",
+      type: type as any,
+      attachmentUrl: tempUrl,
+      replyToMessage: state.replyingTo || undefined,
+      timestamp: new Date().toISOString(),
+      status: "sending" // uploading state
+    };
+
+    set((state) => {
+      const existing = state.messages[convId] || [];
+      return {
+        messages: { ...state.messages, [convId]: [...existing, optimisticMsg] },
+        replyingTo: null
+      };
+    });
+
+    try {
+      const res = await uploadService.uploadFile(file as File, "messages");
+      
+      // Emit with real URL
+      if (state.socketConnected && socket) {
+        socket.emit("send_message", { receiverId, content: fileName || "Attachment", attachmentUrl: res.url, replyTo: replyToId });
+      } else {
+        throw new Error("Offline");
+      }
+    } catch (e) {
+      set((state) => {
+        const existing = state.messages[convId] || [];
+        return {
+          messages: {
+            ...state.messages,
+            [convId]: existing.map(m => m.id === tempId ? { ...m, status: "failed" } : m)
           }
         };
       });
@@ -332,5 +435,23 @@ export const useChatStore = create<ChatStore>((set, get) => ({
         messages: { ...state.messages, [conversationId]: updatedMsgs }
       };
     });
+  },
+
+  deleteConversation: async (receiverId: string) => {
+    const state = get();
+    const conv = state.conversations.find(c => c.participants[0].id === receiverId);
+    if (!conv) return;
+    
+    // Optimistic delete
+    set((state) => ({
+      conversations: state.conversations.filter(c => c.id !== conv.id),
+      activeConversationId: state.activeConversationId === conv.id ? null : state.activeConversationId
+    }));
+
+    try {
+      await chatService.deleteConversation(conv.id); // Assuming this is added to chat.service.ts
+    } catch (e) {
+      console.error("Failed to delete conversation", e);
+    }
   }
 }));

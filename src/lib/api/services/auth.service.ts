@@ -34,11 +34,36 @@ export interface User {
   avatar?: string;
   bio?: string;
   expertise?: { name: string; percent: number }[];
-  socialLinks?: { facebook: string; instagram: string };
+  socialLinks?: {
+    facebook?: string;
+    instagram?: string;
+    linkedin?: string;
+    twitter?: string;
+    website?: string;
+  };
   isVerified: boolean;
   isBlocked?: boolean;
   phone?: string;
   createdAt: string;
+  
+  // Seller fields
+  storeName?: string;
+  storeDescription?: string;
+  address?: string;
+  logo?: string;
+  banner?: string;
+  businessCategory?: string;
+  website?: string;
+  businessType?: string;
+  taxNumber?: string;
+  verificationDocuments?: string[];
+  followersCount?: number;
+  followers?: string[];
+  followingCount?: number;
+  ratings?: number;
+  reviewsCount?: number;
+  salesCount?: number;
+  downloadsCount?: number;
 }
 
 export interface AuthResponse {
@@ -55,6 +80,20 @@ export interface AuthResponse {
 type Platform = 'web' | 'mobile';
 
 // ============================================
+// HELPERS
+// ============================================
+const normalizeUser = (user: any): User => {
+  if (!user) return user;
+  const avatarUrl = user.avatarUrl || user.avatar || user.logo || "/images/avatar.png";
+  return {
+    ...user,
+    id: user.id || user._id,
+    avatar: avatarUrl,
+    avatarUrl: avatarUrl,
+  };
+};
+
+// ============================================
 // SERVICE
 // ============================================
 export const authService = {
@@ -69,9 +108,10 @@ export const authService = {
       if (token) localStorage.setItem('access_token', token);
       if (refresh) localStorage.setItem('refresh_token', refresh);
       
-      const userObj = data.user || data.seller || data.admin;
+      let userObj = data.user || data.seller || data.admin;
       if (userObj) {
         if (!userObj.role) userObj.role = fallbackRole as any;
+        userObj = normalizeUser(userObj);
         localStorage.setItem('user', JSON.stringify(userObj));
         data.user = userObj; // Ensure .user is always available
       }
@@ -203,7 +243,9 @@ export const authService = {
       localStorage.setItem('access_token', token);
       if (refresh) localStorage.setItem('refresh_token', refresh);
       if (response.data.user) {
-        localStorage.setItem('user', JSON.stringify(response.data.user));
+        const userObj = normalizeUser(response.data.user);
+        response.data.user = userObj;
+        localStorage.setItem('user', JSON.stringify(userObj));
       }
     }
     
@@ -231,8 +273,8 @@ export const authService = {
    * Get current user
    */
   async getCurrentUser(): Promise<User> {
-    const { data } = await api.get<User>(ENDPOINTS.USERS.ME);
-    return data;
+    const { data } = await api.get<any>(ENDPOINTS.USERS.ME);
+    return normalizeUser(data);
   },
 
   /**
@@ -249,6 +291,6 @@ export const authService = {
   getStoredUser(): User | null {
     if (typeof window === 'undefined') return null;
     const userStr = localStorage.getItem('user');
-    return userStr ? JSON.parse(userStr) : null;
+    return userStr ? normalizeUser(JSON.parse(userStr)) : null;
   },
 };

@@ -4,8 +4,9 @@ import React, { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Conversation, User } from "../../../types/message";
 import ChatListItem from "./ChatListItem";
-import { MessageSquarePlus, MoreVertical, Search, X } from "lucide-react";
+import { MessageSquarePlus, MoreVertical, Search, X, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useChatStore } from "@/store/useChatStore";
 
 // The UI now uses real conversations passed from page.tsx via useChatStore
 
@@ -21,7 +22,9 @@ export default function ChatList({
   const router = useRouter();
   const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const listRef = React.useRef<HTMLDivElement>(null);
+  const { deleteConversation } = useChatStore();
 
   React.useEffect(() => {
     if (selectedId && listRef.current) {
@@ -47,13 +50,45 @@ export default function ChatList({
       {/* Header */}
       <div className="px-4 py-3 flex justify-between items-center bg-[#103B40] sticky top-0 z-10 shadow-lg shadow-black/20">
         <span className="font-semibold text-white text-base">Messages</span>
-        <div className="flex gap-1 text-white">
+        <div className="flex gap-1 text-white relative">
           <button onClick={() => setIsModalOpen(true)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/15 transition-colors">
             <MessageSquarePlus className="w-4.5 h-4.5" />
           </button>
-          <button className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/15 transition-colors">
+          <button 
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/15 transition-colors"
+          >
             <MoreVertical className="w-4.5 h-4.5" />
           </button>
+
+          <AnimatePresence>
+            {isMenuOpen && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                className="absolute top-10 right-0 bg-white rounded-lg shadow-xl border border-gray-100 py-1 w-48 z-50"
+              >
+                <button
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    if (!selectedId) {
+                      alert("Please select a conversation to delete first.");
+                      return;
+                    }
+                    const selectedConv = conversations.find(c => c.id === selectedId);
+                    if (selectedConv && confirm("Are you sure you want to delete this conversation?")) {
+                      deleteConversation(selectedConv.participants[0].id);
+                    }
+                  }}
+                  className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-2 transition-colors ${selectedId ? 'text-red-600 hover:bg-red-50' : 'text-gray-300 cursor-not-allowed'}`}
+                  disabled={!selectedId}
+                >
+                  <Trash2 className="w-4 h-4" /> Delete Conversation
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
@@ -80,13 +115,14 @@ export default function ChatList({
           </div>
         ) : (
           filtered.map((conv) => (
-            <ChatListItem
-              key={conv.id}
-              conversation={conv}
-              selected={conv.id === selectedId}
-              onClick={() => onSelect(conv.id)}
-              data-id={conv.id}
-            />
+            <div key={conv.id} className="relative group">
+              <ChatListItem
+                conversation={conv}
+                selected={conv.id === selectedId}
+                onClick={() => onSelect(conv.id)}
+                data-id={conv.id}
+              />
+            </div>
           ))
         )}
       </div>
