@@ -1,9 +1,11 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { Template } from "@/types";
+import { useAuthStore } from "./useAuthStore";
 
 interface PurchaseState {
-  purchasedItems: Template[];
+  // Map: userId -> purchasedTemplates
+  userPurchasedItems: Record<string, Template[]>;
   addPurchases: (templates: Template[]) => void;
   hasPurchased: (templateId: string) => boolean;
 }
@@ -11,21 +13,35 @@ interface PurchaseState {
 export const usePurchaseStore = create<PurchaseState>()(
   persist(
     (set, get) => ({
-      purchasedItems: [],
+      userPurchasedItems: {},
+
       addPurchases: (templates) =>
         set((state) => {
+          const currentUserId = useAuthStore.getState().currentUserId || "guest";
+          const currentPurchases = state.userPurchasedItems[currentUserId] || [];
+          
           const newItems = templates.filter(
-            (t) => !state.purchasedItems.find((item) => (item.id || item._id) === (t.id || t._id))
+            (t) => !currentPurchases.find((item) => (item.id || item._id) === (t.id || t._id))
           );
-          return { purchasedItems: [...state.purchasedItems, ...newItems] };
+          
+          const updatedUserPurchases = [...currentPurchases, ...newItems];
+
+          return {
+            userPurchasedItems: {
+              ...state.userPurchasedItems,
+              [currentUserId]: updatedUserPurchases,
+            },
+          };
         }),
+
       hasPurchased: (templateId) => {
-        const { purchasedItems } = get();
-        return purchasedItems.some((item) => (item.id || item._id) === templateId);
+        const currentUserId = useAuthStore.getState().currentUserId || "guest";
+        const currentPurchases = get().userPurchasedItems[currentUserId] || [];
+        return currentPurchases.some((item) => (item.id || item._id) === templateId);
       },
     }),
     {
-      name: "marketplace-purchases",
+      name: "marketplace-purchases-v2",
     }
   )
 );

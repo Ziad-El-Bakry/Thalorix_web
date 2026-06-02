@@ -5,6 +5,8 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { ChevronLeft, Download, History } from "lucide-react";
 import { usePurchaseStore } from "@/store/usePurchaseStore";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useEffect } from "react";
 import Image from "next/image";
 
 const isValidImage = (src?: string) => {
@@ -14,7 +16,14 @@ const isValidImage = (src?: string) => {
 };
 
 export default function HistoryPage() {
-  const { purchasedItems } = usePurchaseStore();
+  const { userPurchasedItems } = usePurchaseStore();
+  const { currentUserId, initAuth } = useAuthStore();
+
+  useEffect(() => {
+    initAuth();
+  }, [initAuth]);
+
+  const purchasedItems = userPurchasedItems[currentUserId || "guest"] || [];
 
   return (
     <div className="-m-4 md:-m-6 lg:-m-10 p-4 md:p-6 lg:p-10 bg-[#E2E3EA] min-h-[calc(100vh-60px)]">
