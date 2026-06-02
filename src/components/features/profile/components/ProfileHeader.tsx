@@ -13,7 +13,8 @@ import {
   ChevronLeft,
   UserPlus,
   Clock,
-  UserCheck
+  UserCheck,
+  Trash2
 } from "lucide-react";
 import { usersService } from "@/lib/api/services/users.service";
 import { chatService } from "@/lib/api/services/chat.service";
@@ -36,6 +37,7 @@ interface ProfileHeaderProps {
   coverInputRef: React.RefObject<HTMLInputElement | null>;
   handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleCoverChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleResetAvatar?: () => void;
   triggerUpload: () => void;
   relationship?: any;
   setRelationship?: React.Dispatch<React.SetStateAction<any>>;
@@ -58,6 +60,7 @@ export default function ProfileHeader({
   coverInputRef,
   handleFileChange,
   handleCoverChange,
+  handleResetAvatar,
   triggerUpload,
   relationship,
   setRelationship,
@@ -231,6 +234,14 @@ export default function ProfileHeader({
                   >
                     <Eye size={16} className="text-[#103B40]" /> Preview Image
                   </button>
+                  {handleResetAvatar && (
+                    <button
+                      onClick={() => { setIsMenuOpen(false); handleResetAvatar(); }}
+                      className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 flex items-center gap-3 transition-colors font-medium border-t border-gray-50"
+                    >
+                      <Trash2 size={16} /> Reset Default
+                    </button>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>

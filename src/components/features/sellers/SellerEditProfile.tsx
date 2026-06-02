@@ -15,18 +15,22 @@ import {
   Trash2,
   Lock,
   Loader2,
-  Globe
+  Globe,
+  LogOut
 } from "lucide-react";
 
 import { authService } from "@/lib/api/services/auth.service";
 import { sellersService } from "@/lib/api/services/sellers.service";
 import { uploadService } from "@/lib/api/services/upload.service";
 import { usersService } from "@/lib/api/services/users.service";
+import { useAvatar } from "@/store/useAvatarStore";
+import { LogoutModal, DeleteAccountModal } from "@/components/shared/ProfileModals";
 
 type SettingsSection = "basic" | "branding" | "social" | "business";
 
 export default function SellerEditProfile() {
   const router = useRouter();
+  const { setAvatar } = useAvatar();
   const [activeSection, setActiveSection] = useState<SettingsSection>("basic");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -68,6 +72,41 @@ export default function SellerEditProfile() {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [toastError, setToastError] = useState(false);
+
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleLogoutConfirm = async () => {
+    setIsLoggingOut(true);
+    try {
+      await authService.logout();
+      setIsLogoutModalOpen(false);
+      router.push("/login");
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
+
+  const handleDeleteAccountConfirm = async () => {
+    const storedUser = authService.getStoredUser() as any;
+    const targetId = storedUser?.id || storedUser?._id;
+    if (!targetId) return;
+    setIsDeleting(true);
+    try {
+      await usersService.deleteUser(targetId);
+      await authService.logout();
+      setIsDeleteModalOpen(false);
+      router.push("/login");
+    } catch (error) {
+      console.error("Failed to delete account:", error);
+      fireToast("Failed to delete account", true);
+      setIsDeleteModalOpen(false);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const fireToast = (msg: string, isErr = false) => {
     setToastMessage(msg);
@@ -212,14 +251,22 @@ export default function SellerEditProfile() {
       const response: any = await sellersService.updateSeller(targetId, payload);
       
       // Update local storage user profile data
+      const finalLogo = response.seller?.logo || logoUrl;
       const updatedUser = {
         ...storedUser,
         storeName: response.seller?.storeName || storeName,
         storeDescription: response.seller?.storeDescription || storeDescription,
-        logo: response.seller?.logo || logoUrl,
+        logo: finalLogo,
         banner: response.seller?.banner || bannerUrl,
+        avatar: finalLogo,
+        avatarUrl: finalLogo,
       };
       localStorage.setItem("user", JSON.stringify(updatedUser));
+
+      // Sync across all components in real-time
+      if (finalLogo) {
+        setAvatar(finalLogo);
+      }
 
       fireToast("Profile settings updated successfully!");
       setTimeout(() => router.push("/dashboard/seller/profile"), 1000);
@@ -303,6 +350,24 @@ export default function SellerEditProfile() {
               </span>
             </button>
           ))}
+
+          {/* Account Danger Zone */}
+          <div className="pt-4 border-t border-gray-100 mt-4 space-y-2">
+            <button
+              onClick={() => setIsLogoutModalOpen(true)}
+              className="w-full text-left p-3 rounded-xl transition-all flex items-center gap-3 bg-white hover:bg-gray-50 border border-gray-100 text-gray-600 shadow-sm"
+            >
+              <LogOut size={16} />
+              <span className="font-bold text-sm">Logout</span>
+            </button>
+            <button
+              onClick={() => setIsDeleteModalOpen(true)}
+              className="w-full text-left p-3 rounded-xl transition-all flex items-center gap-3 bg-red-50 hover:bg-red-100 border border-red-100 text-red-600 shadow-sm"
+            >
+              <Trash2 size={16} />
+              <span className="font-bold text-sm">Delete Account</span>
+            </button>
+          </div>
         </div>
 
         {/* Right Column Form Container */}
@@ -762,6 +827,21 @@ export default function SellerEditProfile() {
         </div>
 
       </div>
+
+      {/* ─── MODALS ─── */}
+      <LogoutModal
+        isOpen={isLogoutModalOpen}
+        isLoggingOut={isLoggingOut}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={handleLogoutConfirm}
+      />
+
+      <DeleteAccountModal
+        isOpen={isDeleteModalOpen}
+        isDeleting={isDeleting}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDeleteAccountConfirm}
+      />
     </div>
   );
 }

@@ -36,7 +36,7 @@ const mapBackendMessage = (msg: any): Message => ({
   sender: {
     id: msg.sender?._id || msg.sender?.id || msg.sender || "unknown",
     name: msg.sender?.name || "User",
-    avatarUrl: msg.sender?.avatar || msg.sender?.avatarUrl || "/images/avatar.png",
+    avatarUrl: msg.sender?.avatar || msg.sender?.avatarUrl || msg.sender?.logo || "/images/avatar.png",
   },
   text: msg.content || msg.text,
   timestamp: msg.createdAt || msg.timestamp || new Date().toISOString(),
@@ -53,7 +53,7 @@ const mapBackendConversation = (conv: any, currentUserId: string, onlineUserIds:
     participants: [{
       id: otherUser._id,
       name: otherUser.name || "User",
-      avatarUrl: otherUser.avatar || "/images/avatar.png",
+      avatarUrl: otherUser.avatar || otherUser.avatarUrl || otherUser.logo || "/images/avatar.png",
       online: onlineUserIds.includes(otherUser._id),
     }],
     messages: [], // Loaded separately

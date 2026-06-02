@@ -238,6 +238,23 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
     }
   };
 
+  const handleResetAvatar = async () => {
+    if (user?.id || user?._id) {
+      try {
+        await usersService.updateProfile(user.id || user._id, { avatarUrl: "" });
+        setDisplayAvatar("");
+        setGlobalAvatar("");
+        const updatedUser = { ...user, avatar: "" };
+        setUser(updatedUser);
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+        fireToast("Profile photo reset to default!");
+      } catch (error) {
+        console.error("Failed to reset avatar:", error);
+        fireToast("Failed to reset avatar. Please try again.");
+      }
+    }
+  };
+
   const handleCoverChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && isOwnProfile) {
@@ -364,6 +381,7 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
         coverInputRef={coverInputRef}
         handleFileChange={handleFileChange}
         handleCoverChange={handleCoverChange}
+        handleResetAvatar={handleResetAvatar}
         triggerUpload={triggerUpload}
         relationship={relationship}
         setRelationship={setRelationship}
