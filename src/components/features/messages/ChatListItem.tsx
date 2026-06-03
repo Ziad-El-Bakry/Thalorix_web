@@ -1,6 +1,6 @@
 import React from "react";
 import { ChatListItemProps } from "../../../types/message";
-import { CheckCheck, Trash2 } from "lucide-react";
+import { CheckCheck, Check } from "lucide-react";
 import { authService } from "@/lib/api/services/auth.service";
 import { useChatStore } from "@/store/useChatStore";
 
@@ -28,22 +28,15 @@ export default function ChatListItem({
   conversation,
   selected,
   onClick,
+  selectionMode,
+  isItemSelected,
   ...rest
-}: ChatListItemProps & React.HTMLAttributes<HTMLDivElement>) {
+}: any) {
   const other = conversation.participants[0] || { name: "Unknown", avatarUrl: "/images/avatar.png" };
   const last = conversation.lastMessage;
   const colorClass = getAvatarColor(other.name);
   const unread = !selected ? (conversation.unreadCount || 0) : 0;
   const currentUserId = authService.getStoredUser()?.id || "current_user_id";
-
-  const { deleteConversation } = useChatStore();
-
-  const handleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (confirm("Are you sure you want to delete this conversation?")) {
-      deleteConversation(other.id);
-    }
-  };
 
   return (
     <div
@@ -55,6 +48,14 @@ export default function ChatListItem({
       }`}
       onClick={onClick}
     >
+      {selectionMode && (
+        <div className="mr-3 flex items-center justify-center">
+          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${isItemSelected ? 'bg-teal-500 border-teal-500' : 'border-gray-300'}`}>
+            {isItemSelected && <Check className="w-3.5 h-3.5 text-white" />}
+          </div>
+        </div>
+      )}
+      
       {/* Avatar */}
       <div className="relative flex-shrink-0">
         <img
@@ -101,14 +102,6 @@ export default function ChatListItem({
           </div>
         )}
       </div>
-
-      <button
-        onClick={handleDelete}
-        className="absolute right-3 opacity-0 group-hover:opacity-100 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
-        title="Delete Conversation"
-      >
-        <Trash2 className="w-4 h-4" />
-      </button>
     </div>
   );
 }
