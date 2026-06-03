@@ -89,11 +89,13 @@ export default function ChatWindow({
     }
   };
 
+  const lastMessageId = messages.length > 0 ? messages[messages.length - 1].id : null;
+
   useEffect(() => {
     if (containerRef.current) {
       containerRef.current.scrollTop = containerRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [lastMessageId, conversation?.id]);
 
   if (!conversation) {
     return (
