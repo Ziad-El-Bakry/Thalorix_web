@@ -60,6 +60,7 @@ export const ENDPOINTS = {
   // ============================================
   ADMINS: {
     LOGIN: '/admins/login',
+    REGISTER: '/admins',
     GET_BY_ID: (id: string) => `/admins/${id}`,
     UPDATE: (id: string) => `/admins/${id}`,
     GET_ALL: '/admins',

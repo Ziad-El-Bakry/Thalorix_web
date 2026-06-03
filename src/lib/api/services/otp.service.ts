@@ -2,7 +2,7 @@
 import { api } from '../axios';
 import { ENDPOINTS } from '../endpoints';
 
-export type OtpType = 'email_verification' | 'phone_verification' | 'password_reset';
+export type OtpType = 'email_verification' | 'phone_verification' | 'password_reset' | 'admin_verification';
 
 export interface SendOtpDto {
   type: OtpType;

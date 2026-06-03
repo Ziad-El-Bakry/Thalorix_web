@@ -14,9 +14,10 @@ export default function VerifyEmailForm() {
     const email = searchParams?.get("email") || "";
     const phone = searchParams?.get("phone") || "";
     const method = (searchParams?.get("method") || "email") as "email" | "sms";
+    const role = searchParams?.get("role") || "";
 
     const isSms = method === "sms";
-    const otpType = isSms ? "phone_verification" : "email_verification";
+    const otpType = role === "admin" ? "admin_verification" : (isSms ? "phone_verification" : "email_verification");
     const maskedTarget = isSms
         ? (phone.length > 5 ? phone.slice(0, 3) + "***" + phone.slice(-2) : phone)
         : (email ? email.slice(0, 2) + "***@" + email.split("@")[1] : "");
@@ -37,10 +38,14 @@ export default function VerifyEmailForm() {
         try {
             await otpService.verifyOtp({
                 code,
-                type: otpType,
+                type: otpType as any,
                 ...(isSms ? { phone } : { email }),
             });
-            router.push("/login?verified=true");
+            if (role === "admin") {
+                router.push("/admin/login?verified=true");
+            } else {
+                router.push("/login?verified=true");
+            }
         } catch (err: any) {
             setError(err?.response?.data?.message || err?.message || "Invalid or expired OTP.");
         } finally {
