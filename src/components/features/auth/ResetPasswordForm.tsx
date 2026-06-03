@@ -10,6 +10,7 @@ export function ResetPasswordForm() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const token = searchParams?.get("token") || "";
+    const email = searchParams?.get("email") || "";
 
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
@@ -39,7 +40,7 @@ export function ResetPasswordForm() {
 
         setLoading(true);
         try {
-            await authService.resetPassword(token, password);
+            await authService.resetPassword(email, token, password);
             setSuccess(true);
             setTimeout(() => {
                 router.push("/login");

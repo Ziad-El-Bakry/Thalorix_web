@@ -20,7 +20,7 @@ export const ENDPOINTS = {
     REFRESH: '/auth/refresh',
     LOGOUT: '/auth/logout',
     VERIFY_EMAIL: '/auth/verify-email',
-    VERIFY_OTP: '/auth/verify-otp',
+    VERIFY_OTP: '/otp/verify',
     RESET_PASSWORD: '/auth/reset-password',
     FORGOT_PASSWORD: '/auth/forgot-password',
   },
