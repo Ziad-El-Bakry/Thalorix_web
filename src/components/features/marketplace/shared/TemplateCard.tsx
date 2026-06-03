@@ -11,6 +11,7 @@ interface TemplateCardProps {
   imageSrc?: string;
   category?: string;
   seller?: string;
+  sellerId?: string;
 }
 
 const itemVariants = {
@@ -24,7 +25,7 @@ const isValidImage = (src?: string) => {
   return true;
 };
 
-export default function TemplateCard({ id, title, price, imageSrc, category, seller }: TemplateCardProps) {
+export default function TemplateCard({ id, title, price, imageSrc, category, seller, sellerId }: TemplateCardProps) {
   const hasValidImage = isValidImage(imageSrc);
 
   return (
@@ -44,7 +45,15 @@ export default function TemplateCard({ id, title, price, imageSrc, category, sel
         )}
         <h3 className="font-bold text-[#103B40] text-[18px] leading-tight mb-2 line-clamp-2">{title}</h3>
         {seller && (
-          <p className="text-xs text-gray-500 mt-auto mb-3">By <span className="font-medium text-gray-700">{seller}</span></p>
+          <p className="text-xs text-gray-500 mt-auto mb-3">By {" "}
+            {sellerId ? (
+              <Link href={`/dashboard/seller/${sellerId}`} className="font-semibold text-gray-700 hover:text-teal-700 hover:underline transition-colors">
+                {seller}
+              </Link>
+            ) : (
+              <span className="font-medium text-gray-700">{seller}</span>
+            )}
+          </p>
         )}
         
         <div className="mt-auto pt-2 flex items-center justify-between border-t border-gray-100">

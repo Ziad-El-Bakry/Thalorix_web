@@ -39,7 +39,7 @@ const UserGrid = memo(({ users, emptyMessage, onMessageClick }: { users: any[], 
         >
           <Link href={`/dashboard/profile/${user.id || user._id}`} className="relative shrink-0 block">
             <Image
-              src={user.avatar || "/images/avatar.png"}
+              src={user.avatar || user.avatarUrl || user.logo || "/images/avatar.png"}
               alt={user.name || user.username || "User"}
               width={48}
               height={48}
