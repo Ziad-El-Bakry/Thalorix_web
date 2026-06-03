@@ -1,7 +1,8 @@
 import React from "react";
 import { ChatListItemProps } from "../../../types/message";
-import { CheckCheck } from "lucide-react";
+import { CheckCheck, Trash2 } from "lucide-react";
 import { authService } from "@/lib/api/services/auth.service";
+import { useChatStore } from "@/store/useChatStore";
 
 const AVATAR_COLORS = [
   "bg-teal-600",
@@ -34,6 +35,15 @@ export default function ChatListItem({
   const colorClass = getAvatarColor(other.name);
   const unread = !selected ? (conversation.unreadCount || 0) : 0;
   const currentUserId = authService.getStoredUser()?.id || "current_user_id";
+
+  const { deleteConversation } = useChatStore();
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (confirm("Are you sure you want to delete this conversation?")) {
+      deleteConversation(other.id);
+    }
+  };
 
   return (
     <div
@@ -91,6 +101,14 @@ export default function ChatListItem({
           </div>
         )}
       </div>
+
+      <button
+        onClick={handleDelete}
+        className="absolute right-3 opacity-0 group-hover:opacity-100 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
+        title="Delete Conversation"
+      >
+        <Trash2 className="w-4 h-4" />
+      </button>
     </div>
   );
 }

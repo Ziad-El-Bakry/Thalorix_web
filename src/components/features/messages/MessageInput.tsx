@@ -11,6 +11,7 @@ export default function MessageInput({ value, onChange, onSend, replyingTo, onCa
   const [recordingTime, setRecordingTime] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
 
+  const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -32,6 +33,12 @@ export default function MessageInput({ value, onChange, onSend, replyingTo, onCa
       typingTimeoutRef.current = null;
     }, 500);
   };
+
+  React.useEffect(() => {
+    if (replyingTo && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [replyingTo]);
 
   const handleAttachmentClick = (type: string) => {
     if (!fileInputRef.current) return;
@@ -161,6 +168,7 @@ export default function MessageInput({ value, onChange, onSend, replyingTo, onCa
               />
             </button>
             <input
+              ref={inputRef}
               type="text"
               className="flex-1 bg-transparent text-white placeholder-white/40 focus:outline-none text-sm"
               placeholder={isUploading ? "Uploading..." : "Your message..."}

@@ -5,7 +5,7 @@ import { Conversation, Message } from "../../../types/message";
 import ChatHeader from "./ChatHeader";
 import MessageBubble from "./MessageBubble";
 import MessageInput from "./MessageInput";
-import { X } from "lucide-react";
+import { X, Trash2 } from "lucide-react";
 import { useAvatar } from "@/store/useAvatarStore";
 import { useChatStore } from "@/store/useChatStore";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -21,6 +21,7 @@ export default function ChatWindow({
   const { messages: storeMessages, loadMessages, sendMessage, isTyping: globalTyping, sendTyping, replyingTo, setReplyingTo } = useChatStore();
   const [inputValue, setInputValue] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedMessages, setSelectedMessages] = useState<string[]>([]);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isLoadingOlder, setIsLoadingOlder] = useState(false);
   const [page, setPage] = useState(1);
@@ -41,9 +42,21 @@ export default function ChatWindow({
   useEffect(() => {
     if (conversation) {
       setPage(1);
+      setSelectedMessages([]);
       loadMessages(conversation.id, 1);
     }
   }, [conversation?.id, loadMessages]);
+
+  const { deleteMessage } = useChatStore();
+
+  const handleDeleteSelected = () => {
+    if (conversation && confirm(`Are you sure you want to delete ${selectedMessages.length} messages?`)) {
+      selectedMessages.forEach(id => {
+        deleteMessage(id, conversation.id);
+      });
+      setSelectedMessages([]);
+    }
+  };
 
   const handleInput = (val: string) => {
     setInputValue(val);
@@ -108,7 +121,21 @@ export default function ChatWindow({
   return (
     <div className="flex-1 flex flex-col h-full bg-[#f0f2f5] relative">
       <ConnectionStatusBanner />
-      <ChatHeader user={otherUser} onBack={onBack} onSearch={setSearchQuery} />
+      {selectedMessages.length > 0 ? (
+        <div className="flex items-center justify-between px-4 py-2 border-b bg-teal-800 h-[56px] min-h-[56px] sticky top-0 z-10 shadow-lg shadow-black/20">
+          <div className="flex items-center gap-4 text-white">
+            <button onClick={() => setSelectedMessages([])} className="p-1 hover:bg-white/10 rounded-full transition-colors">
+              <X className="w-5 h-5" />
+            </button>
+            <span className="font-semibold">{selectedMessages.length} Selected</span>
+          </div>
+          <button onClick={handleDeleteSelected} className="text-white hover:bg-white/20 p-2 rounded-full transition-colors">
+            <Trash2 className="w-5 h-5" />
+          </button>
+        </div>
+      ) : (
+        <ChatHeader user={otherUser} onBack={onBack} onSearch={setSearchQuery} />
+      )}
       <div ref={containerRef} onScroll={handleScroll} className="flex-1 p-4 overflow-y-auto space-y-4">
         {isLoadingOlder && (
           <div className="flex justify-center py-2">
@@ -153,6 +180,13 @@ export default function ChatWindow({
                   isOwn={m.sender.id === currentUserId}
                   onImageClick={(url: string) => setSelectedImage(url)}
                   onReply={(msg: Message) => setReplyingTo(msg)}
+                  selected={selectedMessages.includes(m.id)}
+                  selectionMode={selectedMessages.length > 0}
+                  onSelect={() => {
+                    setSelectedMessages(prev => 
+                      prev.includes(m.id) ? prev.filter(id => id !== m.id) : [...prev, m.id]
+                    );
+                  }}
                 />
               </React.Fragment>
             );
