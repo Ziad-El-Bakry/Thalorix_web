@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useLayoutEffect } from "react";
 import { Conversation, Message } from "../../../types/message";
 import ChatHeader from "./ChatHeader";
 import MessageBubble from "./MessageBubble";
@@ -27,6 +27,7 @@ export default function ChatWindow({
   const [page, setPage] = useState(1);
   const containerRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const prevScrollHeight = useRef<number>(0);
   const { avatar: globalAvatar } = useAvatar();
   const { currentUserId, initAuth } = useAuthStore();
 
@@ -83,21 +84,28 @@ export default function ChatWindow({
     }
   };
 
+  useLayoutEffect(() => {
+    if (containerRef.current && !isLoadingOlder) {
+      const currentScrollHeight = containerRef.current.scrollHeight;
+      // If scroll height increased and we are at the top (meaning we prepended old messages)
+      if (currentScrollHeight > prevScrollHeight.current && containerRef.current.scrollTop === 0) {
+        containerRef.current.scrollTop = currentScrollHeight - prevScrollHeight.current;
+      }
+      prevScrollHeight.current = currentScrollHeight;
+    }
+  }, [messages.length, isLoadingOlder]);
+
   const handleScroll = () => {
     if (!containerRef.current || isLoadingOlder || !conversation) return;
     if (containerRef.current.scrollTop === 0) {
       setIsLoadingOlder(true);
       const nextPage = page + 1;
       setPage(nextPage);
-      const prevHeight = containerRef.current.scrollHeight;
+      
+      prevScrollHeight.current = containerRef.current.scrollHeight;
       
       loadMessages(conversation.id, nextPage).finally(() => {
         setIsLoadingOlder(false);
-        setTimeout(() => {
-          if (containerRef.current) {
-            containerRef.current.scrollTop = containerRef.current.scrollHeight - prevHeight;
-          }
-        }, 0);
       });
     }
   };
