@@ -10,6 +10,9 @@ const listeners = new Set<(url: string) => void>();
 
 function notifyListeners(url: string) {
   listeners.forEach((fn) => fn(url));
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("thalorix_avatar_sync", { detail: url }));
+  }
 }
 
 /**
@@ -30,7 +33,17 @@ export function useAvatar() {
   useEffect(() => {
     const handler = (url: string) => setAvatarState(url);
     listeners.add(handler);
-    return () => { listeners.delete(handler); };
+
+    const winHandler = (e: Event) => {
+      const url = (e as CustomEvent).detail;
+      if (url) setAvatarState(url);
+    };
+    window.addEventListener("thalorix_avatar_sync", winHandler);
+
+    return () => {
+      listeners.delete(handler);
+      window.removeEventListener("thalorix_avatar_sync", winHandler);
+    };
   }, []);
 
   const setAvatar = useCallback((dataUrl: string) => {

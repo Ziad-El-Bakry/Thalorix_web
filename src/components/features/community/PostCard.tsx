@@ -60,7 +60,12 @@ export default function PostCard({ post }: { post: PostData }) {
 
   const currentUser = authService.getStoredUser();
   const currentUserName = currentUser?.name || currentUser?.username || "User";
-  const isPostOwner = post.author.name === currentUserName || (currentUser?.id && post.author.id === currentUser.id);
+  const currentUserId = currentUser?.id || (currentUser as any)?._id;
+  
+  // Ensure we match either by explicit ID or by exact Name
+  const isPostOwner = (currentUserId && post.author.id === currentUserId) || (post.author.name === currentUserName && post.author.name !== "Unknown User");
+  const isSeller = currentUser?.role === "seller";
+  const myProfilePath = isSeller ? "/dashboard/seller/profile" : "/dashboard/profile";
 
   const { deletePost, editPost, toggleLike, retryPost } = usePostStore();
   const [isPostDropdownOpen, setIsPostDropdownOpen] = useState(false);
@@ -146,7 +151,7 @@ export default function PostCard({ post }: { post: PostData }) {
       {/* Author row */}
       <div className="flex items-start justify-between px-4 pt-4 pb-2">
         <Link 
-          href={post.author.id ? (isPostOwner ? "/dashboard/profile" : `/dashboard/profile/${post.author.id}`) : "#"} 
+          href={post.author.id ? (isPostOwner ? myProfilePath : `/dashboard/profile/${post.author.id}`) : "#"} 
           className="flex flex-1 items-center gap-3 group"
         >
           <Image
@@ -396,8 +401,9 @@ export default function PostCard({ post }: { post: PostData }) {
             <div className="px-4 py-3 space-y-3">
               {/* Existing comments */}
               {comments.map((comment) => {
+                const commentIsOwner = (currentUserId && comment.authorId === currentUserId) || (comment.author === currentUserName && comment.author !== "Unknown User");
                 const commentProfileHref = comment.authorId 
-                  ? (comment.authorId === currentUser?.id ? "/dashboard/profile" : `/dashboard/profile/${comment.authorId}`)
+                  ? (commentIsOwner ? myProfilePath : `/dashboard/profile/${comment.authorId}`)
                   : "#";
                 return (
                   <div key={comment.id} className="flex gap-2 group">
