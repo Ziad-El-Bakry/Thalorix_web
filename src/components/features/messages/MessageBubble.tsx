@@ -211,7 +211,7 @@ const MessageBubble = React.memo(({ message, isOwn = false, onImageClick, onRepl
       {!isOwn && (
         <Link href={`/dashboard/profile/${message.sender?.id}`} className="hover:opacity-85 transition-opacity z-10 mt-auto mb-1">
           <img
-            src={message.sender?.avatarUrl || "/images/avatar.png"}
+            src={message.sender?.avatarUrl || message.sender?.avatar || message.sender?.logo || "/images/avatar.png"}
             alt={message.sender?.name || "User"}
             className="w-7 h-7 rounded-full object-cover flex-shrink-0 ring-1 ring-black/5 shadow-md"
           />
@@ -301,7 +301,7 @@ const MessageBubble = React.memo(({ message, isOwn = false, onImageClick, onRepl
 
       {isOwn && (
         <img
-          src={message.sender?.avatarUrl || user?.avatar || user?.avatarUrl || "/images/avatar.png"}
+          src={message.sender?.avatarUrl || message.sender?.avatar || message.sender?.logo || user?.avatar || user?.avatarUrl || user?.logo || "/images/avatar.png"}
           alt="Me"
           className="w-7 h-7 rounded-full object-cover flex-shrink-0 mt-auto mb-1 ring-1 ring-black/5 shadow-md"
         />

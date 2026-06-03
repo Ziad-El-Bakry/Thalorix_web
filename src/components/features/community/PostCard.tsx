@@ -91,7 +91,7 @@ export default function PostCard({ post }: { post: PostData }) {
           id: c._id,
           author: c.userId?.name || c.userId?.username || "User",
           authorId: c.userId?._id || c.userId?.id,
-          avatar: c.userId?.avatarUrl || "/images/avatar.png",
+          avatar: c.userId?.avatarUrl || c.userId?.avatar || c.userId?.logo || "/images/avatar.png",
           text: c.content,
           time: dayjs(c.createdAt).fromNow(),
         })));
@@ -112,7 +112,7 @@ export default function PostCard({ post }: { post: PostData }) {
         id: c._id,
         author: c.userId?.name || currentUserName,
         authorId: c.userId?._id || c.userId?.id || currentUser?.id,
-        avatar: c.userId?.avatarUrl || globalAvatar || "/images/avatar.png",
+        avatar: c.userId?.avatarUrl || c.userId?.avatar || c.userId?.logo || globalAvatar || "/images/avatar.png",
         text: c.content,
         time: "Just now",
       };
@@ -145,7 +145,10 @@ export default function PostCard({ post }: { post: PostData }) {
     >
       {/* Author row */}
       <div className="flex items-start justify-between px-4 pt-4 pb-2">
-        <Link href={post.author.id ? `/dashboard/profile/${post.author.id}` : "#"} className="flex flex-1 items-center gap-3 group">
+        <Link 
+          href={post.author.id ? (isPostOwner ? "/dashboard/profile" : `/dashboard/profile/${post.author.id}`) : "#"} 
+          className="flex flex-1 items-center gap-3 group"
+        >
           <Image
             src={post.author.avatar}
             alt={post.author.name}

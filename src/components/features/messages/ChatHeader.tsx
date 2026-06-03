@@ -60,7 +60,7 @@ export default function ChatHeader({ user, onBack, onSearch }: ChatHeaderProps &
             <Link href={`/dashboard/profile/${user.id}`} className="flex items-center gap-2 hover:opacity-85 transition-opacity cursor-pointer">
               <div className="relative">
                 <img
-                  src={user.avatarUrl || "/images/avatar.png"}
+                  src={user.avatarUrl || user.avatar || user.logo || "/images/avatar.png"}
                   alt={user.name}
                   className="w-10 h-10 rounded-full object-cover ring-2 ring-white/20"
                 />

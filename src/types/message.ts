@@ -18,6 +18,8 @@ export interface User {
   id: string;
   name: string;
   avatarUrl?: string;
+  avatar?: string;
+  logo?: string;
   online?: boolean;
   lastSeen?: string; // ISO date
 }

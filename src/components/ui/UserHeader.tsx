@@ -31,7 +31,7 @@ export default function UserHeader({ name, avatar, badge, badgeIcon, compact = f
   }, []);
 
   // Use prop avatar first, then global avatar from store
-  const avatarSrc = avatar || globalAvatar || "/images/avatar.png";
+  const avatarSrc = avatar || user?.avatar || user?.avatarUrl || user?.logo || globalAvatar || "/images/avatar.png";
   const pathname = usePathname();
   const isMessagesPage = pathname?.includes("/messages");
 

@@ -19,6 +19,7 @@ interface Review {
     username?: string;
     avatarUrl?: string;
     avatar?: string;
+    logo?: string;
   };
 }
 
@@ -190,7 +191,7 @@ export default function SellerReviews({
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-gray-100 overflow-hidden shadow-sm flex items-center justify-center shrink-0 border border-gray-200">
                     <img
-                      src={rev.userId?.avatarUrl || rev.userId?.avatar || "/images/avatar.png"}
+                      src={rev.userId?.avatarUrl || rev.userId?.avatar || rev.userId?.logo || "/images/avatar.png"}
                       alt={rev.userId?.name || "Customer"}
                       className="w-full h-full object-cover"
                     />
