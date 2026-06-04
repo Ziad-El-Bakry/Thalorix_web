@@ -22,7 +22,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       <Sidebar />
 
       {/* Main Area */}
-      <div className="flex-1 lg:ml-64 flex flex-col min-h-screen max-w-full overflow-hidden">
+      <div className="flex-1 lg:ml-64 flex flex-col min-h-screen max-w-full overflow-clip">
         {/* Mobile Navbar */}
         <MobileNavbar />
 

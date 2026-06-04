@@ -151,7 +151,7 @@ function isRouteActive(pathname: string | null, href: string, label: string): bo
   if (label === "Settings") return pathname === "/dashboard/settings";
 
   // Admin
-  if (label === "Admin Panel") return pathname.startsWith("/dashboard/admin");
+  if (label === "Admin Panel" || label === "Admin Dashboard") return pathname.startsWith("/dashboard/admin");
 
   // Generic prefix match
   return pathname.startsWith(href);
@@ -180,6 +180,14 @@ export default function Sidebar() {
   const bottomNav = BOTTOM_NAV.map((item) => {
     if (item.label === "Profile" && isSeller) {
       return { ...item, href: "/dashboard/seller/profile" };
+    }
+    return item;
+  });
+
+  // Adjust home href for admin
+  const mainNav = MAIN_NAV.map((item) => {
+    if (item.label === "Home" && isAdmin) {
+      return { ...item, label: "Admin Dashboard", href: "/dashboard/admin", icon: Shield };
     }
     return item;
   });
@@ -253,7 +261,7 @@ export default function Sidebar() {
         {/* Main Section */}
         <SectionLabel label="Main" />
         <ul className="space-y-0.5">
-          {MAIN_NAV.map((item) => (
+          {mainNav.map((item) => (
             <NavLink
               key={item.href}
               item={item}
@@ -280,47 +288,7 @@ export default function Sidebar() {
           </>
         )}
 
-        {/* Admin Section */}
-        {isAdmin && (
-          <>
-            <SectionLabel label="Administration" />
-            <ul className="space-y-0.5">
-              <NavLink
-                item={{ label: "Admin Panel", href: "/dashboard/admin", icon: Shield }}
-                isActive={isRouteActive(pathname, "/dashboard/admin", "Admin Panel")}
-              />
-            </ul>
-          </>
-        )}
 
-        {/* Become a Seller CTA — only for regular users */}
-        {userRole === "user" && (
-          <div className="mx-2 mt-5">
-            <Link href="/dashboard/become-seller">
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="relative overflow-hidden rounded-xl p-3.5 cursor-pointer"
-                style={{
-                  background: "linear-gradient(135deg, #134e54 0%, #1a6b6e 50%, #0d3a3d 100%)",
-                  border: "1px solid rgba(67,176,181,0.25)",
-                }}
-              >
-                <div className="absolute top-0 right-0 w-16 h-16 rounded-full bg-[#43B0B5] opacity-10 -translate-y-4 translate-x-4" />
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-[#43B0B5]/20 flex items-center justify-center">
-                    <Store size={16} className="text-[#43B0B5]" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[11px] font-bold text-white/90 leading-tight">Become a Seller</p>
-                    <p className="text-[9px] text-white/50 leading-tight mt-0.5">Start selling templates</p>
-                  </div>
-                  <ArrowUpRight size={14} className="text-[#43B0B5] flex-shrink-0" />
-                </div>
-              </motion.div>
-            </Link>
-          </div>
-        )}
       </nav>
 
       {/* Bottom Divider */}

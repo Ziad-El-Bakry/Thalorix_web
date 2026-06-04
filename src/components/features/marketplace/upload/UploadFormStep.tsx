@@ -32,6 +32,8 @@ export default function UploadFormStep({ onNext }: UploadFormStepProps) {
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [tags, setTags] = useState("");
   const [error, setError] = useState("");
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
 
@@ -61,6 +63,33 @@ export default function UploadFormStep({ onNext }: UploadFormStepProps) {
       setError("Description must be at least 50 characters.");
       return;
     }
+    if (categoryId === "new_custom") {
+      if (!newCategoryName || newCategoryName.trim().length < 2) {
+        setError("Please enter a valid new category name.");
+        return;
+      }
+      if (!file) {
+        setError("Please select a template file.");
+        return;
+      }
+      setIsCreatingCategory(true);
+      setError("");
+      categoriesService.create({ name: newCategoryName.trim() })
+        .then((newCat) => {
+           const newCatId = newCat._id || newCat.id;
+           setCategories([...categories, newCat]);
+           setCategoryId(newCatId as string);
+           setIsCreatingCategory(false);
+           onNext({ title, description, price: isPaid ? price : 0, categoryId: newCatId as string, file: file!, image: image || undefined, tags });
+        })
+        .catch((err) => {
+           console.error("Failed to create category", err);
+           setIsCreatingCategory(false);
+           setError("Failed to create new category. Please try again.");
+        });
+      return;
+    }
+
     if (!categoryId) {
       setError("Please select a category.");
       return;
@@ -109,22 +138,41 @@ export default function UploadFormStep({ onNext }: UploadFormStepProps) {
           </label>
           <select 
             value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value)}
-            disabled={categoriesLoading || categories.length === 0}
+            onChange={(e) => {
+              setCategoryId(e.target.value);
+              if (e.target.value !== "new_custom") setNewCategoryName("");
+            }}
+            disabled={categoriesLoading || isCreatingCategory}
             className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-[#123E41] disabled:bg-gray-100 disabled:text-gray-500"
           >
             {categoriesLoading ? (
               <option>Loading categories...</option>
-            ) : categories.length === 0 ? (
-              <option>No categories found</option>
             ) : (
-              categories.map((cat) => (
-                <option key={cat._id || cat.id} value={cat._id || cat.id}>
-                  {cat.name}
+              <>
+                {categories.length === 0 && <option value="" disabled>No categories found</option>}
+                {categories.map((cat) => (
+                  <option key={cat._id || cat.id} value={cat._id || cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
+                <option value="new_custom" className="font-semibold text-[#123E41]">
+                  + Add Custom Category
                 </option>
-              ))
+              </>
             )}
           </select>
+          {categoryId === "new_custom" && (
+            <div className="mt-3 motion-preset-fade">
+              <input 
+                type="text" 
+                placeholder="Enter new category name..."
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                disabled={isCreatingCategory}
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-[#123E41] disabled:opacity-50"
+              />
+            </div>
+          )}
         </div>
 
         {/* Description */}
@@ -273,9 +321,17 @@ export default function UploadFormStep({ onNext }: UploadFormStepProps) {
           </button>
           <button 
             onClick={handleSubmit}
-            className="flex-1 bg-[#123E41] text-white font-bold py-3.5 rounded-xl hover:bg-[#0d2c2e] transition-colors"
+            disabled={isCreatingCategory}
+            className="flex-1 bg-[#123E41] text-white font-bold py-3.5 rounded-xl hover:bg-[#0d2c2e] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
           >
-            Submit Template
+            {isCreatingCategory ? (
+              <>
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Creating...
+              </>
+            ) : (
+              "Submit Template"
+            )}
           </button>
         </div>
       </div>

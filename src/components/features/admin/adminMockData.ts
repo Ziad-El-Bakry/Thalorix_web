@@ -32,7 +32,7 @@ export interface AdminProduct {
   price: number;
   sales: number;
   revenue: number;
-  status: "Active" | "Pending Review" | "Suspended" | "Removed";
+  status: "Active" | "Suspended" | "Removed";
   category: string;
 }
 
@@ -266,7 +266,7 @@ export const mockProducts: AdminProduct[] = [
     price: 29,
     sales: 15,
     revenue: 435,
-    status: "Pending Review",
+    status: "Active",
     category: "Code",
   },
   {
@@ -296,7 +296,7 @@ export const mockProducts: AdminProduct[] = [
     price: 5,
     sales: 0,
     revenue: 0,
-    status: "Pending Review",
+    status: "Active",
     category: "Template",
   },
 ];

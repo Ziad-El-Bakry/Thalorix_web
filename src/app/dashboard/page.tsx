@@ -1,14 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { authService, User } from "@/lib/api/services/auth.service";
 import DashboardHeader from "@/components/features/dashboard/DashboardHeader";
 import UserDashboardContent from "@/components/features/dashboard/UserDashboardContent";
 import SellerDashboardContent from "@/components/features/dashboard/SellerDashboardContent";
-import AdminDashboardContent from "@/components/features/dashboard/AdminDashboardContent";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -16,9 +17,12 @@ export default function DashboardPage() {
     const storedUser = authService.getStoredUser();
     if (storedUser) {
       setUser(storedUser);
+      if (storedUser.role === "admin") {
+        router.replace("/dashboard/admin");
+      }
     }
     setLoading(false);
-  }, []);
+  }, [router]);
 
   if (loading) {
     return (
@@ -30,8 +34,6 @@ export default function DashboardPage() {
 
   const renderDashboardContent = () => {
     switch (user?.role) {
-      case "admin":
-        return <AdminDashboardContent user={user} />;
       case "seller":
         return <SellerDashboardContent user={user} />;
       case "user":

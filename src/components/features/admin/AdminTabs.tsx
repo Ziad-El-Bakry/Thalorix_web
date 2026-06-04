@@ -1,33 +1,27 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { LayoutGrid, FileText, ShoppingBag, Users, Store, TrendingUp } from "lucide-react";
+import { LayoutGrid, ShoppingBag, Users, Store, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export type AdminTabId = "overview" | "users" | "sellers" | "content" | "reports";
+export type AdminTabId = "overview" | "users" | "sellers" | "products" | "reports";
 
 interface Tab {
   id: AdminTabId;
   label: string;
   icon: React.ElementType;
   href: string;
-  badge?: number;
 }
 
-interface AdminTabsProps {
-  postCount?: number;
-  productCount?: number;
-}
-
-export default function AdminTabs({ postCount = 0, productCount = 0 }: AdminTabsProps) {
+export default function AdminTabs() {
   const pathname = usePathname();
 
   const tabs: Tab[] = [
     { id: "overview", label: "Overview", icon: LayoutGrid, href: "/dashboard/admin" },
     { id: "users", label: "Users", icon: Users, href: "/dashboard/admin/users" },
     { id: "sellers", label: "Sellers", icon: Store, href: "/dashboard/admin/sellers" },
-    { id: "content", label: "Content", icon: FileText, href: "/dashboard/admin/content", badge: postCount + productCount },
+    { id: "products", label: "Products", icon: ShoppingBag, href: "/dashboard/admin/content" },
     { id: "reports", label: "Reports", icon: TrendingUp, href: "/dashboard/admin/reports" },
   ];
 
@@ -61,14 +55,6 @@ export default function AdminTabs({ postCount = 0, productCount = 0 }: AdminTabs
               <span className="relative flex items-center gap-2">
                 <Icon size={16} />
                 {tab.label}
-                {tab.badge !== undefined && tab.badge > 0 && (
-                  <span
-                    className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[11px] font-bold text-white"
-                    style={{ backgroundColor: isActive ? "#103B40" : "#9ca3af" }}
-                  >
-                    {tab.badge}
-                  </span>
-                )}
               </span>
             </Link>
           );

@@ -108,7 +108,6 @@ export default function QuickActionsGrid() {
     return [
       { icon: <Heart size={22} />, label: "Wishlist", href: "/dashboard/marketplace/wishlist", color: "#F43F5E" },
       { icon: <Briefcase size={22} />, label: "Marketplace", href: "/dashboard/marketplace", color: "#F59E0B" },
-      { icon: <Store size={22} />, label: "Sell on Thalorix", href: "/dashboard/become-seller", color: "#10B981" },
       ...baseActions,
     ];
   };

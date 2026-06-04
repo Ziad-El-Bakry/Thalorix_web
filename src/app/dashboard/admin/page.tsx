@@ -7,7 +7,6 @@ import { authService } from "@/lib/api/services/auth.service";
 import AdminPanelHeader from "@/components/features/admin/AdminPanelHeader";
 import AdminTabs from "@/components/features/admin/AdminTabs";
 import OverviewTab from "@/components/features/admin/OverviewTab";
-import { mockPosts, mockProducts } from "@/components/features/admin/adminMockData";
 
 export default function AdminPage() {
   const router = useRouter();
@@ -37,18 +36,10 @@ export default function AdminPage() {
     );
   }
 
-  const flaggedCount = mockPosts.filter((p) => p.status === "Flagged").length;
-  const pendingProductCount = mockProducts.filter(
-    (p) => p.status === "Pending Review"
-  ).length;
-
   return (
     <div className="w-full max-w-[1600px] mx-auto pb-12">
-      <AdminPanelHeader flaggedCount={flaggedCount} />
-      <AdminTabs
-        postCount={flaggedCount}
-        productCount={pendingProductCount}
-      />
+      <AdminPanelHeader />
+      <AdminTabs />
 
       <motion.div
         initial={{ opacity: 0, y: 12 }}

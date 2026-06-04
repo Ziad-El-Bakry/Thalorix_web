@@ -23,6 +23,7 @@ import { useRouter } from "next/navigation";
 
 interface ProfileHeaderProps {
   user: any;
+  userBio: string;
   userName: string;
   isOwnProfile: boolean;
   coverImage: string;
@@ -46,6 +47,7 @@ interface ProfileHeaderProps {
 
 export default function ProfileHeader({
   user,
+  userBio,
   userName,
   isOwnProfile,
   coverImage,
@@ -148,7 +150,7 @@ export default function ProfileHeader({
         className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-5"
       >
         {/* Cover Banner */}
-        <div className="relative h-[180px] md:h-[220px] overflow-hidden group bg-gradient-to-r from-teal-800 to-[#103B40]">
+        <div className="relative h-[120px] md:h-[160px] overflow-hidden group bg-gradient-to-r from-teal-800 to-[#103B40]">
           <input type="file" ref={coverInputRef} onChange={handleCoverChange} accept="image/*" className="hidden" title="Upload cover image" />
           {coverImage ? (
             <img
@@ -174,7 +176,7 @@ export default function ProfileHeader({
             transition={{ delay: 0.3 }}
             className="absolute top-4 right-4 z-20"
           >
-            <span className="inline-flex items-center gap-1.5 bg-[#103B40]/90 text-white text-xs font-bold px-3.5 py-1.5 rounded-full backdrop-blur-sm border border-white/10 shadow-lg">
+            <span className="inline-flex items-center gap-1.5 bg-[#103B40]/90 text-white text-[10px] font-bold px-3 py-1 rounded-full backdrop-blur-sm border border-white/10 shadow-lg">
               {getRoleIcon()}
               {displayRole}
             </span>
@@ -182,31 +184,31 @@ export default function ProfileHeader({
         </div>
 
         {/* Avatar + Info */}
-        <div className="relative px-5 md:px-8 pb-6">
+        <div className="relative px-5 md:px-8 pb-4">
           {/* Avatar */}
-          <div className="relative -mt-16 mb-3 inline-block group">
+          <div className="relative -mt-12 md:-mt-14 mb-2 inline-block group">
             {isOwnProfile && <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" title="Upload avatar image" />}
             <motion.div
               onClick={() => isOwnProfile && setIsMenuOpen(!isMenuOpen)}
               whileHover={isOwnProfile ? { scale: 1.03 } : undefined}
-              className={`w-[120px] h-[120px] rounded-full overflow-hidden bg-gray-200 border-4 border-white shadow-xl flex items-center justify-center relative z-10 ${isOwnProfile ? "cursor-pointer" : ""}`}
+              className={`w-[96px] h-[96px] md:w-[110px] md:h-[110px] rounded-full overflow-hidden bg-gray-200 border-4 border-white shadow-xl flex items-center justify-center relative z-10 ${isOwnProfile ? "cursor-pointer" : ""}`}
             >
               <Image src={activeAvatar || "/images/avatar.png"} alt="Avatar" layout="fill" className="object-cover" />
               {isOwnProfile && (
                 <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                  <Camera size={28} className="text-white" />
+                  <Camera size={24} className="text-white" />
                 </div>
               )}
             </motion.div>
             {isOnline && (
-              <span className="absolute bottom-1 right-1 w-5 h-5 bg-green-500 rounded-full border-[3px] border-white z-20 shadow-md animate-pulse" />
+              <span className="absolute bottom-1 right-1 w-4 h-4 bg-green-500 rounded-full border-[3px] border-white z-20 shadow-md animate-pulse" />
             )}
             {isOwnProfile && (
               <motion.button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
-                className="absolute bottom-1 right-1 bg-[#103B40] text-white p-2 rounded-full shadow-md hover:bg-[#0c2e32] transition-colors z-20"
+                className="absolute bottom-0 right-0 bg-[#103B40] text-white p-1.5 rounded-full shadow-md hover:bg-[#0c2e32] transition-colors z-20"
               >
                 <Camera size={14} />
               </motion.button>
@@ -220,24 +222,24 @@ export default function ProfileHeader({
                   initial={{ opacity: 0, y: 10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  className="absolute top-[125px] left-0 z-40 bg-white rounded-xl shadow-xl border border-gray-100 w-48 overflow-hidden"
+                  className="absolute top-[100px] md:top-[115px] left-0 z-40 bg-white rounded-xl shadow-xl border border-gray-100 w-48 overflow-hidden"
                 >
                   <button
                     onClick={() => { setIsMenuOpen(false); triggerUpload(); }}
-                    className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium border-b border-gray-50"
+                    className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium border-b border-gray-50"
                   >
                     <Camera size={16} className="text-[#103B40]" /> Change Image
                   </button>
                   <button
                     onClick={() => { setIsMenuOpen(false); setIsPreviewModalOpen(true); }}
-                    className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium"
+                    className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium"
                   >
                     <Eye size={16} className="text-[#103B40]" /> Preview Image
                   </button>
                   {handleResetAvatar && (
                     <button
                       onClick={() => { setIsMenuOpen(false); handleResetAvatar(); }}
-                      className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 flex items-center gap-3 transition-colors font-medium border-t border-gray-50"
+                      className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-3 transition-colors font-medium border-t border-gray-50"
                     >
                       <Trash2 size={16} /> Reset Default
                     </button>
@@ -248,15 +250,15 @@ export default function ProfileHeader({
           </div>
 
           {/* Name row + actions */}
-          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
             <div>
-              <div className="flex items-center gap-2.5 mb-1">
-                <h1 className="text-2xl font-bold text-[#103B40]">{userName}</h1>
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-teal-700 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-full">
-                  <CheckCircle size={12} /> VERIFIED
+              <div className="flex items-center gap-2 mb-0.5">
+                <h1 className="text-xl md:text-2xl font-bold text-[#103B40]">{userName}</h1>
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-teal-700 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-full">
+                  <CheckCircle size={10} /> VERIFIED
                 </span>
                 {!isOwnProfile && (
-                  <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full border ${
+                  <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${
                     isOnline 
                       ? "text-green-700 bg-green-50 border-green-200" 
                       : "text-gray-500 bg-gray-50 border-gray-200"
@@ -266,26 +268,26 @@ export default function ProfileHeader({
                   </span>
                 )}
               </div>
-              <p className="text-sm text-gray-600 font-medium mb-1">
-                Full Stack Developer · React · Node.js · Cloud Architecture
+              <p className="text-sm text-gray-600 font-medium mb-1 leading-relaxed max-w-2xl line-clamp-2 md:line-clamp-none">
+                {userBio}
               </p>
-              <div className="flex items-center gap-4 text-xs text-gray-400 mt-1">
-                <span className="flex items-center gap-1"><MapPin size={13} /> Cairo, Egypt</span>
+              <div className="flex flex-wrap items-center gap-3 text-xs text-gray-400 mt-1">
+                <span className="flex items-center gap-1"><MapPin size={12} /> Cairo, Egypt</span>
                 <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-teal-600 hover:text-teal-700 font-medium transition-colors">
-                  <ExternalLink size={13} /> github.com/{userName.toLowerCase()}
+                  <ExternalLink size={12} /> github.com/{userName.toLowerCase().replace(/\s+/g, '')}
                 </a>
               </div>
             </div>
 
             {/* Action buttons */}
-            <div className="flex items-center gap-2.5 flex-shrink-0">
+            <div className="flex items-center gap-2 flex-shrink-0 mt-2 md:mt-0">
               {!isOwnProfile && (
                 <>
                   <motion.button 
                     whileHover={{ scale: 1.03 }} 
                     whileTap={{ scale: 0.97 }}
                     onClick={handleToggleFriend}
-                    className={`px-5 py-2 text-sm font-semibold rounded-full shadow-sm transition-all flex items-center gap-1.5 ${
+                    className={`px-4 py-1.5 text-xs font-semibold rounded-full shadow-sm transition-all flex items-center gap-1.5 ${
                       relationship?.isFriend 
                         ? "bg-teal-600 hover:bg-teal-700 text-white" 
                         : relationship?.requestSent 
@@ -296,20 +298,20 @@ export default function ProfileHeader({
                     }`}
                   >
                     {relationship?.isFriend ? (
-                      <><UserCheck size={14} className="text-white" /><span>Friends</span></>
+                      <><UserCheck size={12} className="text-white" /><span>Friends</span></>
                     ) : relationship?.requestSent ? (
-                      <><Clock size={14} className="text-white" /><span>Requested</span></>
+                      <><Clock size={12} className="text-white" /><span>Requested</span></>
                     ) : relationship?.requestReceived ? (
-                      <><CheckCircle size={14} className="text-white" /><span>Accept Request</span></>
+                      <><CheckCircle size={12} className="text-white" /><span>Accept Request</span></>
                     ) : (
-                      <><UserPlus size={14} className="text-white" /><span>Add Friend</span></>
+                      <><UserPlus size={12} className="text-white" /><span>Add Friend</span></>
                     )}
                   </motion.button>
                   <motion.button 
                     whileHover={{ scale: 1.03 }} 
                     whileTap={{ scale: 0.97 }}
                     onClick={handleToggleFollow}
-                    className={`px-5 py-2 text-sm font-semibold rounded-full border transition-all ${
+                    className={`px-4 py-1.5 text-xs font-semibold rounded-full border transition-all ${
                       relationship?.isFollowing 
                         ? "bg-teal-50 border-teal-200 text-teal-700 hover:bg-teal-100" 
                         : "bg-white border-[#103B40] text-[#103B40] hover:bg-gray-50"
@@ -322,9 +324,9 @@ export default function ProfileHeader({
                     disabled={isMessageLoading}
                     whileHover={{ scale: 1.03 }} 
                     whileTap={{ scale: 0.97 }} 
-                    className="px-5 py-2 bg-white text-gray-700 text-sm font-semibold rounded-full border border-gray-200 hover:bg-gray-50 transition-all flex items-center gap-1.5"
+                    className="px-4 py-1.5 bg-white text-gray-700 text-xs font-semibold rounded-full border border-gray-200 hover:bg-gray-50 transition-all flex items-center gap-1.5"
                   >
-                    <MessageCircle size={16} /> {isMessageLoading ? "Loading..." : "Message"}
+                    <MessageCircle size={14} /> {isMessageLoading ? "Loading..." : "Message"}
                   </motion.button>
                 </>
               )}
@@ -333,9 +335,9 @@ export default function ProfileHeader({
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setIsSettingsOpen(true)}
-                  className="p-2 rounded-full border border-gray-200 text-gray-500 hover:bg-gray-50 transition-all flex items-center justify-center"
+                  className="p-1.5 rounded-full border border-gray-200 text-gray-500 hover:bg-gray-50 transition-all flex items-center justify-center"
                 >
-                  <Settings size={18} />
+                  <Settings size={16} />
                 </motion.button>
               )}
             </div>
@@ -346,7 +348,7 @@ export default function ProfileHeader({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="flex items-center gap-0 mt-6 border-t border-gray-100 pt-5"
+            className="flex items-center gap-0 mt-4 border-t border-gray-100 pt-3"
           >
             {[
               { value: user?.followersCount || "0", label: "Followers" },
@@ -355,8 +357,8 @@ export default function ProfileHeader({
               { value: postsCount.toString(), label: "Posts" },
             ].map((stat, i) => (
               <div key={stat.label} className={`flex-1 text-center ${i > 0 ? "border-l border-gray-100" : ""}`}>
-                <p className="text-xl font-bold text-[#103B40]">{stat.value}</p>
-                <p className="text-[11px] text-gray-400 font-medium mt-0.5">{stat.label}</p>
+                <p className="text-lg font-bold text-[#103B40]">{stat.value}</p>
+                <p className="text-[10px] text-gray-400 font-medium">{stat.label}</p>
               </div>
             ))}
           </motion.div>

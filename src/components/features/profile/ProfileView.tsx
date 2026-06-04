@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle, X, LogOut, Trash2, Code, Shield, Store, User as UserIcon } from "lucide-react";
+import { CheckCircle, X, LogOut, Trash2, Code, Shield, Store, User as UserIcon, FileText, Briefcase, Image as ImageIcon, UserCheck, ArrowRight, UserPlus } from "lucide-react";
 
 import { authService } from "@/lib/api/services/auth.service";
 import { usersService } from "@/lib/api/services/users.service";
@@ -13,7 +13,6 @@ import { LogoutModal, DeleteAccountModal } from "@/components/shared/ProfileModa
 
 import { EXPERTISE } from "./components/profile.constants";
 import ProfileHeader from "./components/ProfileHeader";
-import ProfileLeftSidebar from "./components/ProfileLeftSidebar";
 import ProfileFeed from "./components/ProfileFeed";
 import ProfileRightSidebar from "./components/ProfileRightSidebar";
 import ProfileSettingsModal from "./components/ProfileSettingsModal";
@@ -368,6 +367,7 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
       <ProfileHeader
         user={user}
         userName={user?.name || user?.username || "Developer"}
+        userBio={userBio}
         isOwnProfile={isOwnProfile}
         coverImage={coverImage}
         activeAvatar={displayAvatar}
@@ -389,11 +389,47 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
       />
 
       {/* ═══════════════════════════════════════
-          THREE COLUMN BODY
+          THREE COLUMN BODY (Left Nav + Feed + Right Sidebar)
          ═══════════════════════════════════════ */}
-      <div className="flex flex-col lg:flex-row gap-5">
-        <ProfileLeftSidebar userBio={userBio} expertiseData={expertiseData} />
+      <div className="flex flex-col lg:flex-row gap-6 items-start">
         
+        {/* Left Vertical Nav */}
+        <div className="w-full lg:w-[220px] flex-shrink-0">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.4 }}
+            className="bg-white rounded-xl shadow-sm border border-gray-100 p-3 lg:sticky lg:top-24 flex flex-row lg:flex-col gap-1.5 overflow-x-auto scrollbar-hide"
+          >
+          <h3 className="hidden lg:block text-[10px] font-bold text-gray-400 tracking-widest uppercase mb-2 px-3 pt-2">Menu</h3>
+          {[
+            { id: "posts", label: "Posts", icon: FileText },
+            { id: "projects", label: "Projects", icon: Briefcase },
+            { id: "media", label: "Media", icon: ImageIcon },
+            { id: "friends", label: "Friends", icon: UserCheck },
+            { id: "followers", label: "Followers", icon: ArrowRight },
+            { id: "following", label: "Following", icon: UserPlus }
+          ].map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeProfileTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveProfileTab(tab.id as any)}
+                className={`flex-shrink-0 lg:flex-shrink w-auto lg:w-full text-left px-4 py-2.5 rounded-lg text-sm font-semibold capitalize transition-all duration-200 flex items-center gap-3 ${
+                  isActive
+                    ? "bg-[#103B40] text-white shadow-sm"
+                    : "text-gray-600 hover:bg-gray-50 hover:text-[#103B40]"
+                }`}
+              >
+                <Icon size={16} />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+          </motion.div>
+        </div>
+
         <ProfileFeed
           userId={user?.id || user?._id || userId}
           isOwnProfile={isOwnProfile}

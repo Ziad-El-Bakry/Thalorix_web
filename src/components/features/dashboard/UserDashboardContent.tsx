@@ -32,31 +32,6 @@ export default function UserDashboardContent({ user }: { user: User | null }) {
       initial="hidden"
       animate="visible"
     >
-      {/* Become a Seller CTA */}
-      <motion.div variants={itemVariants}>
-        <Link href="/dashboard/become-seller">
-          <div className="relative overflow-hidden rounded-2xl p-5 cursor-pointer group transition-all hover:shadow-lg"
-            style={{
-              background: "linear-gradient(135deg, #103B40 0%, #1a5c5f 50%, #134e4e 100%)",
-              border: "1px solid rgba(67,176,181,0.2)",
-            }}
-          >
-            <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-[#43B0B5] opacity-10 -translate-y-8 translate-x-8 group-hover:scale-150 transition-transform duration-700" />
-            <div className="absolute bottom-0 left-0 w-20 h-20 rounded-full bg-[#43B0B5] opacity-5 translate-y-6 -translate-x-6" />
-            <div className="flex items-center gap-4 relative z-10">
-              <div className="w-12 h-12 rounded-xl bg-[#43B0B5]/20 flex items-center justify-center flex-shrink-0">
-                <Store size={22} className="text-[#43B0B5]" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-white font-bold text-base">Start Selling on Thalorix</h3>
-                <p className="text-white/50 text-sm mt-0.5">Upload templates, earn money, build your brand</p>
-              </div>
-              <ArrowUpRight size={20} className="text-[#43B0B5] flex-shrink-0 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-            </div>
-          </div>
-        </Link>
-      </motion.div>
-
       {/* Row 1: Stat Cards */}
       <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard title="Profile Views" value="3,247" trend="+12%" trendDirection="up" icon={<Eye size={20} className="text-[#103B40]" />} />

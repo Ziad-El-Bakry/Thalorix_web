@@ -283,25 +283,6 @@ export default function MobileNavbar() {
                     </Link>
                   </>
                 )}
-
-                {/* Become a Seller CTA */}
-                {userRole === "user" && (
-                  <Link href="/dashboard/become-seller" onClick={() => setIsOpen(false)}>
-                    <motion.div
-                      whileTap={{ scale: 0.98 }}
-                      className="flex items-center gap-3 px-4 py-3 mt-1 rounded-xl text-sm font-medium"
-                      style={{
-                        background: "linear-gradient(135deg, #134e54 0%, #1a6b6e 50%, #0d3a3d 100%)",
-                        border: "1px solid rgba(67,176,181,0.25)",
-                      }}
-                    >
-                      <Store size={18} className="text-[#43B0B5]" />
-                      <span className="text-white/90">Become a Seller</span>
-                      <ArrowUpRight size={14} className="ml-auto text-[#43B0B5]" />
-                    </motion.div>
-                  </Link>
-                )}
-
                 {/* Divider */}
                 <div className="h-px bg-white/10 my-2 mx-3" />
 

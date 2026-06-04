@@ -222,24 +222,18 @@ export default function UsersTab() {
                     {/* Phone */}
                     <td className="px-6 py-4 text-gray-600 font-medium">{user.phone || "—"}</td>
 
-                    {/* Role selector */}
+                    {/* Role badge (fixed at signup) */}
                     <td className="px-6 py-4 text-center">
-                      {isSelf ? (
-                        <span className="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-50 text-amber-600 border border-amber-200 flex items-center gap-1.5 justify-center w-32 mx-auto">
-                          <Shield size={13} />
-                          {user.role}
-                        </span>
-                      ) : (
-                        <select
-                          value={user.role}
-                          onChange={(e) => handleActionClick("role", user, e.target.value)}
-                          className="px-3 py-1.5 rounded-xl border border-gray-200 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#103B40]/20 bg-white shadow-sm cursor-pointer hover:border-gray-300 w-32"
-                        >
-                          <option value="user">User</option>
-                          <option value="seller">Seller</option>
-                          <option value="admin">Admin</option>
-                        </select>
-                      )}
+                      <span className={`inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold w-28 mx-auto ${
+                        user.role === "admin"
+                          ? "bg-amber-50 text-amber-600 border border-amber-200"
+                          : user.role === "seller"
+                          ? "bg-teal-50 text-teal-600 border border-teal-200"
+                          : "bg-slate-50 text-slate-600 border border-slate-200"
+                      }`}>
+                        {user.role === "admin" && <Shield size={13} />}
+                        {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                      </span>
                     </td>
 
                     {/* Block state toggle */}
