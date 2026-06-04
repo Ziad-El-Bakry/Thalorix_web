@@ -319,7 +319,7 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
               onClick={(e: any) => e.stopPropagation()}
             >
               <img src={activeAvatar} alt="Preview" className="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl" />
-              <button onClick={() => setIsPreviewModalOpen(false)} className="absolute top-0 right-0 md:-top-6 md:-right-6 bg-white/10 hover:bg-white/25 p-2 rounded-full text-white backdrop-blur-md transition-colors border border-white/20 z-10">
+              <button onClick={() => setIsPreviewModalOpen(false)} className="absolute top-0 right-0 md:-top-6 md:-right-6 bg-white/10 hover:bg-white/25 p-2 rounded-full text-white backdrop-blur-md transition-colors border border-white/20 z-10" title="Close preview">
                 <X size={24} />
               </button>
             </motion.div>

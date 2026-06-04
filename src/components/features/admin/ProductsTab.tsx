@@ -243,6 +243,7 @@ export default function ProductsTab() {
                 <button
                   onClick={() => setSelectedProduct(null)}
                   className="p-2 rounded-xl text-gray-400 hover:bg-gray-100 transition-colors"
+                  title="Close"
                 >
                   <X size={18} />
                 </button>

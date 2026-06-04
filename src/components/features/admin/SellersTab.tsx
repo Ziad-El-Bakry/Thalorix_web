@@ -288,6 +288,7 @@ export default function SellersTab() {
                 <button
                   onClick={() => setConfirmModal({ show: false, type: "delete", targetSeller: null })}
                   className="p-1 rounded-xl text-gray-400 hover:bg-gray-100 transition-colors"
+                  title="Close"
                 >
                   <X size={18} />
                 </button>
