@@ -114,11 +114,11 @@ export default function PostCard({ post }: { post: PostData }) {
     try {
       const c = await communityService.addComment(post.id, commentText);
       const newComment: CommentData = {
-        id: c._id,
+        id: c._id || `temp_${Date.now()}`,
         author: c.userId?.name || currentUserName,
         authorId: c.userId?._id || c.userId?.id || currentUser?.id,
         avatar: c.userId?.avatarUrl || c.userId?.avatar || c.userId?.logo || globalAvatar || "/images/avatar.png",
-        text: c.content,
+        text: c.content || commentText,
         time: "Just now",
       };
       setComments((prev) => [newComment, ...prev]);
@@ -131,7 +131,8 @@ export default function PostCard({ post }: { post: PostData }) {
 
   const handleShare = async () => {
     try {
-      await navigator.clipboard.writeText(window.location.href);
+      const postUrl = `${window.location.origin}/dashboard/community#post-${post.id}`;
+      await navigator.clipboard.writeText(postUrl);
       setIsShared(true);
       setTimeout(() => setIsShared(false), 2000);
     } catch (err) {
@@ -141,6 +142,7 @@ export default function PostCard({ post }: { post: PostData }) {
 
   return (
     <motion.div
+      id={`post-${post.id}`}
       initial={post.id.startsWith("temp_") ? { opacity: 0, scale: 0.95 } : { opacity: 0, y: 15 }}
       animate={post.id.startsWith("temp_") ? { opacity: 1, scale: 1 } : { opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}
