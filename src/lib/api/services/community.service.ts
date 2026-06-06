@@ -1,10 +1,47 @@
 import api from '../axios';
 import { ENDPOINTS } from '../endpoints';
 
+const userFetchPromises = new Map<string, Promise<any>>();
+
+async function fetchUserSafe(uid: string) {
+  if (userFetchPromises.has(uid)) {
+    return userFetchPromises.get(uid);
+  }
+  
+  const promise = (async () => {
+    try {
+      const { data } = await api.get(ENDPOINTS.USERS.GET_BY_ID(uid));
+      return data.data || data;
+    } catch {
+      try {
+        const { data } = await api.get(ENDPOINTS.SELLERS.GET_BY_ID(uid));
+        return data.data || data;
+      } catch {
+        try {
+           const { data } = await api.get(ENDPOINTS.ADMINS.GET_BY_ID(uid));
+           return data.data || data;
+        } catch {
+           return { _id: uid, name: 'Unknown User', username: 'Unknown User' };
+        }
+      }
+    }
+  })();
+  
+  userFetchPromises.set(uid, promise);
+  return promise;
+}
+
+async function populateUser(item: any) {
+  if (!item.userId || typeof item.userId !== 'string') return item;
+  const user = await fetchUserSafe(item.userId);
+  return { ...item, userId: user };
+}
+
 export const communityService = {
   getFeed: async (userId?: string) => {
     const { data } = await api.get(ENDPOINTS.COMMUNITY.FEED, { params: { userId } });
-    return data;
+    const populated = await Promise.all((data || []).map(populateUser));
+    return populated;
   },
 
   createPost: async (content: string, image?: string, link?: string) => {
@@ -30,7 +67,8 @@ export const communityService = {
 
   getComments: async (postId: string) => {
     const { data } = await api.get(ENDPOINTS.COMMUNITY.GET_COMMENTS(postId));
-    return data;
+    const populated = await Promise.all((data || []).map(populateUser));
+    return populated;
   },
 
   addComment: async (postId: string, content: string) => {

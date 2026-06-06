@@ -1,7 +1,7 @@
 "use client";
 
 import { CloudUpload, Info, Gift, DollarSign } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useState, useRef, useEffect } from "react";
 import { categoriesService } from "@/lib/api/services/categories.service";
 import { Category } from "@/types";
@@ -32,10 +32,29 @@ export default function UploadFormStep({ onNext }: UploadFormStepProps) {
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [tags, setTags] = useState("");
   const [error, setError] = useState("");
+  const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [isCreatingCategory, setIsCreatingCategory] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
+
+  const handleCreateCategory = async () => {
+    if (!newCategoryName.trim()) return;
+    setIsCreatingCategory(true);
+    try {
+      const newCat: any = await categoriesService.create({ name: newCategoryName });
+      const addedCat = newCat.data || newCat.category || newCat;
+      setCategories(prev => [...prev, addedCat]);
+      setCategoryId(addedCat._id || addedCat.id);
+      setIsAddingCategory(false);
+      setNewCategoryName("");
+    } catch (err) {
+      console.error("Failed to create category", err);
+      setError("Failed to create category");
+    } finally {
+      setIsCreatingCategory(false);
+    }
+  };
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -134,47 +153,69 @@ export default function UploadFormStep({ onNext }: UploadFormStepProps) {
 
         {/* Category */}
         <div>
-          <label className="block text-sm font-bold text-[#103B40] mb-2">
-            Category<span className="text-red-500">*</span>
-          </label>
-          <select 
-            value={categoryId}
-            onChange={(e) => {
-              setCategoryId(e.target.value);
-              if (e.target.value !== "new_custom") setNewCategoryName("");
-            }}
-            disabled={categoriesLoading || isCreatingCategory}
-            aria-label="Category"
-            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-[#123E41] disabled:bg-gray-100 disabled:text-gray-500"
-          >
-            {categoriesLoading ? (
-              <option>Loading categories...</option>
+          <div className="flex justify-between items-center mb-2">
+            <label className="block text-sm font-bold text-[#103B40]">
+              Category<span className="text-red-500">*</span>
+            </label>
+            <button
+              type="button"
+              onClick={() => setIsAddingCategory(!isAddingCategory)}
+              className="text-xs font-semibold text-[#123E41] hover:underline"
+            >
+              {isAddingCategory ? "Cancel" : "+ Add Category"}
+            </button>
+          </div>
+          
+          <AnimatePresence mode="wait">
+            {isAddingCategory ? (
+              <motion.div
+                key="add-category"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="flex gap-2"
+              >
+                <input
+                  type="text"
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  placeholder="New category name..."
+                  className="flex-1 bg-white border border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-[#123E41]"
+                />
+                <button
+                  type="button"
+                  onClick={handleCreateCategory}
+                  disabled={isCreatingCategory || !newCategoryName.trim()}
+                  className="bg-[#123E41] text-white px-6 rounded-xl font-semibold hover:bg-[#0d2c2e] disabled:opacity-50 transition-colors"
+                >
+                  {isCreatingCategory ? "..." : "Add"}
+                </button>
+              </motion.div>
             ) : (
-              <>
-                {categories.length === 0 && <option value="" disabled>No categories found</option>}
-                {categories.map((cat) => (
-                  <option key={cat._id || cat.id} value={cat._id || cat.id}>
-                    {cat.name}
-                  </option>
-                ))}
-                <option value="new_custom" className="font-semibold text-[#123E41]">
-                  + Add Custom Category
-                </option>
-              </>
+              <motion.select 
+                key="select-category"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                value={categoryId}
+                onChange={(e) => setCategoryId(e.target.value)}
+                disabled={categoriesLoading || categories.length === 0}
+                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-[#123E41] disabled:bg-gray-100 disabled:text-gray-500"
+              >
+                {categoriesLoading ? (
+                  <option>Loading categories...</option>
+                ) : categories.length === 0 ? (
+                  <option>No categories found</option>
+                ) : (
+                  categories.map((cat) => (
+                    <option key={cat._id || cat.id} value={cat._id || cat.id}>
+                      {cat.name}
+                    </option>
+                  ))
+                )}
+              </motion.select>
             )}
-          </select>
-          {categoryId === "new_custom" && (
-            <div className="mt-3 motion-preset-fade">
-              <input 
-                type="text" 
-                placeholder="Enter new category name..."
-                value={newCategoryName}
-                onChange={(e) => setNewCategoryName(e.target.value)}
-                disabled={isCreatingCategory}
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-[#123E41] disabled:opacity-50"
-              />
-            </div>
-          )}
+          </AnimatePresence>
         </div>
 
         {/* Description */}

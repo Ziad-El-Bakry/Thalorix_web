@@ -20,7 +20,7 @@ export const ENDPOINTS = {
     REFRESH: '/auth/refresh',
     LOGOUT: '/auth/logout',
     VERIFY_EMAIL: '/auth/verify-email',
-    VERIFY_OTP: '/auth/verify-otp',
+    VERIFY_OTP: '/otp/verify',
     RESET_PASSWORD: '/auth/reset-password',
     FORGOT_PASSWORD: '/auth/forgot-password',
   },
@@ -60,6 +60,7 @@ export const ENDPOINTS = {
   // ============================================
   ADMINS: {
     LOGIN: '/admins/login',
+    REGISTER: '/admins',
     GET_BY_ID: (id: string) => `/admins/${id}`,
     UPDATE: (id: string) => `/admins/${id}`,
     GET_ALL: '/admins',

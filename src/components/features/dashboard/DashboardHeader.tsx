@@ -44,7 +44,7 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
         {/* User Avatar */}
         <Link href="/dashboard/profile" className="w-10 h-10 rounded-full overflow-hidden border-2 border-white dark:border-gray-800 shadow-sm relative block hover:opacity-85 transition-opacity cursor-pointer">
           <Image
-            src={avatar !== "/images/avatar.png" ? avatar : (user?.avatar || "/images/avatar.png")}
+            src={avatar !== "/images/avatar.png" ? avatar : (user?.avatar || user?.avatarUrl || user?.logo || "/images/avatar.png")}
             alt="User Avatar"
             fill
             className="object-cover"

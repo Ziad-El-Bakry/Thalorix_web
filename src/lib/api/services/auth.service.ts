@@ -32,6 +32,7 @@ export interface User {
   role: 'user' | 'admin' | 'seller';
   credits: number;
   avatar?: string;
+  avatarUrl?: string;
   bio?: string;
   expertise?: { name: string; percent: number }[];
   socialLinks?: {
@@ -71,7 +72,9 @@ export interface AuthResponse {
   refresh_token?: string;
   accessToken?: string;
   refreshToken?: string;
-  user: User;
+  user?: User;
+  seller?: any;
+  admin?: any;
 }
 
 // ============================================
@@ -126,18 +129,25 @@ export const authService = {
       return processData(data, 'user');
     } catch (err: any) {
       if (err.response?.status === 401 || err.response?.status === 404) {
+        // 2. Try Seller
+        const { data } = await api.post<AuthResponse>(ENDPOINTS.SELLERS.LOGIN, dto);
+        
+        // Fetch the full seller data to get the logo/avatar
         try {
-          // 2. Try Seller
-          const { data } = await api.post<AuthResponse>(ENDPOINTS.SELLERS.LOGIN, dto);
-          return processData(data, 'seller');
-        } catch (err2: any) {
-          if (err2.response?.status === 401 || err2.response?.status === 404) {
-            // 3. Try Admin
-            const { data } = await api.post<AuthResponse>(ENDPOINTS.ADMINS.LOGIN, dto);
-            return processData(data, 'admin');
+          const sellerObj = data.seller || data;
+          const sellerId = sellerObj.id || sellerObj._id;
+          if (sellerId) {
+            const response = await api.get(ENDPOINTS.SELLERS.GET_BY_ID(sellerId));
+            const fullSeller = response.data?.data || response.data;
+            if (fullSeller) {
+              data.seller = { ...sellerObj, ...fullSeller };
+            }
           }
-          throw err2;
+        } catch (e) {
+          console.warn("Failed to fetch full seller profile on login:", e);
         }
+        
+        return processData(data, 'seller');
       }
       throw err;
     }
@@ -182,6 +192,46 @@ export const authService = {
     };
 
     const { data } = await api.post(ENDPOINTS.SELLERS.REGISTER, backendPayload);
+    return data;
+  },
+
+  /**
+   * Login Admin directly
+   */
+  async adminLogin(dto: LoginDto): Promise<AuthResponse> {
+    const processData = (data: any, fallbackRole: string) => {
+      const token = data.access_token || data.accessToken;
+      const refresh = data.refresh_token || data.refreshToken;
+      if (token) localStorage.setItem('access_token', token);
+      if (refresh) localStorage.setItem('refresh_token', refresh);
+      
+      let userObj = data.user || data.seller || data.admin;
+      if (userObj) {
+        if (!userObj.role) userObj.role = fallbackRole as any;
+        userObj = normalizeUser(userObj);
+        localStorage.setItem('user', JSON.stringify(userObj));
+        data.user = userObj;
+      }
+      
+      return data;
+    };
+
+    const { data } = await api.post<AuthResponse>(ENDPOINTS.ADMINS.LOGIN, dto);
+    return processData(data, 'admin');
+  },
+
+  /**
+   * Register new Admin
+   */
+  async adminRegister(dto: RegisterDto): Promise<any> {
+    const backendPayload: any = {
+      name: dto.username,
+      email: dto.email,
+      phone: dto.phone,
+      password: dto.password,
+    };
+
+    const { data } = await api.post(ENDPOINTS.ADMINS.REGISTER, backendPayload);
     return data;
   },
 
@@ -262,10 +312,11 @@ export const authService = {
   /**
    * Reset password with token (if backend implements)
    */
-  async resetPassword(token: string, newPassword: string): Promise<void> {
+  async resetPassword(email: string, token: string, newPassword: string): Promise<void> {
     await api.post(ENDPOINTS.AUTH.RESET_PASSWORD, {
-      token,
-      new_password: newPassword,
+      email,
+      code: token,
+      newPassword: newPassword,
     });
   },
 

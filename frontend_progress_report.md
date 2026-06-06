@@ -61,9 +61,9 @@ This document provides a comprehensive analysis of the `thalorix-web` frontend c
 - **Priority:** Medium
 
 ### Messaging System
-- **Completion:** 60%
+- **Completion:** 70%
 - **Status:** Needs Work
-- **Implemented:** Beautiful `ChatWindow`, `ChatList`, and `MessageBubble` UI components.
+- **Implemented:** Beautiful `ChatWindow`, `ChatList`, and `MessageBubble` UI components. Recently added Multi-Select Bulk Delete modes for both messages and conversations, and auto-focus for smart replies.
 - **Missing:** WebSockets (Socket.io) integration for real-time delivery.
 - **Priority:** Critical
 
@@ -118,7 +118,7 @@ This document provides a comprehensive analysis of the `thalorix-web` frontend c
 | Post Feed & Likes | 95% | Completed | Optimistic UI active |
 | Profile System | 80% | In Progress | Needs portfolio integration |
 | Admin Panel | 75% | In Progress | Needs live API hooking |
-| Messaging UI | 90% | Completed | Purely UI, needs sockets |
+| Messaging UI | 95% | Completed | Added bulk-select & delete modes |
 | Real-time Chat | 10% | Needs Work | Socket layer missing |
 | Marketplace UI | 80% | In Progress | Templates display nicely |
 | Payments | 0% | Needs Work | Payment gateway missing |

@@ -1,12 +1,20 @@
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { motion, useAnimation } from "framer-motion";
-import { CheckCheck, FileText, Archive, Download, Play, Pause, Volume2, Reply, Clock } from "lucide-react";
+import { Check, CheckCheck, FileText, Archive, Download, Play, Pause, Volume2, Reply, Clock } from "lucide-react";
 import MessageContextMenu from "./MessageContextMenu";
-import { useAvatar } from "@/store/useAvatarStore";
+import { useAuthStore } from "@/store/useAuthStore";
 
-const MessageBubble = React.memo(({ message, isOwn = false, onImageClick, onReply, onDelete }: any) => {
-  const { avatar: globalAvatar } = useAvatar();
+const MessageBubble = React.memo(({ message, isOwn = false, onImageClick, onReply, onDelete, selected, selectionMode, onSelect }: any) => {
+  const { user } = useAuthStore();
+
+  const handleBubbleClick = (e: React.MouseEvent) => {
+    if (selectionMode && onSelect) {
+      e.preventDefault();
+      e.stopPropagation();
+      onSelect();
+    }
+  };
 
   const handleFileDownload = () => {
     if (!message.fileUrl) return;
@@ -69,7 +77,9 @@ const MessageBubble = React.memo(({ message, isOwn = false, onImageClick, onRepl
     if (onReply) onReply(message);
   };
 
-  const onSelect = () => console.log("Select message:", message.id);
+  const handleMenuSelect = () => {
+    if (onSelect) onSelect();
+  };
   const handleDelete = () => {
     if (onDelete) onDelete(message.id);
   };
@@ -178,7 +188,16 @@ const MessageBubble = React.memo(({ message, isOwn = false, onImageClick, onRepl
     <>
       <div 
         className={`flex ${isOwn ? "justify-end" : "justify-start"} mb-2 gap-2 animate-in fade-in slide-in-from-bottom-1 relative overflow-hidden`}
+        onClick={handleBubbleClick}
       >
+      {selectionMode && (
+        <div className={`flex flex-col justify-end pb-2 pl-2 pr-1 ${!isOwn ? 'order-last' : 'order-first'}`}>
+          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${selected ? 'bg-teal-500 border-teal-500' : 'border-gray-300'}`}>
+            {selected && <Check className="w-3.5 h-3.5 text-white" />}
+          </div>
+        </div>
+      )}
+      
       {/* Swipe Reply Icon Indicator (renders behind the bubble) */}
       <div 
         className={`absolute inset-y-0 left-0 flex items-center pl-4 transition-opacity duration-200 ${showSwipeIcon && !isOwn ? "opacity-100" : "opacity-0"}`}
@@ -192,7 +211,7 @@ const MessageBubble = React.memo(({ message, isOwn = false, onImageClick, onRepl
       {!isOwn && (
         <Link href={`/dashboard/profile/${message.sender?.id}`} className="hover:opacity-85 transition-opacity z-10 mt-auto mb-1">
           <img
-            src={message.sender?.avatarUrl || "/images/avatar.png"}
+            src={message.sender?.avatarUrl || message.sender?.avatar || message.sender?.logo || "/images/avatar.png"}
             alt={message.sender?.name || "User"}
             className="w-7 h-7 rounded-full object-cover flex-shrink-0 ring-1 ring-black/5 shadow-md"
           />
@@ -282,7 +301,7 @@ const MessageBubble = React.memo(({ message, isOwn = false, onImageClick, onRepl
 
       {isOwn && (
         <img
-          src={globalAvatar || message.sender?.avatarUrl || "/images/avatar.png"}
+          src={message.sender?.avatarUrl || message.sender?.avatar || message.sender?.logo || user?.avatar || user?.avatarUrl || user?.logo || "/images/avatar.png"}
           alt="Me"
           className="w-7 h-7 rounded-full object-cover flex-shrink-0 mt-auto mb-1 ring-1 ring-black/5 shadow-md"
         />
@@ -297,7 +316,7 @@ const MessageBubble = React.memo(({ message, isOwn = false, onImageClick, onRepl
           onClose={() => setContextMenu(null)}
           onReply={handleMenuReply}
           onDelete={isOwn && !message.isDeleted ? handleDelete : undefined}
-          onSelect={onSelect}
+          onSelect={handleMenuSelect}
           isOwn={isOwn}
         />
       )}

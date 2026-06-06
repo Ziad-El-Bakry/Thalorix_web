@@ -60,7 +60,12 @@ export default function PostCard({ post }: { post: PostData }) {
 
   const currentUser = authService.getStoredUser();
   const currentUserName = currentUser?.name || currentUser?.username || "User";
-  const isPostOwner = post.author.name === currentUserName || (currentUser?.id && post.author.id === currentUser.id);
+  const currentUserId = currentUser?.id || (currentUser as any)?._id;
+  
+  // Ensure we match either by explicit ID or by exact Name
+  const isPostOwner = (currentUserId && post.author.id === currentUserId) || (post.author.name === currentUserName && post.author.name !== "Unknown User");
+  const isSeller = currentUser?.role === "seller";
+  const myProfilePath = isSeller ? "/dashboard/seller/profile" : "/dashboard/profile";
 
   const { deletePost, editPost, toggleLike, retryPost } = usePostStore();
   const [isPostDropdownOpen, setIsPostDropdownOpen] = useState(false);
@@ -91,7 +96,7 @@ export default function PostCard({ post }: { post: PostData }) {
           id: c._id,
           author: c.userId?.name || c.userId?.username || "User",
           authorId: c.userId?._id || c.userId?.id,
-          avatar: c.userId?.avatarUrl || "/images/avatar.png",
+          avatar: c.userId?.avatarUrl || c.userId?.avatar || c.userId?.logo || "/images/avatar.png",
           text: c.content,
           time: dayjs(c.createdAt).fromNow(),
         })));
@@ -109,11 +114,11 @@ export default function PostCard({ post }: { post: PostData }) {
     try {
       const c = await communityService.addComment(post.id, commentText);
       const newComment: CommentData = {
-        id: c._id,
+        id: c._id || `temp_${Date.now()}`,
         author: c.userId?.name || currentUserName,
         authorId: c.userId?._id || c.userId?.id || currentUser?.id,
-        avatar: c.userId?.avatarUrl || globalAvatar || "/images/avatar.png",
-        text: c.content,
+        avatar: c.userId?.avatarUrl || c.userId?.avatar || c.userId?.logo || globalAvatar || "/images/avatar.png",
+        text: c.content || commentText,
         time: "Just now",
       };
       setComments((prev) => [newComment, ...prev]);
@@ -126,7 +131,8 @@ export default function PostCard({ post }: { post: PostData }) {
 
   const handleShare = async () => {
     try {
-      await navigator.clipboard.writeText(window.location.href);
+      const postUrl = `${window.location.origin}/dashboard/community#post-${post.id}`;
+      await navigator.clipboard.writeText(postUrl);
       setIsShared(true);
       setTimeout(() => setIsShared(false), 2000);
     } catch (err) {
@@ -136,6 +142,7 @@ export default function PostCard({ post }: { post: PostData }) {
 
   return (
     <motion.div
+      id={`post-${post.id}`}
       initial={post.id.startsWith("temp_") ? { opacity: 0, scale: 0.95 } : { opacity: 0, y: 15 }}
       animate={post.id.startsWith("temp_") ? { opacity: 1, scale: 1 } : { opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}
@@ -145,7 +152,10 @@ export default function PostCard({ post }: { post: PostData }) {
     >
       {/* Author row */}
       <div className="flex items-start justify-between px-4 pt-4 pb-2">
-        <Link href={post.author.id ? `/dashboard/profile/${post.author.id}` : "#"} className="flex flex-1 items-center gap-3 group">
+        <Link 
+          href={post.author.id ? (isPostOwner ? myProfilePath : `/dashboard/profile/${post.author.id}`) : "#"} 
+          className="flex flex-1 items-center gap-3 group"
+        >
           <Image
             src={post.author.avatar}
             alt={post.author.name}
@@ -393,8 +403,9 @@ export default function PostCard({ post }: { post: PostData }) {
             <div className="px-4 py-3 space-y-3">
               {/* Existing comments */}
               {comments.map((comment) => {
+                const commentIsOwner = (currentUserId && comment.authorId === currentUserId) || (comment.author === currentUserName && comment.author !== "Unknown User");
                 const commentProfileHref = comment.authorId 
-                  ? (comment.authorId === currentUser?.id ? "/dashboard/profile" : `/dashboard/profile/${comment.authorId}`)
+                  ? (commentIsOwner ? myProfilePath : `/dashboard/profile/${comment.authorId}`)
                   : "#";
                 return (
                   <div key={comment.id} className="flex gap-2 group">

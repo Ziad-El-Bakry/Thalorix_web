@@ -1,7 +1,8 @@
 import React from "react";
 import { ChatListItemProps } from "../../../types/message";
-import { CheckCheck } from "lucide-react";
+import { CheckCheck, Check } from "lucide-react";
 import { authService } from "@/lib/api/services/auth.service";
+import { useChatStore } from "@/store/useChatStore";
 
 const AVATAR_COLORS = [
   "bg-teal-600",
@@ -27,8 +28,10 @@ export default function ChatListItem({
   conversation,
   selected,
   onClick,
+  selectionMode,
+  isItemSelected,
   ...rest
-}: ChatListItemProps & React.HTMLAttributes<HTMLDivElement>) {
+}: any) {
   const other = conversation.participants[0] || { name: "Unknown", avatarUrl: "/images/avatar.png" };
   const last = conversation.lastMessage;
   const colorClass = getAvatarColor(other.name);
@@ -45,10 +48,18 @@ export default function ChatListItem({
       }`}
       onClick={onClick}
     >
+      {selectionMode && (
+        <div className="mr-3 flex items-center justify-center">
+          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${isItemSelected ? 'bg-teal-500 border-teal-500' : 'border-gray-300'}`}>
+            {isItemSelected && <Check className="w-3.5 h-3.5 text-white" />}
+          </div>
+        </div>
+      )}
+      
       {/* Avatar */}
       <div className="relative flex-shrink-0">
         <img
-          src={other.avatarUrl || "/images/avatar.png"}
+          src={other.avatarUrl || other.avatar || other.logo || "/images/avatar.png"}
           alt={other.name}
           className="w-11 h-11 rounded-full object-cover shadow-md"
         />

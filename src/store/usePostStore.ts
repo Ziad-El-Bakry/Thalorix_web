@@ -26,7 +26,7 @@ const mapBackendPost = (post: any): PostData => ({
   author: {
     id: post.userId?._id || post.userId?.id,
     name: post.userId?.name || "Unknown User",
-    avatar: post.userId?.avatarUrl || "/images/avatar.png",
+    avatar: post.userId?.avatarUrl || post.userId?.avatar || post.userId?.logo || "/images/avatar.png",
     title: post.userId?.role ? post.userId.role.charAt(0).toUpperCase() + post.userId.role.slice(1) : "User",
   },
   content: post.content,
@@ -46,7 +46,22 @@ export const usePostStore = create<PostStore>((set: any, get: any) => ({
     set({ isLoading: true });
     try {
       const data = await communityService.getFeed(userId);
-      set({ posts: data.map(mapBackendPost), isLoading: false });
+      const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+      const currentUserId = currentUser?.id || currentUser?._id || 'guest';
+      const savedLikes = JSON.parse(localStorage.getItem(`liked_posts_${currentUserId}`) || '[]');
+      
+      const mappedPosts = data.map((backendPost: any) => {
+        const post = mapBackendPost(backendPost);
+        // Apply local likes since backend isn't tracking it
+        if (savedLikes.includes(post.id)) {
+          post.liked = true;
+          // Increment display count because backend doesn't know about this like
+          post.likes += 1;
+        }
+        return post;
+      });
+      
+      set({ posts: mappedPosts, isLoading: false });
     } catch (error) {
       console.error("Failed to fetch feed:", error);
       set({ isLoading: false });
@@ -82,7 +97,7 @@ export const usePostStore = create<PostStore>((set: any, get: any) => ({
   },
   toggleLike: async (postId: string, userId: string) => {
     try {
-      // Optimistic update
+      // Toggle like state optimistic update
       set((state: any) => ({
         posts: state.posts.map((p: PostData) => p.id === postId ? { 
           ...p, 
@@ -91,19 +106,22 @@ export const usePostStore = create<PostStore>((set: any, get: any) => ({
         } : p)
       }));
       
-      const result = await communityService.toggleLike(postId, userId);
+      // Save locally (Frontend-only approach as requested)
+      const likedKey = `liked_posts_${userId}`;
+      const savedLikes = JSON.parse(localStorage.getItem(likedKey) || '[]');
+      const currentPosts = get().posts;
+      const updatedPost = currentPosts.find((p: PostData) => p.id === postId);
       
-      // Update with actual backend state
-      set((state: any) => ({
-        posts: state.posts.map((p: PostData) => p.id === postId ? { 
-          ...p, 
-          liked: result.liked, 
-          likes: result.likesCount 
-        } : p)
-      }));
+      if (updatedPost?.liked) {
+        if (!savedLikes.includes(postId)) savedLikes.push(postId);
+      } else {
+        const idx = savedLikes.indexOf(postId);
+        if (idx > -1) savedLikes.splice(idx, 1);
+      }
+      
+      localStorage.setItem(likedKey, JSON.stringify(savedLikes));
     } catch (error) {
       console.error("Failed to toggle like:", error);
-      // Revert optimistic update could be handled here
     }
   },
   addOptimisticPost: (post: Partial<PostData>) => {

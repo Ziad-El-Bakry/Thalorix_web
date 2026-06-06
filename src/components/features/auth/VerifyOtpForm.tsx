@@ -33,7 +33,7 @@ export function VerifyOtpForm() {
         try {
             await authService.verifyOtp({ email, otp: code });
             if (type === "reset") {
-                router.push(`/reset-password?token=${code}`);
+                router.push(`/reset-password?token=${code}&email=${encodeURIComponent(email)}`);
             } else {
                 router.push("/dashboard"); // Redirect on success
             }
