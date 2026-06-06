@@ -34,8 +34,8 @@ export const ENDPOINTS = {
     UPDATE: (id: string) => `/users/${id}`,
     DELETE: (id: string) => `/users/${id}`,
     ME: '/users/me',
+    CHANGE_PASSWORD: (id: string) => `/users/${id}/change-password`,
     UPDATE_PROFILE: (id: string) => `/users/${id}`,
-    CHANGE_PASSWORD: '/users/change-password',
     UPLOAD_AVATAR: '/users/upload/avatars',
     GET_CREDITS: '/users/credits',
 
@@ -64,6 +64,7 @@ export const ENDPOINTS = {
     GET_BY_ID: (id: string) => `/admins/${id}`,
     UPDATE: (id: string) => `/admins/${id}`,
     GET_ALL: '/admins',
+    CHANGE_PASSWORD: (id: string) => `/admins/${id}/change-password`,
   },
 
   // ============================================
@@ -74,6 +75,7 @@ export const ENDPOINTS = {
     REGISTER: '/seller/register',
     GET_BY_ID: (id: string) => `/seller/${id}`,
     UPDATE: (id: string) => `/seller/${id}`,
+    CHANGE_PASSWORD: (id: string) => `/seller/${id}/change-password`,
   },
 
   // ============================================

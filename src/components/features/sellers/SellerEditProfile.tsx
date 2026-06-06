@@ -16,7 +16,8 @@ import {
   Lock,
   Loader2,
   Globe,
-  LogOut
+  LogOut,
+  Shield
 } from "lucide-react";
 
 import { authService } from "@/lib/api/services/auth.service";
@@ -26,7 +27,7 @@ import { usersService } from "@/lib/api/services/users.service";
 import { useAvatar } from "@/store/useAvatarStore";
 import { LogoutModal, DeleteAccountModal } from "@/components/shared/ProfileModals";
 
-type SettingsSection = "basic" | "branding" | "social" | "business";
+type SettingsSection = "basic" | "branding" | "social" | "business" | "password";
 
 export default function SellerEditProfile() {
   const router = useRouter();
@@ -60,9 +61,14 @@ export default function SellerEditProfile() {
   const [twitter, setTwitter] = useState("");
   const [website, setWebsite] = useState("");
 
-  // Business Verification state
-  const [businessType, setBusinessType] = useState("Individual");
+  // Business/Tax state
+  const [businessType, setBusinessType] = useState("");
   const [taxNumber, setTaxNumber] = useState("");
+  
+  // Password state
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [verificationDocs, setVerificationDocs] = useState<string[]>([]);
   const docInputRef = useRef<HTMLInputElement>(null);
   const [docUploading, setDocUploading] = useState(false);
@@ -227,6 +233,26 @@ export default function SellerEditProfile() {
       const storedUser = authService.getStoredUser() as any;
       const targetId = storedUser?.id || storedUser?._id;
 
+      if (activeSection === "password") {
+        if (!oldPassword || !newPassword || !confirmPassword) {
+          fireToast("Please fill all password fields");
+          setSaving(false);
+          return;
+        }
+        if (newPassword !== confirmPassword) {
+          fireToast("New passwords do not match");
+          setSaving(false);
+          return;
+        }
+        await authService.changePassword(targetId, 'seller', { oldPassword, newPassword, confirmPassword });
+        fireToast("Password changed successfully");
+        setOldPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+        setSaving(false);
+        return;
+      }
+
       const payload: any = {
         storeName,
         storeDescription,
@@ -242,7 +268,6 @@ export default function SellerEditProfile() {
           twitter,
           website,
         },
-        website,
         businessType,
         taxNumber,
         verificationDocuments: verificationDocs,
@@ -334,6 +359,7 @@ export default function SellerEditProfile() {
             { id: "branding", label: "Branding Assets", desc: "Logo and cover banners" },
             { id: "social", label: "Social Connections", desc: "Web and socials links" },
             { id: "business", label: "Verification & Taxes", desc: "Document attachments" },
+            { id: "password", label: "Security & Password", desc: "Update store credentials" },
           ].map((sec) => (
             <button
               key={sec.id}
@@ -791,6 +817,53 @@ export default function SellerEditProfile() {
                         </div>
                       </div>
                     )}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* 🔥 SECTION 5: PASSWORD 🔥 */}
+            {activeSection === "password" && (
+              <motion.div
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="space-y-5"
+              >
+                <div className="flex items-center gap-3 border-b pb-3 border-gray-100 mb-2">
+                  <Shield className="text-teal-600 w-5 h-5" />
+                  <h3 className="text-lg font-bold text-gray-900">Security & Password</h3>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-gray-500">Current Password</label>
+                    <input
+                      type="password"
+                      value={oldPassword}
+                      onChange={(e) => setOldPassword(e.target.value)}
+                      placeholder="Enter current password"
+                      className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#123E41]/30 focus:border-[#123E41] transition-all"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-gray-500">New Password</label>
+                    <input
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Enter new password"
+                      className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#123E41]/30 focus:border-[#123E41] transition-all"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-gray-500">Confirm New Password</label>
+                    <input
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Confirm new password"
+                      className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#123E41]/30 focus:border-[#123E41] transition-all"
+                    />
                   </div>
                 </div>
               </motion.div>
