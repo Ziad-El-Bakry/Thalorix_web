@@ -1,12 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronLeft, Lock } from "lucide-react";
+import { ChevronLeft, Lock, CreditCard, Info, AlertCircle } from "lucide-react";
 import UserHeader from "@/components/ui/UserHeader";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import OrderSummary from "@/components/features/marketplace/payment/OrderSummary";
-import PaymentMethod, { CardDetail } from "@/components/features/marketplace/payment/PaymentMethod";
 import { useState, useEffect } from "react";
 import { Template } from "@/types";
 import { templatesService } from "@/lib/api/services/templates.service";
@@ -16,30 +15,14 @@ import { useAuthStore } from "@/store/useAuthStore";
 export default function PaymentPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const id = Array.isArray(params?.id) ? params.id[0] : (params?.id || "1");
   const { user } = useAuthStore();
+  const isCancelled = searchParams?.get("cancelled") === "true";
   
   const [template, setTemplate] = useState<Template | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
-
-  // Lifted payment methods state - starts completely empty, no fake Visas
-  const [paymentMethods, setPaymentMethods] = useState<CardDetail[]>([]);
-  const [selectedMethodId, setSelectedMethodId] = useState<string>("");
-
-  const handleAddCard = (newCard: Omit<CardDetail, "id">) => {
-    const cardId = `card-${Date.now()}`;
-    const cardWithId: CardDetail = { ...newCard, id: cardId };
-    setPaymentMethods((prev) => [...prev, cardWithId]);
-    setSelectedMethodId(cardId);
-  };
-
-  const handleDeleteCard = (idToDelete: string) => {
-    setPaymentMethods((prev) => prev.filter((c) => c.id !== idToDelete));
-    if (selectedMethodId === idToDelete) {
-      setSelectedMethodId("");
-    }
-  };
 
   useEffect(() => {
     const fetchTemplate = async () => {
@@ -56,28 +39,34 @@ export default function PaymentPage() {
   }, [id]);
 
   const handlePayment = async () => {
-    const activeCard = paymentMethods.find((c) => c.id === selectedMethodId);
-    if (!template || !activeCard) return;
+    if (!template) return;
     setIsProcessing(true);
     try {
-      // 1. Create Order
+      // 1. Create unpaid Order
       const orderRes = await api.post('/orders', { 
         templateId: template._id || template.id, 
-        quantity: 1,
-        paymentMethod: activeCard.type,
-        cardLast4: activeCard.last4
+        quantity: 1
       });
       const order = orderRes.data;
 
-      // 2. Direct Mock Checkout Simulation
-      setTimeout(() => {
-        const successUrl = `/dashboard/marketplace/${id}/payment/success?session_id=mock_session_${Date.now()}&order_id=${order._id || order.id}`;
-        router.push(successUrl);
-      }, 2000);
+      // 2. Call Stripe Endpoint to create a Checkout Session
+      const origin = window.location.origin;
+      const stripeRes = await api.post('/stripe/create-checkout-session', {
+        orderId: order._id || order.id,
+        successUrl: `${origin}/dashboard/marketplace/${id}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancelUrl: `${origin}/dashboard/marketplace/${id}/payment?cancelled=true`,
+      });
 
+      const { url } = stripeRes.data;
+      if (url) {
+        // Redirect directly to Stripe Secure Checkout
+        window.location.href = url;
+      } else {
+        throw new Error("Stripe checkout URL not returned");
+      }
     } catch (err: any) {
-      console.error("Payment setup failed:", err);
-      alert(err.response?.data?.message || "Failed to process payment");
+      console.error("Stripe payment redirection failed:", err);
+      alert(err.response?.data?.message || err.message || "Failed to initiate Stripe Checkout");
       setIsProcessing(false);
     }
   };
@@ -94,8 +83,6 @@ export default function PaymentPage() {
     return <div className="text-center p-10">Template not found</div>;
   }
 
-  const activeCardForButton = paymentMethods.find((c) => c.id === selectedMethodId);
-
   return (
     <div className="w-full max-w-[1200px] mx-auto flex flex-col h-full overflow-y-auto custom-scrollbar pb-10">
       <div className="border-b-2 border-[#b0c4c4] pb-2 mb-4 relative z-50">
@@ -110,7 +97,7 @@ export default function PaymentPage() {
         >
           <ChevronLeft size={20} />
         </Link>
-        <h1 className="text-xl font-bold text-gray-900">Payment</h1>
+        <h1 className="text-xl font-bold text-gray-900">Payment Checkout</h1>
       </div>
 
       <div className="flex-1 flex flex-col items-center">
@@ -120,16 +107,35 @@ export default function PaymentPage() {
           transition={{ duration: 0.4 }}
           className="w-full max-w-[500px]"
         >
+          {isCancelled && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3.5 rounded-xl mb-6 text-sm flex gap-2.5 items-start">
+              <AlertCircle size={18} className="text-red-500 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="font-bold">Payment Cancelled</p>
+                <p className="text-red-600/90 text-xs mt-0.5">Your payment process was cancelled. You have not been charged. You can retry checkout when you are ready.</p>
+              </div>
+            </div>
+          )}
           
           <OrderSummary template={template} />
           
-          <PaymentMethod 
-            methods={paymentMethods}
-            selectedMethodId={selectedMethodId}
-            onSelectMethod={setSelectedMethodId}
-            onAddCard={handleAddCard}
-            onDeleteCard={handleDeleteCard}
-          />
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-6 w-full space-y-4">
+            <div className="flex items-center gap-3 text-[#103B40] font-semibold">
+              <CreditCard className="text-[#123E41]" size={20} />
+              <span>Payment Method</span>
+            </div>
+            
+            <div className="bg-[#123E41]/5 rounded-xl p-4 border border-[#123E41]/10 flex gap-3 items-start">
+              <Info size={16} className="text-[#123E41] mt-0.5 flex-shrink-0" />
+              <div className="text-xs text-[#103B40]/80 space-y-1">
+                <p className="font-bold text-[#103B40]">Secure Stripe Checkout</p>
+                <p>You will be redirected to Stripe's secure page to complete your payment.</p>
+                <div className="mt-2 inline-flex items-center gap-1.5 px-2 py-0.5 bg-amber-100 text-amber-800 rounded font-bold text-[10px] tracking-wider uppercase select-none">
+                  Stripe Test Mode Only
+                </div>
+              </div>
+            </div>
+          </div>
 
           <div className="flex items-center gap-2 text-xs text-gray-500 font-medium mb-8">
             <Lock size={12} className="text-gray-400" />
@@ -139,7 +145,7 @@ export default function PaymentPage() {
           <div className="space-y-3">
              <button 
                onClick={handlePayment} 
-               disabled={isProcessing || !activeCardForButton}
+               disabled={isProcessing}
                className="w-full bg-[#123E41] text-white font-bold py-3.5 rounded-xl hover:bg-[#0d2c2e] disabled:opacity-70 disabled:cursor-not-allowed transition-colors flex justify-center items-center gap-2 shadow-sm"
              >
                {isProcessing ? (
@@ -148,10 +154,8 @@ export default function PaymentPage() {
                  <Lock size={16} />
                )}
                {isProcessing 
-                 ? "Processing..." 
-                 : activeCardForButton 
-                   ? `Pay $${template.price.toFixed(2)} with ${activeCardForButton.type.toUpperCase()} (•••• ${activeCardForButton.last4})` 
-                   : "Please Add a Payment Method"}
+                 ? "Redirecting to Stripe..." 
+                 : `Proceed to Stripe Checkout ($${template.price.toFixed(2)})`}
              </button>
              <Link href={`/dashboard/marketplace/${id}`} className="block w-full">
                <button className="w-full bg-[#A5C9D3]/70 text-[#123E41] font-bold py-3.5 rounded-xl hover:bg-[#A5C9D3] transition-colors shadow-sm">

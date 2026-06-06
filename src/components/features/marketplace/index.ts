@@ -16,4 +16,3 @@ export { default as UploadFlow } from './UploadFlow';
 
 // Payment
 export { default as OrderSummary } from './payment/OrderSummary';
-export { default as PaymentMethod } from './payment/PaymentMethod';
