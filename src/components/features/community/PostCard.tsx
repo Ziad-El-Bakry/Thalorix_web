@@ -80,8 +80,8 @@ export default function PostCard({ post }: { post: PostData }) {
   const isLongContent = post.content.length > CONTENT_LIMIT;
 
   const handleLike = () => {
-    if (currentUser?.id) {
-      toggleLike(post.id, currentUser.id);
+    if (currentUserId) {
+      toggleLike(post.id, currentUserId);
     }
   };
 
