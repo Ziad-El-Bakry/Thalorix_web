@@ -375,6 +375,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
 
     try {
       const res = await uploadService.uploadFile(file as File, "messages");
+      URL.revokeObjectURL(tempUrl);
       
       // Emit with real URL
       if (state.socketConnected && socket) {
