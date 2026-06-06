@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Edit3, BarChart2, Briefcase, Sparkles, Settings, Plus, Upload } from "lucide-react";
+import { Edit3, BarChart2, Briefcase, Sparkles, Settings, Plus, Upload, Store, Package, Heart, Users, Shield } from "lucide-react";
 import { useState, useEffect } from "react";
 import { authService } from "@/lib/api/services/auth.service";
 
@@ -48,7 +48,7 @@ function ActionItem({ icon, label, isActive, href, color = "#103B40", delay = 0 
         </div>
         
         <div className="flex flex-col items-center gap-0.5">
-          <span className={`text-[11px] font-bold tracking-wide uppercase ${
+          <span className={`text-[11px] font-bold tracking-wide uppercase text-center ${
             isActive ? "text-white" : "text-gray-500 group-hover:text-gray-900"
           }`}>
             {label}
@@ -70,23 +70,49 @@ function ActionItem({ icon, label, isActive, href, color = "#103B40", delay = 0 
 }
 
 export default function QuickActionsGrid() {
-  const [isSeller, setIsSeller] = useState(false);
+  const [userRole, setUserRole] = useState("user");
 
   useEffect(() => {
-    const user = authService.getStoredUser() as any;
-    if (user?.role === 'seller') {
-      setIsSeller(true);
+    const user = authService.getStoredUser();
+    if (user) {
+      setUserRole(user.role || "user");
     }
   }, []);
 
-  const actions = [
-    { icon: <Plus size={22} />, label: "New Post", href: "/dashboard/community?post=new", color: "#43B0B5" },
-    { icon: <BarChart2 size={22} />, label: "Analytics", href: "/dashboard/analytics", color: "#3B82F6" },
-    ...(isSeller ? [{ icon: <Upload size={22} />, label: "Upload", href: "/dashboard/marketplace/upload", color: "#103B40" }] : []),
-    { icon: <Briefcase size={22} />, label: "Jobs", href: "/dashboard/marketplace", color: "#F59E0B" },
-    { icon: <Sparkles size={22} />, label: "AI Write", href: "/dashboard/ai-generator", color: "#8B5CF6" },
-    { icon: <Settings size={22} />, label: "Settings", href: "/dashboard/profile?settings=open", color: "#EC4899" },
-  ];
+  const getActions = () => {
+    const baseActions = [
+      { icon: <Plus size={22} />, label: "New Post", href: "/dashboard/community?post=new", color: "#43B0B5" },
+      { icon: <Sparkles size={22} />, label: "AI Write", href: "/dashboard/ai-generator", color: "#8B5CF6" },
+      { icon: <Settings size={22} />, label: "Settings", href: "/dashboard/settings", color: "#EC4899" },
+    ];
+
+    if (userRole === "admin") {
+      return [
+        { icon: <Shield size={22} />, label: "Admin Panel", href: "/dashboard/admin", color: "#EF4444" },
+        { icon: <Users size={22} />, label: "Users", href: "/dashboard/admin/users", color: "#3B82F6" },
+        { icon: <Store size={22} />, label: "Sellers", href: "/dashboard/admin/sellers", color: "#10B981" },
+        ...baseActions,
+      ];
+    }
+
+    if (userRole === "seller") {
+      return [
+        { icon: <Upload size={22} />, label: "Upload", href: "/dashboard/marketplace/upload", color: "#10B981" },
+        { icon: <Package size={22} />, label: "Products", href: "/dashboard/seller/products", color: "#3B82F6" },
+        { icon: <BarChart2 size={22} />, label: "Dashboard", href: "/dashboard/seller/dashboard", color: "#F59E0B" },
+        ...baseActions,
+      ];
+    }
+
+    // Default User
+    return [
+      { icon: <Heart size={22} />, label: "Wishlist", href: "/dashboard/marketplace/wishlist", color: "#F43F5E" },
+      { icon: <Briefcase size={22} />, label: "Marketplace", href: "/dashboard/marketplace", color: "#F59E0B" },
+      ...baseActions,
+    ];
+  };
+
+  const actions = getActions();
 
   return (
     <div className="flex flex-col h-full">

@@ -1,31 +1,28 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { LayoutGrid, FileText, ShoppingBag, Users, Store } from "lucide-react";
+import { LayoutGrid, ShoppingBag, Users, Store, TrendingUp } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
-export type AdminTabId = "overview" | "users" | "sellers" | "posts" | "products";
+export type AdminTabId = "overview" | "users" | "sellers" | "products" | "reports";
 
 interface Tab {
   id: AdminTabId;
   label: string;
   icon: React.ElementType;
-  badge?: number;
+  href: string;
 }
 
-interface AdminTabsProps {
-  activeTab: AdminTabId;
-  onTabChange: (tab: AdminTabId) => void;
-  postCount: number;
-  productCount: number;
-}
+export default function AdminTabs() {
+  const pathname = usePathname();
 
-export default function AdminTabs({ activeTab, onTabChange, postCount, productCount }: AdminTabsProps) {
   const tabs: Tab[] = [
-    { id: "overview", label: "Overview", icon: LayoutGrid },
-    { id: "users", label: "Users", icon: Users },
-    { id: "sellers", label: "Sellers", icon: Store },
-    { id: "posts", label: "Posts", icon: FileText, badge: postCount },
-    { id: "products", label: "Products", icon: ShoppingBag, badge: productCount },
+    { id: "overview", label: "Overview", icon: LayoutGrid, href: "/dashboard/admin" },
+    { id: "users", label: "Users", icon: Users, href: "/dashboard/admin/users" },
+    { id: "sellers", label: "Sellers", icon: Store, href: "/dashboard/admin/sellers" },
+    { id: "products", label: "Products", icon: ShoppingBag, href: "/dashboard/admin/content" },
+    { id: "reports", label: "Reports", icon: TrendingUp, href: "/dashboard/admin/reports" },
   ];
 
   return (
@@ -38,12 +35,12 @@ export default function AdminTabs({ activeTab, onTabChange, postCount, productCo
       <div className="flex items-center gap-1 min-w-max">
         {tabs.map((tab) => {
           const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
+          const isActive = pathname === tab.href;
           return (
-            <button
+            <Link
               key={tab.id}
-              onClick={() => onTabChange(tab.id)}
-              className="relative flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-colors duration-200 whitespace-nowrap"
+              href={tab.href}
+              className="relative flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-colors duration-200 whitespace-nowrap outline-none"
               style={{
                 color: isActive ? "#103B40" : "#6b7280",
               }}
@@ -58,16 +55,8 @@ export default function AdminTabs({ activeTab, onTabChange, postCount, productCo
               <span className="relative flex items-center gap-2">
                 <Icon size={16} />
                 {tab.label}
-                {tab.badge !== undefined && tab.badge > 0 && (
-                  <span
-                    className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[11px] font-bold text-white"
-                    style={{ backgroundColor: isActive ? "#103B40" : "#9ca3af" }}
-                  >
-                    {tab.badge}
-                  </span>
-                )}
               </span>
-            </button>
+            </Link>
           );
         })}
       </div>

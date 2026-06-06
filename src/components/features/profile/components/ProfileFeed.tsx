@@ -131,33 +131,7 @@ const ProfileFeed = memo(({
     >
       {isOwnProfile && <CreatePostBar userName={userName} />}
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 px-5 py-3 flex items-center gap-1.5 overflow-x-auto scrollbar-hide">
-        {[
-          { id: "posts", label: "Posts", icon: FileText },
-          { id: "projects", label: "Projects", icon: Briefcase },
-          { id: "media", label: "Media", icon: ImageIcon },
-          { id: "friends", label: "Friends", icon: UserCheck },
-          { id: "followers", label: "Followers", icon: ArrowRight },
-          { id: "following", label: "Following", icon: UserPlus }
-        ].map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeProfileTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveProfileTab(tab.id as any)}
-              className={`px-4 py-2 rounded-full text-xs sm:text-sm font-semibold capitalize transition-all duration-200 flex items-center gap-2 whitespace-nowrap ${
-                isActive
-                  ? "bg-[#103B40] text-white shadow-sm"
-                  : "text-gray-500 hover:bg-gray-50 hover:text-gray-700"
-              }`}
-            >
-              <Icon size={15} />
-              <span>{tab.label}</span>
-            </button>
-          );
-        })}
-      </div>
+
 
       <div className="space-y-4">
         {activeProfileTab === "posts" &&

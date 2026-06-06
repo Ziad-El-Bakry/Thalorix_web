@@ -1,13 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Shield, Flag } from "lucide-react";
+import { Shield } from "lucide-react";
 
-interface AdminPanelHeaderProps {
-  flaggedCount: number;
-}
-
-export default function AdminPanelHeader({ flaggedCount }: AdminPanelHeaderProps) {
+export default function AdminPanelHeader() {
   return (
     <motion.div
       initial={{ opacity: 0, y: -10 }}
@@ -21,7 +17,7 @@ export default function AdminPanelHeader({ flaggedCount }: AdminPanelHeaderProps
           <Shield size={24} className="text-white" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Admin Control Panel</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
           <p className="text-sm text-gray-500 mt-0.5">
             Manage posts, products, orders & user permissions across THALORIX
           </p>
@@ -30,17 +26,6 @@ export default function AdminPanelHeader({ flaggedCount }: AdminPanelHeaderProps
 
       {/* Right: Badges */}
       <div className="flex items-center gap-3 flex-wrap">
-        {flaggedCount > 0 && (
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="flex items-center gap-2 bg-red-50 text-red-600 px-4 py-2 rounded-full text-sm font-semibold border border-red-100 shadow-sm"
-          >
-            <Flag size={14} />
-            <span>{flaggedCount} flagged posts</span>
-          </motion.div>
-        )}
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}

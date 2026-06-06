@@ -82,6 +82,33 @@ export default function UploadFormStep({ onNext }: UploadFormStepProps) {
       setError("Description must be at least 50 characters.");
       return;
     }
+    if (categoryId === "new_custom") {
+      if (!newCategoryName || newCategoryName.trim().length < 2) {
+        setError("Please enter a valid new category name.");
+        return;
+      }
+      if (!file) {
+        setError("Please select a template file.");
+        return;
+      }
+      setIsCreatingCategory(true);
+      setError("");
+      categoriesService.create({ name: newCategoryName.trim() })
+        .then((newCat) => {
+           const newCatId = newCat._id || newCat.id;
+           setCategories([...categories, newCat]);
+           setCategoryId(newCatId as string);
+           setIsCreatingCategory(false);
+           onNext({ title, description, price: isPaid ? price : 0, categoryId: newCatId as string, file: file!, image: image || undefined, tags });
+        })
+        .catch((err) => {
+           console.error("Failed to create category", err);
+           setIsCreatingCategory(false);
+           setError("Failed to create new category. Please try again.");
+        });
+      return;
+    }
+
     if (!categoryId) {
       setError("Please select a category.");
       return;
@@ -119,6 +146,7 @@ export default function UploadFormStep({ onNext }: UploadFormStepProps) {
             type="text" 
             value={title}
             onChange={(e) => setTitle(e.target.value)}
+            placeholder="Enter template name..."
             className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-[#123E41]"
           />
         </div>
@@ -199,6 +227,7 @@ export default function UploadFormStep({ onNext }: UploadFormStepProps) {
             rows={4}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+            placeholder="Describe your template in detail..."
             className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-[#123E41] resize-none"
           ></textarea>
           <div className="flex justify-between items-center mt-1.5">
@@ -231,7 +260,8 @@ export default function UploadFormStep({ onNext }: UploadFormStepProps) {
             ref={fileInputRef} 
             onChange={(e) => setFile(e.target.files?.[0] || null)} 
             className="hidden" 
-            accept=".zip,.rar,.tar.gz" 
+            accept=".zip,.rar,.tar.gz"
+            title="Upload template file"
           />
           
           <div className="mt-4 space-y-1.5">
@@ -277,7 +307,8 @@ export default function UploadFormStep({ onNext }: UploadFormStepProps) {
             ref={imageInputRef} 
             onChange={(e) => setImage(e.target.files?.[0] || null)} 
             className="hidden" 
-            accept="image/*" 
+            accept="image/*"
+            title="Upload cover image"
           />
         </div>
 
@@ -336,9 +367,17 @@ export default function UploadFormStep({ onNext }: UploadFormStepProps) {
           </button>
           <button 
             onClick={handleSubmit}
-            className="flex-1 bg-[#123E41] text-white font-bold py-3.5 rounded-xl hover:bg-[#0d2c2e] transition-colors"
+            disabled={isCreatingCategory}
+            className="flex-1 bg-[#123E41] text-white font-bold py-3.5 rounded-xl hover:bg-[#0d2c2e] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
           >
-            Submit Template
+            {isCreatingCategory ? (
+              <>
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Creating...
+              </>
+            ) : (
+              "Submit Template"
+            )}
           </button>
         </div>
       </div>

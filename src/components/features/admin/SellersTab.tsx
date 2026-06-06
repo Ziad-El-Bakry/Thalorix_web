@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Ban, Check, Trash2, X, ChevronLeft, ChevronRight, AlertTriangle, Star, Store } from "lucide-react";
+import { Search, Ban, Check, Trash2, X, ChevronLeft, ChevronRight, AlertTriangle, Store } from "lucide-react";
 import { sellersService, type Seller } from "@/lib/api/services/sellers.service";
 
 export default function SellersTab() {
@@ -147,7 +147,7 @@ export default function SellersTab() {
               <tr className="border-b border-gray-100 bg-gray-50 text-gray-500 font-bold">
                 <th className="text-left px-6 py-4">Seller & Store Info</th>
                 <th className="text-left px-6 py-4">Phone & Contact Info</th>
-                <th className="text-center px-6 py-4">Average Rating</th>
+
                 <th className="text-center px-6 py-4">Account Status</th>
                 <th className="text-center px-6 py-4">Verification</th>
                 <th className="text-center px-6 py-4">Actions</th>
@@ -187,13 +187,7 @@ export default function SellersTab() {
                       <span className="text-[11px] text-gray-400 block mt-0.5">{seller.email}</span>
                     </td>
 
-                    {/* Rating stars */}
-                    <td className="px-6 py-4 text-center">
-                      <div className="flex items-center justify-center gap-1 text-amber-500 font-semibold">
-                        <Star size={14} className="fill-amber-500" />
-                        <span className="text-xs">{seller.ratings || "5.0"}</span>
-                      </div>
-                    </td>
+
 
                     {/* Active toggle */}
                     <td className="px-6 py-4 text-center">
@@ -294,6 +288,7 @@ export default function SellersTab() {
                 <button
                   onClick={() => setConfirmModal({ show: false, type: "delete", targetSeller: null })}
                   className="p-1 rounded-xl text-gray-400 hover:bg-gray-100 transition-colors"
+                  title="Close"
                 >
                   <X size={18} />
                 </button>

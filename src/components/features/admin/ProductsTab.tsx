@@ -2,14 +2,13 @@
 
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Check, Ban, Trash2, Eye, DollarSign, ShoppingBag } from "lucide-react";
+import { Search, Check, Ban, Trash2, Eye, DollarSign, ShoppingBag, X } from "lucide-react";
 import { mockProducts, AdminProduct } from "./adminMockData";
 
-type Filter = "All" | "Active" | "Pending Review" | "Suspended" | "Removed";
+type Filter = "All" | "Active" | "Suspended" | "Removed";
 
 const statusColors: Record<AdminProduct["status"], { bg: string; text: string; dot: string }> = {
   Active: { bg: "bg-emerald-50", text: "text-emerald-600", dot: "bg-emerald-500" },
-  "Pending Review": { bg: "bg-amber-50", text: "text-amber-600", dot: "bg-amber-500" },
   Suspended: { bg: "bg-red-50", text: "text-red-500", dot: "bg-red-500" },
   Removed: { bg: "bg-gray-100", text: "text-gray-500", dot: "bg-gray-400" },
 };
@@ -19,8 +18,9 @@ export default function ProductsTab() {
   const [filter, setFilter] = useState<Filter>("All");
   const [products, setProducts] = useState(mockProducts);
   const [toast, setToast] = useState<string | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<AdminProduct | null>(null);
 
-  const filters: Filter[] = ["All", "Active", "Pending Review", "Suspended", "Removed"];
+  const filters: Filter[] = ["All", "Active", "Suspended", "Removed"];
 
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
@@ -37,14 +37,14 @@ export default function ProductsTab() {
     setTimeout(() => setToast(null), 2500);
   };
 
-  const handleApprove = (id: string) => {
-    setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, status: "Active" as const } : p)));
-    showToast("Product approved");
-  };
-
   const handleSuspend = (id: string) => {
     setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, status: "Suspended" as const } : p)));
     showToast("Product suspended");
+  };
+
+  const handleActivate = (id: string) => {
+    setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, status: "Active" as const } : p)));
+    showToast("Product activated");
   };
 
   const handleRemove = (id: string) => {
@@ -160,15 +160,19 @@ export default function ProductsTab() {
                   {/* Actions */}
                   <td className="px-5 py-4">
                     <div className="flex items-center justify-end gap-1.5">
-                      <button className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 transition-colors" title="View">
+                      <button
+                        onClick={() => setSelectedProduct(product)}
+                        className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 transition-colors"
+                        title="View Details"
+                      >
                         <Eye size={14} />
                       </button>
-                      {(product.status === "Pending Review" || product.status === "Suspended") && (
+                      {product.status === "Suspended" && (
                         <button
-                          onClick={() => handleApprove(product.id)}
+                          onClick={() => handleActivate(product.id)}
                           className="px-3 py-1.5 rounded-lg text-xs font-medium text-emerald-600 bg-emerald-50 hover:bg-emerald-100 transition-colors flex items-center gap-1"
                         >
-                          <Check size={12} /> Approve
+                          <Check size={12} /> Activate
                         </button>
                       )}
                       {product.status === "Active" && (
@@ -212,6 +216,106 @@ export default function ProductsTab() {
           >
             <Check size={16} /> {toast}
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Product Details Modal */}
+      <AnimatePresence>
+        {selectedProduct && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              className="bg-white rounded-3xl shadow-2xl border border-gray-100 max-w-lg w-full relative overflow-hidden"
+            >
+              {/* Header */}
+              <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#103B40]/10 flex items-center justify-center">
+                    <ShoppingBag size={20} className="text-[#103B40]" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-gray-900">Template Details</h3>
+                    <p className="text-xs text-gray-400 mt-0.5">Product overview</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSelectedProduct(null)}
+                  className="p-2 rounded-xl text-gray-400 hover:bg-gray-100 transition-colors"
+                  title="Close"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="p-6 space-y-5">
+                {/* Product name & category */}
+                <div>
+                  <p className="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1">Product Name</p>
+                  <p className="text-lg font-bold text-gray-900">{selectedProduct.name}</p>
+                  <span className="inline-block mt-1.5 px-2.5 py-0.5 rounded-full bg-gray-100 text-xs font-semibold text-gray-600">
+                    {selectedProduct.category}
+                  </span>
+                </div>
+
+                {/* Seller info */}
+                <div>
+                  <p className="text-xs text-gray-400 font-medium uppercase tracking-wide mb-2">Seller</p>
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                      style={{ backgroundColor: selectedProduct.seller.color }}
+                    >
+                      {selectedProduct.seller.initials}
+                    </div>
+                    <span className="text-sm font-semibold text-gray-800">{selectedProduct.seller.name}</span>
+                  </div>
+                </div>
+
+                {/* Stats grid */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="bg-gray-50 rounded-xl p-3.5 text-center border border-gray-100">
+                    <p className="text-xs text-gray-400 font-medium mb-1">Price</p>
+                    <p className="text-lg font-bold text-gray-900">${selectedProduct.price}</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-xl p-3.5 text-center border border-gray-100">
+                    <p className="text-xs text-gray-400 font-medium mb-1">Sales</p>
+                    <p className="text-lg font-bold text-gray-900">{selectedProduct.sales}</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-xl p-3.5 text-center border border-gray-100">
+                    <p className="text-xs text-gray-400 font-medium mb-1">Revenue</p>
+                    <p className="text-lg font-bold text-emerald-600">${selectedProduct.revenue}</p>
+                  </div>
+                </div>
+
+                {/* Status */}
+                <div>
+                  <p className="text-xs text-gray-400 font-medium uppercase tracking-wide mb-2">Status</p>
+                  {(() => {
+                    const sc = statusColors[selectedProduct.status];
+                    return (
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold ${sc.bg} ${sc.text}`}>
+                        <span className={`w-2 h-2 rounded-full ${sc.dot}`} />
+                        {selectedProduct.status}
+                      </span>
+                    );
+                  })()}
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex justify-end">
+                <button
+                  onClick={() => setSelectedProduct(null)}
+                  className="px-5 py-2.5 bg-[#103B40] text-white rounded-xl text-xs font-bold hover:bg-[#1b5c63] transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </motion.div>
