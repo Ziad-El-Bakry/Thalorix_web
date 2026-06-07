@@ -426,11 +426,42 @@ export function AICodeGenContainer() {
   return (
     <div className="max-w-7xl mx-auto flex flex-col min-h-[calc(100vh-140px)] relative">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <UserHeader name={userName} compact />
-        
+      <UserHeader name={userName} compact />
+      <div className="h-px bg-gray-300 mb-6 md:mb-8 flex-shrink-0" />
+
+      {/* Primary Tab Navigation */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-200 mb-6 flex-shrink-0 gap-4 pb-2 sm:pb-0">
+        <div className="flex">
+          <button
+            onClick={() => {
+              setActiveTab('chat');
+              fetchDeployedProjects();
+            }}
+            className={`px-5 py-2.5 font-semibold text-sm transition-all border-b-2 cursor-pointer ${
+              activeTab === 'chat' 
+                ? 'border-[#103B40] text-[#103B40]' 
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            AI Generator
+          </button>
+          <button
+            onClick={() => {
+              setActiveTab('dashboard');
+              fetchDeployedProjects();
+            }}
+            className={`px-5 py-2.5 font-semibold text-sm transition-all border-b-2 cursor-pointer ${
+              activeTab === 'dashboard' 
+                ? 'border-[#103B40] text-[#103B40]' 
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Deployed Projects ({deployedProjects.length})
+          </button>
+        </div>
+
         {/* Service Health Banner */}
-        <div className="flex items-center gap-2 bg-white border border-gray-200 px-3 py-1.5 rounded-full text-xs font-medium shadow-sm">
+        <div className="flex items-center gap-2 bg-white border border-gray-200 px-3 py-1.5 rounded-full text-xs font-medium shadow-sm mb-1.5 flex-shrink-0">
           <span className={`w-2.5 h-2.5 rounded-full ${
             serviceStatus === 'healthy' ? 'bg-emerald-500 animate-pulse' : 
             serviceStatus === 'loading' ? 'bg-amber-500 animate-pulse' : 'bg-red-500'
@@ -438,43 +469,12 @@ export function AICodeGenContainer() {
           <span className="text-gray-600">{serviceMessage}</span>
           <button 
             onClick={checkServiceHealth} 
-            className="ml-1.5 p-0.5 hover:bg-gray-100 rounded text-gray-400 hover:text-[#103B40] transition-colors"
+            className="ml-1.5 p-0.5 hover:bg-gray-100 rounded text-gray-400 hover:text-[#103B40] transition-colors cursor-pointer"
             title="Refresh status"
           >
             <RefreshCw className="w-3 h-3" />
           </button>
         </div>
-      </div>
-      <div className="h-px bg-gray-300 mb-6 md:mb-8 flex-shrink-0" />
-
-      {/* Primary Tab Navigation */}
-      <div className="flex border-b border-gray-200 mb-6 flex-shrink-0">
-        <button
-          onClick={() => {
-            setActiveTab('chat');
-            fetchDeployedProjects();
-          }}
-          className={`px-5 py-2.5 font-semibold text-sm transition-all border-b-2 cursor-pointer ${
-            activeTab === 'chat' 
-              ? 'border-[#103B40] text-[#103B40]' 
-              : 'border-transparent text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          AI Generator
-        </button>
-        <button
-          onClick={() => {
-            setActiveTab('dashboard');
-            fetchDeployedProjects();
-          }}
-          className={`px-5 py-2.5 font-semibold text-sm transition-all border-b-2 cursor-pointer ${
-            activeTab === 'dashboard' 
-              ? 'border-[#103B40] text-[#103B40]' 
-              : 'border-transparent text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          Deployed Projects ({deployedProjects.length})
-        </button>
       </div>
 
       {/* View Switch */}
