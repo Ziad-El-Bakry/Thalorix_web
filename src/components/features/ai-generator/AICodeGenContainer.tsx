@@ -57,6 +57,9 @@ export function AICodeGenContainer() {
   const [uploadedFile, setUploadedFile] = useState<{ name: string; url: string; sessionId?: string } | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
+  // Sidebar Open State
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
   // Polling Reference
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -73,8 +76,21 @@ export function AICodeGenContainer() {
     checkServiceHealth();
     fetchDeployedProjects();
 
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setIsSidebarOpen(false);
+      } else {
+        setIsSidebarOpen(true);
+      }
+    };
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      setIsSidebarOpen(false);
+    }
+    window.addEventListener('resize', handleResize);
+
     return () => {
       if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+      window.removeEventListener('resize', handleResize);
     };
   }, []);
 
@@ -598,12 +614,23 @@ export function AICodeGenContainer() {
             onSelect={handleSelectConversation}
             onNewChat={handleNewChat}
             onDelete={handleDeleteProject}
-            isOpen={true}
-            onToggle={() => {}}
+            isOpen={isSidebarOpen}
+            onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
           />
 
           {/* Main workspace layout */}
           <div className="flex-1 min-w-0 flex flex-col relative min-h-[calc(100vh-200px)]">
+            {!isSidebarOpen && (
+              <div className="sticky top-6 z-20 w-0 h-0">
+                <button
+                  onClick={() => setIsSidebarOpen(true)}
+                  className="absolute top-0 left-0 md:-left-5 p-1.5 text-gray-400 hover:text-[#103B40] hover:bg-gray-100 rounded-r-lg border border-l-0 border-gray-200 bg-white transition-colors shadow-sm cursor-pointer"
+                  title="Open sidebar"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-panel-left-open"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m14 9 3 3-3 3"/></svg>
+                </button>
+              </div>
+            )}
             
             {/* If there is no active project and we aren't generating, show empty state */}
             {currentMessages.length === 0 && !isGenerating ? (
@@ -622,7 +649,7 @@ export function AICodeGenContainer() {
               // Split Layout: Chat Left, IDE Workspace Right (if project exists)
               <div className="flex-1 flex flex-col lg:flex-row gap-5 items-stretch min-h-0">
                 {/* Chat Column */}
-                <div className={`flex flex-col border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden flex-1 ${activeProject?.status === 'completed' ? 'lg:max-w-md' : 'w-full'}`}>
+                <div className={`flex flex-col border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden flex-1 h-[500px] lg:h-auto ${activeProject?.status === 'completed' ? 'lg:max-w-md' : 'w-full'}`}>
                   {/* Chat Header */}
                   <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
                     <span className="text-xs font-bold text-[#103B40]">AI Generation Thread</span>
@@ -652,7 +679,7 @@ export function AICodeGenContainer() {
 
                 {/* IDE Workspace / Build Logs Column (Only if project loaded/building) */}
                 {(isGenerating || activeProject) && (
-                  <div className="flex-1 flex flex-col border border-gray-200 rounded-xl bg-[#1e1e1e] shadow-lg overflow-hidden text-white min-h-[450px]">
+                  <div className="flex-1 flex flex-col border border-gray-200 rounded-xl bg-[#1e1e1e] shadow-lg overflow-hidden text-white min-h-[450px] h-[550px] lg:h-auto">
                     {/* IDE Header */}
                     <div className="px-4 py-3 bg-[#181818] border-b border-[#2d2d2d] flex items-center justify-between flex-shrink-0">
                       <div className="flex items-center gap-2">
@@ -709,26 +736,26 @@ export function AICodeGenContainer() {
                       </div>
                     ) : activeProject?.status === 'completed' && activeProject.files?.length > 0 ? (
                       // Show Workspace: Files explorer on the left, Monaco Editor on the right
-                      <div className="flex-1 flex min-h-0">
+                      <div className="flex-1 flex flex-col md:flex-row min-h-0">
                         {/* File Tree Sidebar */}
-                        <div className="w-[180px] bg-[#181818] border-r border-[#2d2d2d] flex flex-col min-h-0 flex-shrink-0">
-                          <div className="p-2 border-b border-[#2d2d2d] text-[10px] uppercase font-bold tracking-widest text-gray-500 flex items-center gap-1">
+                        <div className="w-full md:w-[180px] bg-[#181818] border-b md:border-b-0 md:border-r border-[#2d2d2d] flex flex-row md:flex-col min-h-0 flex-shrink-0 overflow-x-auto md:overflow-x-visible md:overflow-y-auto">
+                          <div className="hidden md:flex p-2 border-b border-[#2d2d2d] text-[10px] uppercase font-bold tracking-widest text-gray-500 items-center gap-1">
                             <Folder className="w-3 h-3 text-amber-500" />
                             Project Files
                           </div>
-                          <div className="flex-1 overflow-y-auto p-1.5 space-y-1">
+                          <div className="flex flex-row md:flex-col p-1.5 md:space-y-1 gap-2 md:gap-0 flex-1 overflow-x-auto md:overflow-y-auto whitespace-nowrap md:whitespace-normal">
                             {activeProject.files.map((file, idx) => (
                               <button
                                 key={file.path}
                                 onClick={() => setActiveFileIndex(idx)}
-                                className={`w-full text-left flex items-center gap-1.5 px-2 py-1.5 rounded text-xs font-mono truncate transition-colors cursor-pointer ${
+                                className={`flex items-center gap-1.5 px-3 py-1.5 md:px-2 rounded text-xs font-mono transition-colors cursor-pointer flex-shrink-0 md:w-full md:text-left ${
                                   activeFileIndex === idx
                                     ? 'bg-[#103B40] text-white font-medium'
                                     : 'text-gray-400 hover:bg-[#252525] hover:text-white'
                                 }`}
                               >
                                 <FileCode className="w-3.5 h-3.5 text-teal-400 flex-shrink-0" />
-                                <span className="truncate">{file.path}</span>
+                                <span className="truncate max-w-[120px] md:max-w-none">{file.path}</span>
                               </button>
                             ))}
                           </div>
