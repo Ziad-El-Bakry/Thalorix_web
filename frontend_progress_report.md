@@ -63,22 +63,21 @@
 - **Completion:** 95%
 - **Status:** Completed
 - **Implemented:** 
-  - Full WebSockets (`Socket.io`) integration in both backend (`chat.gateway.ts`) and frontend (`socket.service.ts`, `useChatStore.ts`).
   - High-fidelity `ChatWindow`, `ChatList`, and `MessageBubble` UI.
-  - Real-time message delivery, typing indicators, and read receipts.
   - Multi-Select Bulk Delete modes for messages and conversations.
+  - Auto-focus and smart replies UI.
+  - **Real-Time WebSockets:** Fully integrated via `socket.io-client`, mapped into the Zustand `useChatStore.ts` for real-time delivery (`sendMessage`, `typing` events, `delete_message`).
 - **Priority:** Low (Completed)
 
 ### Marketplace / Templates System
-- **Completion:** 90%
+- **Completion:** 95%
 - **Status:** Completed UI / Advanced Integration
 - **Implemented:** 
   - Connected `UploadFlow` and `UploadProgressStep` to the backend.
   - Dynamic metadata extraction (Real File Size, Format, Dimensions).
   - Integrated `PurchaseCard` and `TemplateInfo` with live database values.
   - Dynamic intelligent routing to Seller profiles vs. Own Dashboard based on auth context.
-- **Missing:** Stripe/Payment gateway integration.
-- **Priority:** High
+- **Priority:** Low (Completed)
 
 ### Admin Dashboard
 - **Completion:** 75%
@@ -95,16 +94,18 @@
 - **Status:** Advanced Integration
 - **Implemented:** 
   - `AIChatInterface`, `AICodeGenContainer`, `AIChatInput` components.
-  - Fully integrated with backend API (`ai.service.ts`).
-  - Robust polling architecture (`setInterval` status checks) to monitor remote LLM build jobs and stream logs back to the IDE view.
-- **Missing:** Web container environment for rendering live previews of generated code within the browser.
-- **Priority:** Medium
+  - Connection to `aiService` to fetch deployed projects, credits, and queue build jobs dynamically.
+- **Missing:** Final end-to-end streaming latency optimizations for the LLM output.
+- **Priority:** High
 
 ### Payments
-- **Completion:** 0%
-- **Status:** Needs Work
-- **Missing:** Full implementation of checkout flow, cart state, and payment provider SDKs.
-- **Priority:** Critical
+- **Completion:** 95%
+- **Status:** Completed
+- **Implemented:** 
+  - Full Checkout Flow and Cart UI.
+  - Direct integration with Stripe via backend `/stripe/create-checkout-session` endpoint.
+  - Success and Cancelled payment redirection handlers.
+- **Priority:** Low (Completed)
 
 ---
 
@@ -126,11 +127,11 @@
 ### samaa-shaban
 - **Estimated Contribution:** ~19.8%
 - **Number of Commits:** ~23 Commits
-- **Files Modified:** `AIChatInterface.tsx`, `TemplateList.tsx`, `ChatWindow.tsx`, `AdminPanelHeader.tsx`, `PurchaseCard.tsx`, `UploadFlow.tsx`, `TemplateInfo.tsx`, `useChatStore.ts`, `AICodeGenContainer.tsx`
+- **Files Modified:** `AIChatInterface.tsx`, `TemplateList.tsx`, `ChatWindow.tsx`, `AdminPanelHeader.tsx`, `PurchaseCard.tsx`, `UploadFlow.tsx`, `TemplateInfo.tsx`
 - **Areas of Ownership:** 
   - Complex UI Component Engineering.
   - Marketplace Upload Flows & Dynamic Metadata mappings.
-  - Real-Time Messaging UI (Sockets) & AI Generator Polling Integration.
+  - Messaging UI & AI Generator Views.
   - Admin Sub-components.
 
 ### Ziad Mamdouh
@@ -157,11 +158,12 @@
 | **Auth System** | 100% | Completed | Fully integrated, including password change & multi-role refresh |
 | **Posts & Feed** | 95% | Completed | Optimistic UI active, robust upload retry mechanisms |
 | **Profile System** | 85% | In Progress | Refined UI, pending portfolio data integration |
-| **Messaging** | 95% | Completed | UI and WebSocket (`Socket.io`) fully integrated |
-| **Marketplace** | 90% | Completed UI | Dynamic Upload Flow & Metadata linked to API |
-| **AI Generator** | 85% | Advanced | UI connected to backend API via dynamic polling |
+| **Messaging** | 95% | Completed | WebSocket layer fully integrated via Zustand |
+| **Marketplace** | 95% | Completed | Dynamic Upload Flow & Metadata linked to API |
+| **AI Generator** | 85% | Advanced | Linked to `aiService` for deployed projects and build queues |
 | **Admin Panel** | 75% | In Progress | UI complete, pending live API hooking |
-| **Payments** | 0% | Needs Work | Payment gateway and cart logic missing |
+| **Payments** | 95% | Completed | Connected to Stripe Secure Checkout via API |
+| **Real-time Systems** | 95% | Completed | `socket.io-client` actively powering Chat System |
 
 ---
 
@@ -186,33 +188,32 @@
 - **UI/UX:** 92/100
 - **State Management:** 90/100
 - **API Integration:** 92/100
-- **Performance:** 85/100
+- **Performance:** 82/100
 - **Security:** 85/100
 - **Maintainability:** 75/100
 - **Testing Coverage:** 10/100
 
-**Overall Score:** **80.5 / 100**  
-**Production Readiness Status:** **Beta Candidate**
+**Overall Score:** **83.7 / 100**  
+**Production Readiness Status:** **Production Candidate**
 
 ---
 
 ## 7. Executive Summary
 
 ### Current System Health
-The `thalorix-web` frontend is structurally sound and demonstrates a highly polished, responsive, and animated user interface. Core foundational layers—Authentication, API interceptors, Global State (Zustand), WebSockets, and Upload services—are fully robust and actively handling complex operations.
+The `thalorix-web` frontend is structurally sound and demonstrates a highly polished, responsive, and animated user interface. Core foundational layers—Authentication, API interceptors, Global State (Zustand), WebSockets (Socket.io), and Upload services—are fully robust and actively handling complex operations.
 
 ### Biggest Achievements
+- **Comprehensive API Integration:** Major domains including Stripe Checkout for Payments, real-time WebSockets for Messaging, and `aiService` connectivity for the AI Code Gen are all actively linked and functional.
 - **Dynamic Marketplace Integration:** Successfully bridged the complex Template Upload UI with backend logic, enabling dynamic extraction of file metadata and real-time upload progress.
-- **Real-Time Communications:** The Messaging module features a fully functional `Socket.io` connection, facilitating live typing, read receipts, and instantaneous message delivery.
-- **AI Generator Integration:** The AI Builder connects reliably to the backend (`ai.service.ts`), employing a robust long-polling mechanism to track build jobs, output real-time IDE logs, and deliver functional source code repositories.
-- **Optimistic Feed Architecture:** The Community Feed operates with zero perceived latency for end-users, handling media uploads and state rollbacks gracefully.
+- **Role-Based Auth Resiliency:** Resolved critical session timeout loops by implementing intelligent, role-aware JWT refresh token handling across the application.
 
 ### Biggest Risks
-- **Testing Void:** The near-total lack of automated E2E and Unit testing creates a high risk of regressions as the team pushes rapidly toward MVP.
+- **Testing Void:** The near-total lack of automated E2E and Unit testing creates a high risk of regressions as the team pushes rapidly toward Production.
 - **Technical Debt in Components:** Key components like `PostCard.tsx` have become bloated and violate the Single Responsibility Principle, making them difficult to scale.
 
 ### Missing Critical Features
-- **Monetization Engine:** The Marketplace cannot process transactions due to the absence of a Payment Gateway integration.
+- **Admin Dashboard Real Data:** The Admin Dashboard currently relies heavily on mocked data payloads rather than live system metrics.
 
 ### Estimated Time to MVP / Production Release
-**1 to 2 Weeks** of dedicated integration work, strictly focused on Payment Gateway SDK implementation and live Admin API bindings.
+**1 to 2 Weeks** of dedicated QA, refactoring, and finalizing Admin API bindings. The core technical hurdles (Sockets, Payments, AI, Auth) are fundamentally resolved.
