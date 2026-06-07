@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { ChevronDown, Sparkles, Coins } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { ChevronDown, Sparkles, Coins, Paperclip, Loader2, FileCheck } from 'lucide-react';
 import { AIModel } from '@/types/ai';
 import {
   DropdownMenu,
@@ -17,6 +17,9 @@ interface AIChatInputProps {
   isExpanded?: boolean;
   isGenerating?: boolean;
   credits?: number;
+  onFileUpload?: (file: File) => void;
+  uploadedFile?: { name: string } | null;
+  isUploadingFile?: boolean;
 }
 
 export function AIChatInput({
@@ -26,8 +29,12 @@ export function AIChatInput({
   isExpanded = false,
   isGenerating = false,
   credits,
+  onFileUpload,
+  uploadedFile,
+  isUploadingFile = false,
 }: AIChatInputProps) {
   const [prompt, setPrompt] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleGenerate = () => {
     if (!prompt.trim() || isGenerating || credits === 0) return;
@@ -39,6 +46,17 @@ export function AIChatInput({
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleGenerate();
+    }
+  };
+
+  const handleAttachClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && onFileUpload) {
+      onFileUpload(file);
     }
   };
 
@@ -61,7 +79,7 @@ export function AIChatInput({
         onKeyDown={handleKeyDown}
         placeholder={
           isExpanded
-            ? 'Example: Create a C++ code for a user profile card with avatar, name, ...'
+            ? 'Example: Create a React application with responsive navbar and dashboard...'
             : 'Type a new prompt or continue the conversation...'
         }
         className={`w-full bg-transparent text-[#103B40] placeholder:text-gray-400 resize-none outline-none text-sm ${
@@ -70,43 +88,79 @@ export function AIChatInput({
         disabled={isGenerating || credits === 0}
       />
 
+      {/* Hidden file input */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        accept="image/*,application/pdf"
+        className="hidden"
+      />
+
       <div
         className={`flex flex-wrap items-center justify-between gap-y-3 mt-3 pt-3 ${
           isExpanded ? 'border-t border-gray-100' : ''
         }`}
       >
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#103B40] text-white hover:bg-teal-800 transition-colors text-xs font-medium">
-              <Sparkles className="w-3.5 h-3.5" />
-              {selectedModel}
-              <ChevronDown className="w-3 h-3 opacity-60" />
+        <div className="flex items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#103B40] text-white hover:bg-teal-800 transition-colors text-xs font-medium cursor-pointer">
+                <Sparkles className="w-3.5 h-3.5" />
+                {selectedModel}
+                <ChevronDown className="w-3 h-3 opacity-60" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              className="w-[280px] bg-white border-gray-200 text-[#103B40]"
+              align="start"
+              sideOffset={8}
+            >
+              {models.map((model) => (
+                <DropdownMenuItem
+                  key={model.id}
+                  onClick={() => onModelSelect(model.id)}
+                  className={`flex flex-col items-start gap-1 p-3 cursor-pointer focus:bg-gray-50 ${
+                    selectedModel === model.id ? 'bg-[#103B40]/5' : ''
+                  }`}
+                >
+                  <div className="flex items-center gap-2 w-full">
+                    <span className="font-medium text-[#103B40] text-sm">{model.label}</span>
+                    {selectedModel === model.id && (
+                      <div className="ml-auto w-2 h-2 rounded-full bg-teal-600" />
+                    )}
+                  </div>
+                  <span className="text-xs text-gray-400">{model.desc}</span>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Upload Button */}
+          {onFileUpload && (
+            <button
+              type="button"
+              onClick={handleAttachClick}
+              disabled={isUploadingFile || isGenerating}
+              className="p-1.5 text-gray-400 hover:text-[#103B40] hover:bg-gray-100 rounded-lg transition-colors cursor-pointer disabled:opacity-40"
+              title="Attach Image or PDF (max 20MB)"
+            >
+              {isUploadingFile ? (
+                <Loader2 className="w-4 h-4 animate-spin text-teal-600" />
+              ) : (
+                <Paperclip className="w-4 h-4" />
+              )}
             </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            className="w-[280px] bg-white border-gray-200 text-[#103B40]"
-            align="start"
-            sideOffset={8}
-          >
-            {models.map((model) => (
-              <DropdownMenuItem
-                key={model.id}
-                onClick={() => onModelSelect(model.id)}
-                className={`flex flex-col items-start gap-1 p-3 cursor-pointer focus:bg-gray-50 ${
-                  selectedModel === model.id ? 'bg-[#103B40]/5' : ''
-                }`}
-              >
-                <div className="flex items-center gap-2 w-full">
-                  <span className="font-medium text-[#103B40] text-sm">{model.label}</span>
-                  {selectedModel === model.id && (
-                    <div className="ml-auto w-2 h-2 rounded-full bg-teal-600" />
-                  )}
-                </div>
-                <span className="text-xs text-gray-400">{model.desc}</span>
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+          )}
+
+          {/* Uploaded File Badge */}
+          {uploadedFile && (
+            <div className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
+              <FileCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <span className="max-w-[120px] truncate">{uploadedFile.name}</span>
+            </div>
+          )}
+        </div>
 
         <div className="flex items-center gap-3">
           {credits !== undefined && (
@@ -120,8 +174,8 @@ export function AIChatInput({
           )}
           <button
             onClick={handleGenerate}
-            disabled={!prompt.trim() || isGenerating || credits === 0}
-            className="flex items-center gap-2 bg-[#103B40] hover:bg-teal-800 disabled:opacity-40 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium transition-colors text-xs shadow-sm"
+            disabled={!prompt.trim() || isGenerating || credits === 0 || isUploadingFile}
+            className="flex items-center gap-2 bg-[#103B40] hover:bg-teal-800 disabled:opacity-40 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium transition-colors text-xs shadow-sm cursor-pointer"
           >
             <Sparkles className="w-3.5 h-3.5" />
             Generate Code

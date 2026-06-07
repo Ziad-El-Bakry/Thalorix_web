@@ -139,5 +139,23 @@ export const ENDPOINTS = {
     UPDATE: (id: string) => `/categories/${id}`,
     DELETE: (id: string) => `/categories/${id}`,
   },
-  // ... rest of endpoints
-} as const;
+
+  // ============================================
+  // AI BUILDER
+  // ============================================
+  AI: {
+    HEALTH: '/ai/health',
+    READY: '/ai/ready',
+    CHAT: '/ai/chat',
+    UPLOAD: '/ai/upload',
+    DEPLOYED: '/ai/projects/deployed',
+    GET_PROJECT: (id: string) => `/ai/projects/${id}`,
+    EDIT_PROJECT: (id: string) => `/ai/projects/${id}/edit`,
+    MANIFEST: (sessionId: string, projectName: string) => `/ai/project/${sessionId}/${projectName}/manifest`,
+    STATUS: (sessionId: string, projectName: string) => `/ai/project/${sessionId}/${projectName}/status`,
+    FILE: (sessionId: string, projectName: string) => `/ai/project/${sessionId}/${projectName}/file`,
+    PREVIEW: (sessionId: string, projectName: string) => `/ai/project/${sessionId}/${projectName}/preview`,
+    DIST_ZIP: (sessionId: string, projectName: string) => `/ai/project/${sessionId}/${projectName}/dist.zip`,
+    SOURCE_ZIP: (sessionId: string, projectName: string) => `/ai/project/${sessionId}/${projectName}/source.zip`,
+  },
+};

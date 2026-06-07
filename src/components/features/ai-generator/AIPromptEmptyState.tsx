@@ -12,6 +12,9 @@ interface AIPromptEmptyStateProps {
   selectedModel: AIModel;
   onModelSelect: (model: AIModel) => void;
   credits?: number;
+  onFileUpload?: (file: File) => void;
+  uploadedFile?: { name: string } | null;
+  isUploadingFile?: boolean;
 }
 
 export function AIPromptEmptyState({
@@ -19,6 +22,9 @@ export function AIPromptEmptyState({
   selectedModel,
   onModelSelect,
   credits,
+  onFileUpload,
+  uploadedFile,
+  isUploadingFile,
 }: AIPromptEmptyStateProps) {
   const suggestions = [
     {
@@ -114,6 +120,9 @@ export function AIPromptEmptyState({
           onModelSelect={onModelSelect}
           isExpanded={true}
           credits={credits}
+          onFileUpload={onFileUpload}
+          uploadedFile={uploadedFile}
+          isUploadingFile={isUploadingFile}
         />
 
         <div className="flex items-center gap-6 mt-3 text-xs text-gray-400 ml-2">

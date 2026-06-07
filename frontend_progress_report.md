@@ -6,7 +6,7 @@ This document provides a comprehensive analysis of the `thalorix-web` frontend c
 
 ## 1. Overall Project Completion
 
-- **Overall Completion Percentage:** ~75%
+- **Overall Completion Percentage:** ~76%
 - **Estimated Production Readiness:** ~65%
 - **Remaining Work:** ~25%
 
@@ -30,7 +30,7 @@ This document provides a comprehensive analysis of the `thalorix-web` frontend c
 ### Authentication
 - **Completion:** 95%
 - **Status:** Completed
-- **Implemented:** JWT handling, Login, Registration, OTP Verification, Auth Service.
+- **Implemented:** JWT handling, Login, Registration, OTP Verification, Auth Service. Enhanced Role-based JWT Refresh Token mechanism supporting User, Seller, and Admin, solving unexpected timeout issues.
 - **Missing:** Password Reset flow UI refinements.
 - **Priority:** High
 
@@ -68,9 +68,9 @@ This document provides a comprehensive analysis of the `thalorix-web` frontend c
 - **Priority:** Critical
 
 ### Marketplace / Templates
-- **Completion:** 50%
+- **Completion:** 85%
 - **Status:** In Progress
-- **Implemented:** `TemplateCard`, `TemplateList`, `PurchaseCard` UI components.
+- **Implemented:** `TemplateCard`, `TemplateList`, `PurchaseCard` UI components. Dynamic template metadata rendering (file size conversion, real format), live file info rendering during uploads, dynamic Seller Profile routing from Template Info.
 - **Missing:** Actual Stripe/Payment gateway integration and cart state.
 - **Priority:** High
 
@@ -120,7 +120,7 @@ This document provides a comprehensive analysis of the `thalorix-web` frontend c
 | Admin Panel | 75% | In Progress | Needs live API hooking |
 | Messaging UI | 95% | Completed | Added bulk-select & delete modes |
 | Real-time Chat | 10% | Needs Work | Socket layer missing |
-| Marketplace UI | 80% | In Progress | Templates display nicely |
+| Marketplace UI | 85% | In Progress | Templates display nicely, dynamic upload UI |
 | Payments | 0% | Needs Work | Payment gateway missing |
 | AI Code Gen | 40% | In Progress | UI done, missing LLM link |
 
