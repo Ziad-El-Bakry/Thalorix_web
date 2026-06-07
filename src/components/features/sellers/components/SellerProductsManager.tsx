@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Search, Filter, MoreVertical, Edit2, Trash2, Eye, EyeOff, Package, AlertCircle } from "lucide-react";
 import { sellersService } from "@/lib/api/services/sellers.service";
+import { templatesService } from "@/lib/api/services/templates.service";
 import { User } from "@/lib/api/services/auth.service";
 import Link from "next/link";
 import Image from "next/image";
@@ -16,6 +17,17 @@ export default function SellerProductsManager({ user }: SellerProductsManagerPro
   const [templates, setTemplates] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this product?")) return;
+    try {
+      await templatesService.delete(id);
+      setTemplates((prev) => prev.filter((t) => (t.id || t._id) !== id));
+    } catch (err) {
+      console.error("Failed to delete template:", err);
+      alert("Failed to delete template. Please try again.");
+    }
+  };
 
   useEffect(() => {
     const loadTemplates = async () => {
@@ -147,7 +159,11 @@ export default function SellerProductsManager({ user }: SellerProductsManagerPro
                       <button className="p-2 text-gray-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-colors" title="Hide">
                         <EyeOff size={16} />
                       </button>
-                      <button className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
+                      <button
+                        onClick={() => handleDelete(template.id || template._id)}
+                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer" 
+                        title="Delete"
+                      >
                         <Trash2 size={16} />
                       </button>
                     </div>

@@ -56,13 +56,19 @@ export default function PurchaseCard({ template }: PurchaseCardProps) {
     }
     return "ZIP";
   };
-  const fileFormat = getFileFormat();
-  const licenseType = isFree ? "Free Use" : "Commercial";
+  const fileFormat = template.format || getFileFormat();
+  const licenseType = template.license || (isFree ? "Free Use" : "Commercial");
+  const dimensions = template.dimensions || "Responsive";
   
-  // Fetch file size dynamically from Cloudinary URL if possible
-  const [fileSize, setFileSize] = useState<string>("Unknown");
+  // Use fileSize from DB if available, otherwise fetch dynamically
+  const [fileSize, setFileSize] = useState<string>(template.fileSize || "Unknown");
 
   useEffect(() => {
+    if (template.fileSize) {
+      setFileSize(template.fileSize);
+      return;
+    }
+    
     if (template.fileUrl) {
       fetch(template.fileUrl, { method: 'HEAD' })
         .then(res => {
@@ -76,7 +82,7 @@ export default function PurchaseCard({ template }: PurchaseCardProps) {
         })
         .catch(() => setFileSize("Unknown"));
     }
-  }, [template.fileUrl]);
+  }, [template.fileUrl, template.fileSize]);
 
   return (
     <>
@@ -115,7 +121,7 @@ export default function PurchaseCard({ template }: PurchaseCardProps) {
           </div>
           <div className="bg-teal-50/50 rounded-xl p-3 border border-teal-50">
             <p className="text-xs text-gray-500 mb-1">Dimensions</p>
-            <p className="text-sm font-semibold text-[#103B40]">Responsive</p>
+            <p className="text-sm font-semibold text-[#103B40]">{dimensions}</p>
           </div>
           <div className="bg-teal-50/50 rounded-xl p-3 border border-teal-50">
             <p className="text-xs text-gray-500 mb-1">License</p>

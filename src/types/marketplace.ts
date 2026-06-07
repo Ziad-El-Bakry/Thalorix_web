@@ -11,6 +11,10 @@ export interface Template {
   sellerId?: any;
   status?: string;
   isActive?: boolean;
+  fileSize?: string;
+  format?: string;
+  dimensions?: string;
+  license?: string;
   
   // Optional frontend-specific mock fields
   rating?: number;

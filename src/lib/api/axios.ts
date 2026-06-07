@@ -59,7 +59,7 @@ export const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 30000,
+  timeout: 120000, // Increased timeout for file uploads
   withCredentials: true,
 });
 
