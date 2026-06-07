@@ -1,185 +1,217 @@
-# Thalorix Frontend Project Progress & Contribution Report
+# Thalorix-Web: Frontend Engineering Audit & Progress Report
 
-This document provides a comprehensive analysis of the `thalorix-web` frontend codebase, git history, and implementation status as of the latest commits.
+## 1. Overall Project Overview
+**Overall Completion Percentage:** ~80%  
+**Current Production Readiness Level:** 75%  
 
----
+### Main Achievements
+- **Robust Authentication:** Complete JWT-based auth flow including multi-role (Admin, Seller, User) login, registration, OTP verification, password changes, and resilient refresh token mechanisms.
+- **Dynamic Marketplace Uploads:** Connected the template upload flow to the backend API with real-time progress tracking, increased network timeout thresholds for heavy media, and dynamic metadata extraction.
+- **Optimistic Community Feed:** High-performance social feed with optimistic UI updates for post creation, likes, and comments, powered by Zustand.
+- **Cloudinary Integration:** Scalable and secure media upload system handling images and video files.
 
-## 1. Overall Project Completion
-
-- **Overall Completion Percentage:** ~76%
-- **Estimated Production Readiness:** ~65%
-- **Remaining Work:** ~25%
-
-### Major Completed Milestones
-- Next.js 16 App Router infrastructure setup with Framer Motion animations.
-- Complete Authentication flow (Login, Register, OTP Verification).
-- Community Feed with Facebook-style optimistic UI, Cloudinary uploads (images/videos up to 500MB), and like/comment interactions.
-- User Profile management UI and state handling.
-- Admin Dashboard UI with overview, users, sellers, and activity tracking tabs.
-
-### Major Unfinished Milestones
-- Real-time socket integration for the Messaging System.
-- Backend integration for the AI Code Generator.
-- Complete payment flow integration for Marketplace templates.
-- Global Search & comprehensive Notification system.
+### Major Risks / Blockers
+- **Real-Time Integration Missing:** WebSockets (Socket.io) are not yet implemented for the Messaging system.
+- **Payment Gateway Absence:** Marketplace lacks actual Stripe/PayPal integration and cart state management.
+- **Automated Testing:** Absence of comprehensive E2E (Cypress) and unit testing (Jest) poses scalability and regression risks.
 
 ---
 
-## 2. Module-by-Module Progress
+## 2. Module-by-Module Progress Breakdown
 
-### Authentication
-- **Completion:** 95%
-- **Status:** Completed
-- **Implemented:** JWT handling, Login, Registration, OTP Verification, Auth Service. Enhanced Role-based JWT Refresh Token mechanism supporting User, Seller, and Admin, solving unexpected timeout issues.
-- **Missing:** Password Reset flow UI refinements.
-- **Priority:** High
-
-### Community Feed
-- **Completion:** 95%
-- **Status:** Completed
-- **Implemented:** Optimistic post creation, Cloudinary media upload with progress bars, background retry mechanism, likes, and comments.
-- **Technical Debt:** `PostCard.tsx` is growing large and could be split into smaller components (e.g., `PostHeader`, `PostMedia`, `PostActions`).
-- **Priority:** High
-
-### Cloudinary Uploads
+### Authentication & OTP
 - **Completion:** 100%
 - **Status:** Completed
-- **Implemented:** `upload.service.ts` using Axios with progress tracking, error handling, and robust frontend validation before sending to the backend.
+- **Implemented:** 
+  - JWT token handling and secure storage mechanisms.
+  - Multi-role Login, Registration, and OTP Verification flows.
+  - Robust token refresh interceptors across all roles.
+  - Change Password and Update Profile functionalities.
+- **Technical Notes:** Axios interceptors seamlessly handle 401 Unauthorized errors by refreshing the access token silently.
+- **Priority:** Low (Completed)
+
+### Community Feed / Posts System
+- **Completion:** 95%
+- **Status:** Completed
+- **Implemented:** 
+  - Optimistic UI for post creation, likes, and comments.
+  - Background retry mechanism for failed uploads.
+  - Rich media rendering for feeds.
+- **Technical Notes:** Relies heavily on Zustand for local state mutations prior to API resolution. `PostCard.tsx` has grown large and is a candidate for component splitting.
+- **Priority:** Low (Completed)
+
+### Cloudinary Upload System
+- **Completion:** 100%
+- **Status:** Completed
+- **Implemented:** 
+  - `upload.service.ts` managing multipart form data.
+  - Progress tracking UI.
+  - Extended network timeouts (120,000ms) for heavy template processing.
+- **Priority:** Low (Completed)
 
 ### User Profiles
-- **Completion:** 80%
+- **Completion:** 85%
 - **Status:** In Progress
-- **Implemented:** Profile view, avatar/cover uploads, dynamic role rendering, settings modal.
-- **Missing:** Fetching dynamic user projects/portfolio items from backend.
+- **Implemented:** 
+  - Profile view and dynamic role-based rendering.
+  - Avatar and cover photo updates.
+  - Settings modal UI.
+- **Missing:** Dynamic fetching of portfolio/projects from the backend.
 - **Priority:** Medium
+
+### Messaging System (Chat)
+- **Completion:** 70%
+- **Status:** Needs Work
+- **Implemented:** 
+  - High-fidelity `ChatWindow`, `ChatList`, and `MessageBubble` UI.
+  - Multi-Select Bulk Delete modes for messages and conversations.
+  - Auto-focus and smart replies UI.
+- **Missing:** WebSockets (Socket.io) integration for real-time message delivery and status updates.
+- **Priority:** Critical
+
+### Marketplace / Templates System
+- **Completion:** 90%
+- **Status:** Completed UI / Advanced Integration
+- **Implemented:** 
+  - Connected `UploadFlow` and `UploadProgressStep` to the backend.
+  - Dynamic metadata extraction (Real File Size, Format, Dimensions).
+  - Integrated `PurchaseCard` and `TemplateInfo` with live database values.
+  - Dynamic intelligent routing to Seller profiles vs. Own Dashboard based on auth context.
+- **Missing:** Stripe/Payment gateway integration.
+- **Priority:** High
 
 ### Admin Dashboard
 - **Completion:** 75%
 - **Status:** In Progress
-- **Implemented:** Complex layout, user/seller management tabs, mock data integration.
-- **Missing:** Connecting mock data tables directly to real Admin APIs.
+- **Implemented:** 
+  - Complex administrative layouts.
+  - User and seller management UI tabs.
+  - Responsive data tables.
+- **Missing:** Replacing mock data payloads with live Admin API connections.
 - **Priority:** Medium
 
-### Messaging System
-- **Completion:** 70%
-- **Status:** Needs Work
-- **Implemented:** Beautiful `ChatWindow`, `ChatList`, and `MessageBubble` UI components. Recently added Multi-Select Bulk Delete modes for both messages and conversations, and auto-focus for smart replies.
-- **Missing:** WebSockets (Socket.io) integration for real-time delivery.
-- **Priority:** Critical
-
-### Marketplace / Templates
-- **Completion:** 85%
-- **Status:** In Progress
-- **Implemented:** `TemplateCard`, `TemplateList`, `PurchaseCard` UI components. Dynamic template metadata rendering (file size conversion, real format), live file info rendering during uploads, dynamic Seller Profile routing from Template Info.
-- **Missing:** Actual Stripe/Payment gateway integration and cart state.
-- **Priority:** High
-
-### AI Generator
+### AI Builder Module
 - **Completion:** 45%
 - **Status:** In Progress
-- **Implemented:** `AIChatInterface`, `AICodeGenContainer`, `AIChatInput`.
-- **Missing:** Connecting to the LLM backend API to stream code generation responses.
+- **Implemented:** 
+  - `AIChatInterface`, `AICodeGenContainer`, `AIChatInput` components.
+- **Missing:** Streaming integration with the backend LLM service.
 - **Priority:** High
+
+### Payments
+- **Completion:** 0%
+- **Status:** Needs Work
+- **Missing:** Full implementation of checkout flow, cart state, and payment provider SDKs.
+- **Priority:** Critical
 
 ---
 
-## 3. Contributor Work Breakdown
+## 3. Contributor Breakdown
 
-*Based on git commit statistics (total 116 commits) and file blame analysis:*
+**Total Commits Overview:** ~116 Commits  
+**General Workload Distribution:** The workload is heavily skewed towards core architecture and complex UI state mapping by lead developers, with secondary contributors focusing on UI implementation and styling.
 
 ### Ziad-El-Bakry
-- **Estimated Contribution:** ~71.5% (83 commits)
+- **Estimated Contribution:** ~71.5%
+- **Number of Commits:** ~83 Commits
 - **Files Modified:** `PostCard.tsx`, `CreatePostBar.tsx`, `usePostStore.ts`, `upload.service.ts`, `ProfileView.tsx`, `AdminTabs.tsx`, `community/page.tsx`
-- **Frontend Work:** Implemented the core state management (Zustand), the Community feed optimistic UI architecture, Cloudinary upload services, and the foundation of the Admin Dashboard.
-- **Refactoring:** Heavy refactoring of API service layers and store hydration.
+- **Areas of Ownership:** 
+  - Global State Management Architecture (Zustand).
+  - Community Feed Optimistic UI.
+  - Cloudinary Upload Services & API Service Layers.
+  - Core Admin Dashboard structural implementation.
 
 ### samaa-shaban
-- **Estimated Contribution:** ~19.8% (23 commits)
-- **Files Modified:** `AIChatInterface.tsx`, `TemplateList.tsx`, `ChatWindow.tsx`, `AdminPanelHeader.tsx`, `PurchaseCard.tsx`
-- **Frontend Work:** Focused heavily on complex UI component building, specifically leading the Marketplace, Messaging UI, AI Generator views, and Admin sub-components.
+- **Estimated Contribution:** ~19.8%
+- **Number of Commits:** ~23 Commits
+- **Files Modified:** `AIChatInterface.tsx`, `TemplateList.tsx`, `ChatWindow.tsx`, `AdminPanelHeader.tsx`, `PurchaseCard.tsx`, `UploadFlow.tsx`, `TemplateInfo.tsx`
+- **Areas of Ownership:** 
+  - Complex UI Component Engineering.
+  - Marketplace Upload Flows & Dynamic Metadata mappings.
+  - Messaging UI & AI Generator Views.
+  - Admin Sub-components.
 
 ### Ziad Mamdouh
-- **Estimated Contribution:** ~5.2% (6 commits)
-- **Frontend Work:** Initial scaffolding, structural elements, and generic UI setups.
+- **Estimated Contribution:** ~5.2%
+- **Number of Commits:** ~6 Commits
+- **Areas of Ownership:** 
+  - Initial scaffolding.
+  - Structural elements and generic UI setups.
 
 ### Omar-Maher-Ahmed
-- **Estimated Contribution:** ~3.4% (4 commits)
+- **Estimated Contribution:** ~3.4%
+- **Number of Commits:** ~4 Commits
 - **Files Modified:** `VerifyOtpForm.tsx`, `auth.service.ts`, `layout.tsx`
-- **Frontend Work:** Implemented OTP verification logic and specialized UI effects (e.g., Framer motion updates, Snowfall effect).
+- **Areas of Ownership:** 
+  - OTP verification logic integration.
+  - Specialized UI effects (Framer motion updates, visual effects).
 
 ---
 
 ## 4. Feature Completion Matrix
 
 | Feature | Completion % | Status | Notes |
-| ------- | ------------ | ------ | ----- |
-| Auth & OTP | 95% | Completed | Fully integrated with API |
-| Post Creation | 100% | Completed | Includes progress & retry |
-| Post Feed & Likes | 95% | Completed | Optimistic UI active |
-| Profile System | 80% | In Progress | Needs portfolio integration |
-| Admin Panel | 75% | In Progress | Needs live API hooking |
-| Messaging UI | 95% | Completed | Added bulk-select & delete modes |
-| Real-time Chat | 10% | Needs Work | Socket layer missing |
-| Marketplace UI | 85% | In Progress | Templates display nicely, dynamic upload UI |
-| Payments | 0% | Needs Work | Payment gateway missing |
-| AI Code Gen | 40% | In Progress | UI done, missing LLM link |
+| :--- | :--- | :--- | :--- |
+| **Auth System** | 100% | Completed | Fully integrated, including password change & multi-role refresh |
+| **Posts & Feed** | 95% | Completed | Optimistic UI active, robust upload retry mechanisms |
+| **Profile System** | 85% | In Progress | Refined UI, pending portfolio data integration |
+| **Messaging** | 70% | Needs Work | UI complete, requires Socket.io layer |
+| **Marketplace** | 90% | Completed UI | Dynamic Upload Flow & Metadata linked to API |
+| **AI Generator** | 45% | In Progress | UI complete, missing LLM streaming link |
+| **Admin Panel** | 75% | In Progress | UI complete, pending live API hooking |
+| **Payments** | 0% | Needs Work | Payment gateway and cart logic missing |
+| **Real-time Systems** | 10% | Needs Work | Socket layer missing across app |
 
 ---
 
-## 5. Security Audit Summary (Frontend Perspective)
+## 5. Security Audit (Frontend Perspective)
 
-- **Authentication Security (90%):** JWT tokens are securely passed. Ensure tokens are kept out of local storage where possible (prefer HttpOnly cookies if backend supports it).
-- **Upload Security (100%):** Frontend relies on secure Cloudinary endpoint proxying through the backend. Validates inputs before sending.
-- **Input Sanitization (70%):** React inherently escapes XSS, but `dangerouslySetInnerHTML` should be avoided in the AI Generator output unless thoroughly sanitized with DOMPurify.
-- **Risk Level:** Medium. Ensure Route Guards (`middleware.ts`) strongly protect `/dashboard/*` from unauthenticated access.
+### Analysis
+- **JWT Handling:** Tokens are securely passed via Axios interceptors. Refresh token logic handles seamless session renewal without exposing access tokens in URLs.
+- **Token Storage Strategy:** Tokens are stored in `localStorage`. *Recommendation: Migrate to HttpOnly secure cookies if SSR and backend CORS configurations permit, to mitigate XSS vector risks.*
+- **XSS Risks:** React's DOM rendering inherently escapes malicious inputs. However, user-generated content in the Community Feed and potential `dangerouslySetInnerHTML` in the AI Builder output must be stringently sanitized.
+- **Upload Validation:** The frontend enforces strict type, size, and format checks before dispatching multipart payloads to the backend for Cloudinary proxying.
+- **Route Protection:** Next.js Middleware and client-side Auth Guards protect `/dashboard/*` routes effectively against unauthenticated access.
+- **API Security Exposure:** All endpoints are centralized in environment variables; Axios intercepts globally attach the `Bearer` token.
+
+**Security Score:** 85/100  
+**Risk Level:** Medium (Primarily due to `localStorage` JWT storage and missing automated vulnerability scanning).
 
 ---
 
 ## 6. Production Readiness Assessment
 
-- **Frontend UI/UX:** 90/100
-- **State Management:** 85/100
-- **API Integration:** 75/100
-- **Performance:** 80/100
-- **Security:** 75/100
-- **Maintainability:** 70/100
-- **Testing:** 10/100 (Missing comprehensive Jest/Cypress tests)
-- **Overall Score:** **70/100**
+### System Ratings
+- **UI/UX:** 92/100
+- **State Management:** 88/100
+- **API Integration:** 85/100
+- **Performance:** 82/100
+- **Security:** 85/100
+- **Maintainability:** 75/100
+- **Testing Coverage:** 10/100
+
+**Overall Score:** **73.8 / 100**  
+**Production Readiness Status:** **Beta Candidate**
 
 ---
 
-## 7. Remaining Tasks Roadmap
+## 7. Executive Summary
 
-### Critical (Pre-Launch)
-- Integrate WebSockets for real-time messaging.
-- Connect Admin Dashboard to live backend metrics.
-- Implement robust routing middleware to prevent unauthorized access.
+### Current System Health
+The `thalorix-web` frontend is structurally sound and demonstrates a highly polished, responsive, and animated user interface. Core foundational layers—Authentication, API interceptors, Global State (Zustand), and Upload services—are fully robust and actively handling complex operations.
 
-### Important
-- Integrate Payment Gateway (Stripe/PayPal) for the Marketplace.
-- Connect the AI Generator to the backend LLM service.
-- Implement a global search and notification dropdown.
+### Biggest Achievements
+- **Dynamic Marketplace Integration:** Successfully bridged the complex Template Upload UI with backend logic, enabling dynamic extraction of file metadata and real-time upload progress.
+- **Optimistic Feed Architecture:** The Community Feed operates with zero perceived latency for end-users, handling media uploads and state rollbacks gracefully.
+- **Role-Based Auth Resiliency:** Resolved critical session timeout loops by implementing intelligent, role-aware JWT refresh token handling across the application.
 
-### Nice to Have
-- Comprehensive Cypress E2E tests for Post Creation and Authentication.
-- Split large components to improve code splitting.
+### Biggest Risks
+- **Testing Void:** The near-total lack of automated E2E and Unit testing creates a high risk of regressions as the team pushes rapidly toward MVP.
+- **Technical Debt in Components:** Key components like `PostCard.tsx` have become bloated and violate the Single Responsibility Principle, making them difficult to scale.
 
----
+### Missing Critical Features
+- **Real-Time Delivery:** The Messaging System is entirely dependent on an unintegrated WebSocket layer.
+- **Monetization Engine:** The Marketplace cannot process transactions due to the absence of a Payment Gateway integration.
 
-## 8. Technical Debt Report
-
-1. **Large Files (High Severity):** `PostCard.tsx` (500+ lines) and `ProfileView.tsx` (380+ lines). These should be decomposed into smaller atomic components to improve readability.
-2. **Missing Tests (High Severity):** No significant frontend testing framework is actively used. UI tests are necessary before scaling.
-3. **Mock Data (Medium Severity):** `adminMockData.ts` and hardcoded friends arrays in `ProfileFeed.tsx` need to be fully replaced by API calls.
-
----
-
-## 9. Final Executive Summary
-
-The `thalorix-web` frontend is currently in a strong state (**~75% complete**). 
-
-**Biggest Achievements:** The recent implementation of the Facebook-style optimistic community feed with resilient Cloudinary uploads provides a world-class user experience. The UI aesthetic across the AI Generator, Marketplace, and Messaging is highly polished.
-
-**Biggest Risks:** The lack of real-time socket integration for messaging and missing payment flows for the marketplace. Furthermore, the absence of automated frontend tests poses a regression risk as the app grows.
-
-**Estimated Time to MVP Release:** 2–3 weeks of focused integration work (primarily wiring up sockets, payments, and admin APIs).
+### Estimated Time to MVP / Production Release
+**2 to 3 Weeks** of dedicated integration work, strictly focused on WebSockets, Payment Gateway SDK implementation, and live Admin API bindings.
