@@ -141,9 +141,6 @@ export default function SellerProductsManager({ user }: SellerProductsManagerPro
                   <td className="px-6 py-4 text-gray-900 font-bold">${(template.price * (template.downloads || 0)).toFixed(2)}</td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button className="p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors" title="Edit">
-                        <Edit2 size={16} />
-                      </button>
                       <button className="p-2 text-gray-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-colors" title="Hide">
                         <EyeOff size={16} />
                       </button>
