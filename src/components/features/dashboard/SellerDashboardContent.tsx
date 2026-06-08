@@ -165,15 +165,9 @@ export default function SellerDashboardContent({
       try {
         const userId = user?.id || (user as any)?._id;
         if (userId) {
-          const [templatesData, revenueData, downloadsData, statsData] =
+          const [templatesData, statsData] =
             await Promise.all([
               sellersService.getSellerTemplates(userId).catch(() => []),
-              sellersService
-                .getDashboardRevenue()
-                .catch(() => ({ totalRevenue: 0 })),
-              sellersService
-                .getDashboardDownloads()
-                .catch(() => ({ totalDownloads: 0 })),
               sellersService.getDashboardStats().catch(() => ({
                 recentSales: [],
                 recentReviews: [],
@@ -182,8 +176,13 @@ export default function SellerDashboardContent({
               })),
             ]);
           setTemplates(templatesData || []);
-          setRevenue(revenueData.totalRevenue || 0);
-          setDownloads(downloadsData.totalDownloads || 0);
+          
+          // Calculate total revenue and downloads from topProducts (which counts PAID orders correctly)
+          const computedRevenue = statsData.topProducts?.reduce((sum: number, p: any) => sum + (p.totalRevenue || 0), 0) || 0;
+          const computedDownloads = statsData.topProducts?.reduce((sum: number, p: any) => sum + (p.totalSoldQuantity || 0), 0) || 0;
+          
+          setRevenue(computedRevenue);
+          setDownloads(computedDownloads);
           setRecentSales(statsData.recentSales || []);
           setRecentReviews(statsData.recentReviews || []);
           setTopProducts(statsData.topProducts || []);

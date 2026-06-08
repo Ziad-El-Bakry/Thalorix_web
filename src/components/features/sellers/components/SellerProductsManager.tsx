@@ -15,6 +15,7 @@ interface SellerProductsManagerProps {
 
 export default function SellerProductsManager({ user }: SellerProductsManagerProps) {
   const [templates, setTemplates] = useState<any[]>([]);
+  const [stats, setStats] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -34,8 +35,12 @@ export default function SellerProductsManager({ user }: SellerProductsManagerPro
       try {
         const userId = user?.id || (user as any)?._id;
         if (userId) {
-          const data = await sellersService.getSellerTemplates(userId);
-          setTemplates(data || []);
+          const [templatesData, statsData] = await Promise.all([
+            sellersService.getSellerTemplates(userId).catch(() => []),
+            sellersService.getDashboardStats().catch(() => null),
+          ]);
+          setTemplates(templatesData || []);
+          setStats(statsData);
         }
       } catch (err) {
         console.error("Failed to load seller templates:", err);
@@ -114,14 +119,22 @@ export default function SellerProductsManager({ user }: SellerProductsManagerPro
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {filteredTemplates.map((template, index) => (
-                <motion.tr 
-                  key={template.id || template._id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  className="hover:bg-gray-50/50 transition-colors group"
-                >
+              {filteredTemplates.map((template, index) => {
+                const templateId = template.id || template._id;
+                const statItem = stats?.topProducts?.find(
+                  (p: any) => p.templateId === templateId
+                );
+                const salesCount = statItem ? statItem.totalSoldQuantity : 0;
+                const revenueAmount = statItem ? statItem.totalRevenue : 0;
+
+                return (
+                  <motion.tr 
+                    key={templateId}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    className="hover:bg-gray-50/50 transition-colors group"
+                  >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden relative flex-shrink-0 border border-gray-200">
@@ -146,8 +159,8 @@ export default function SellerProductsManager({ user }: SellerProductsManagerPro
                       Active
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-gray-600 font-medium">{template.downloads || 0}</td>
-                  <td className="px-6 py-4 text-gray-900 font-bold">${(template.price * (template.downloads || 0)).toFixed(2)}</td>
+                  <td className="px-6 py-4 text-gray-600 font-medium">{salesCount}</td>
+                  <td className="px-6 py-4 text-gray-900 font-bold">${revenueAmount.toFixed(2)}</td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button className="p-2 text-gray-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-colors" title="Hide">
@@ -163,7 +176,8 @@ export default function SellerProductsManager({ user }: SellerProductsManagerPro
                     </div>
                   </td>
                 </motion.tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>

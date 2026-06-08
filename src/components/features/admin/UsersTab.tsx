@@ -116,7 +116,11 @@ export default function UsersTab() {
         await usersService.updateUser(userId, { role: targetRole as "user" | "admin" | "seller" });
         showToast(`Successfully changed role of ${targetUser.name} to ${targetRole}`);
       } else if (type === "block") {
-        await usersService.updateUser(userId, { isBlocked: targetBlockState });
+        if (targetBlockState) {
+          await usersService.adminBlockUser(userId);
+        } else {
+          await usersService.adminUnblockUser(userId);
+        }
         showToast(
           targetBlockState
             ? `User ${targetUser.name} has been blocked successfully`

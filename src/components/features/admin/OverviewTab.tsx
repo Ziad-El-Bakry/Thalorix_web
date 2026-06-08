@@ -3,7 +3,9 @@
 import { motion } from "framer-motion";
 import { FileText, ShoppingCart, DollarSign, Users, Store, TrendingUp } from "lucide-react";
 import AdminStatCard from "./AdminStatCard";
-import { mockRestrictedUsers } from "./adminMockData";
+import { useState, useEffect } from "react";
+import { usersService } from "@/lib/api/services/users.service";
+import { api } from "@/lib/api/axios";
 
 const container = {
   hidden: { opacity: 0 },
@@ -20,6 +22,62 @@ const GROWTH_VALUES = [180, 220, 310, 380, 450, 520];
 const MAX_GROWTH = Math.max(...GROWTH_VALUES);
 
 export default function OverviewTab() {
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    activeSellers: 0,
+    totalTemplates: 0,
+    monthlyRevenue: 0,
+  });
+  const [restrictedUsers, setRestrictedUsers] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        // Fetch all users to get total count and restricted users
+        let totalUsersCount = 0;
+        let blockedUsers: any[] = [];
+        try {
+          const usersData = await usersService.getAllUsers({ limit: 1000 });
+          const allUsers = usersData.users || [];
+          totalUsersCount = usersData.total || allUsers.length;
+          blockedUsers = allUsers.filter((u: any) => u.isBlocked);
+          setRestrictedUsers(blockedUsers);
+        } catch (e) {
+          console.error("Failed to fetch users", e);
+        }
+
+        // Fetch sellers
+        let totalSellers = 0;
+        try {
+          const sellersRes = await api.get('/seller');
+          totalSellers = sellersRes.data?.total || sellersRes.data?.data?.length || sellersRes.data?.length || 0;
+        } catch (e) {
+          console.error("Failed to fetch sellers", e);
+        }
+
+        // Fetch templates
+        let totalTemplates = 0;
+        try {
+          const templatesRes = await api.get('/templates');
+          totalTemplates = templatesRes.data?.total || templatesRes.data?.data?.length || templatesRes.data?.length || 0;
+        } catch (e) {
+          console.error("Failed to fetch templates", e);
+        }
+
+        setStats({
+          totalUsers: totalUsersCount,
+          activeSellers: totalSellers,
+          totalTemplates: totalTemplates,
+          monthlyRevenue: 24800, // Still mocked as there's no global revenue API
+        });
+      } catch (error) {
+        console.error("Error fetching overview data", error);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
   return (
     <motion.div variants={container} initial="hidden" animate="visible" className="flex flex-col gap-6">
       {/* Top Stat Cards */}
@@ -27,35 +85,35 @@ export default function OverviewTab() {
         <AdminStatCard
           icon={<Users size={20} className="text-blue-600" />}
           iconBg="#3B82F6"
-          value={2847}
+          value={stats.totalUsers}
           label="Total Users"
           subtitle="Registered accounts"
-          live={false}
+          live={true}
         />
         <AdminStatCard
           icon={<Store size={20} className="text-emerald-600" />}
           iconBg="#10B981"
-          value={184}
+          value={stats.activeSellers}
           label="Active Sellers"
           subtitle="Verified stores"
-          live={false}
+          live={true}
         />
         <AdminStatCard
           icon={<FileText size={20} className="text-violet-600" />}
           iconBg="#8B5CF6"
-          value={1256}
+          value={stats.totalTemplates}
           label="Total Templates"
           subtitle="Available in marketplace"
-          live={false}
+          live={true}
         />
         <AdminStatCard
           icon={<DollarSign size={20} className="text-amber-600" />}
           iconBg="#F59E0B"
-          value={24800}
+          value={stats.monthlyRevenue}
           prefix="$"
           label="Monthly Revenue"
           subtitle="From completed orders"
-          live={true}
+          live={false}
         />
       </motion.div>
 
@@ -99,30 +157,31 @@ export default function OverviewTab() {
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-bold text-gray-900">Restricted Users</h3>
             <span className="text-[10px] font-bold bg-red-50 text-red-600 px-2 py-1 rounded-lg">
-              {mockRestrictedUsers.length} limited
+              {restrictedUsers.length} limited
             </span>
           </div>
           <div className="space-y-3 overflow-y-auto flex-1 pr-2 sidebar-scrollbar max-h-[250px]">
-            {mockRestrictedUsers.map((user) => (
-              <div key={user.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-xl transition-colors">
-                <div
-                  className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-sm"
-                  style={{ backgroundColor: user.color }}
-                >
-                  {user.initials}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm text-gray-800 font-bold">{user.name}</p>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {user.restrictions.map((r) => (
-                      <span key={r} className="text-[9px] font-bold text-red-500 bg-red-50 px-1.5 py-0.5 rounded uppercase tracking-wider border border-red-100">
-                        {r}
+            {restrictedUsers.length === 0 ? (
+              <p className="text-sm text-gray-400 text-center mt-10">No restricted users found.</p>
+            ) : (
+              restrictedUsers.map((user) => (
+                <div key={user.id || user._id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-xl transition-colors">
+                  <div
+                    className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-sm bg-gray-800"
+                  >
+                    {(user.name || user.username || "U").charAt(0).toUpperCase()}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm text-gray-800 font-bold truncate">{user.name || user.username}</p>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      <span className="text-[9px] font-bold text-red-500 bg-red-50 px-1.5 py-0.5 rounded uppercase tracking-wider border border-red-100">
+                        BANNED
                       </span>
-                    ))}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </motion.div>

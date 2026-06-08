@@ -222,6 +222,22 @@ export const usersService = {
   },
 
   /**
+   * Block User (Admin)
+   */
+  async adminBlockUser(userId: string): Promise<any> {
+    const { data } = await api.patch(`/users/${userId}/ban`);
+    return data;
+  },
+
+  /**
+   * Unblock User (Admin)
+   */
+  async adminUnblockUser(userId: string): Promise<any> {
+    const { data } = await api.patch(`/users/${userId}/unban`);
+    return data;
+  },
+
+  /**
    * Block User
    */
   async blockUser(userId: string): Promise<any> {
