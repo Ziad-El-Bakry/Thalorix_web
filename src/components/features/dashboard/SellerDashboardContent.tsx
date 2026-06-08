@@ -151,6 +151,9 @@ export default function SellerDashboardContent({
 }) {
   const [templates, setTemplates] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [revenueRange, setRevenueRange] = useState<"week" | "month" | "year">(
+    "week",
+  );
   const [revenue, setRevenue] = useState(0);
   const [downloads, setDownloads] = useState(0);
   const [recentSales, setRecentSales] = useState<any[]>([]);
@@ -206,15 +209,6 @@ export default function SellerDashboardContent({
       icon: <DollarSign size={20} className="text-emerald-600" />,
       color: "#10B981",
       bg: "#ecfdf5",
-    },
-    {
-      label: "Active Templates",
-      value: String(templates.length || 6),
-      trend: "+2",
-      trendUp: true,
-      icon: <Package size={20} className="text-blue-600" />,
-      color: "#3B82F6",
-      bg: "#eff6ff",
     },
     {
       label: "Total Downloads",
