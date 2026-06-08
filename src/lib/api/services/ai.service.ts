@@ -1,6 +1,6 @@
 import api from '../axios';
 import { ENDPOINTS } from '../endpoints';
-import { AIProject, DeployedProject } from '@/types/ai';
+import { AIProject, DeployedProject, AIBuilderResponse } from '@/types/ai';
 
 export const aiService = {
   /**
@@ -29,7 +29,7 @@ export const aiService = {
     prompt: string,
     stack?: string,
     userId?: string
-  ): Promise<{ projectId: string; sessionId: string; jobId: string | null; status: string }> {
+  ): Promise<AIBuilderResponse> {
     const payload = { prompt, stack, userId };
     const { data } = await api.post(ENDPOINTS.AI.CHAT, payload);
     return data.data || data;
@@ -100,7 +100,7 @@ export const aiService = {
   async editProject(
     id: string,
     prompt: string
-  ): Promise<{ projectId: string; jobId: string | null; status: string }> {
+  ): Promise<AIBuilderResponse> {
     const { data } = await api.patch(ENDPOINTS.AI.EDIT_PROJECT(id), { prompt });
     return data.data || data;
   },

@@ -1,5 +1,20 @@
 export type AIModel = 'Thalorix-X Pro' | 'Thalorix-X Fast' | 'Thalorix-X Mini' | 'Thalorix-X Vision';
 
+export interface AIBuilderResponse {
+  ok?: boolean;
+  reply_type?: string;
+  intent?: string;
+  reply?: string;
+  session_id?: string;
+  job_id?: string;
+  projectId?: string;
+  status?: string;
+  files?: ProjectFile[];
+  build_errors?: string[];
+  build_duration_seconds?: number;
+  message?: string;
+}
+
 export interface AIMessage {
   id: string;
   role: 'user' | 'assistant';
