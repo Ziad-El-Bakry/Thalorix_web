@@ -38,6 +38,10 @@ export default function SettingsPageContent() {
   // Appearance state
   const [themeMode, setThemeMode] = useState<ThemeMode>("light");
 
+  
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const router = useRouter();
 
   useEffect(() => {
@@ -80,6 +84,34 @@ export default function SettingsPageContent() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (activeTab === "password") {
+      if (!oldPassword || !newPassword || !confirmPassword) {
+        fireToast("Please fill all password fields");
+        return;
+      }
+      if (newPassword !== confirmPassword) {
+        fireToast("New passwords do not match");
+        return;
+      }
+      setIsLoading(true);
+      try {
+        if(user?.id && user?.role) {
+          await authService.changePassword(user.id, user.role, { oldPassword, newPassword, confirmPassword });
+          fireToast("Password changed successfully");
+          setOldPassword("");
+          setNewPassword("");
+          setConfirmPassword("");
+        } else {
+          fireToast("User session invalid");
+        }
+      } catch (error: any) {
+        fireToast(error?.response?.data?.message || "Failed to change password");
+      } finally {
+        setIsLoading(false);
+      }
+      return;
+    }
+
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
@@ -260,6 +292,8 @@ export default function SettingsPageContent() {
                     <label className="block text-sm font-bold text-gray-700 mb-1.5">Current Password</label>
                     <input
                       type="password"
+                      value={oldPassword}
+                      onChange={(e) => setOldPassword(e.target.value)}
                       placeholder="Enter current password"
                       className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#43B0B5]/30 focus:border-[#43B0B5] transition-all"
                     />
@@ -269,6 +303,8 @@ export default function SettingsPageContent() {
                       <label className="block text-sm font-bold text-gray-700 mb-1.5">New Password</label>
                       <input
                         type="password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
                         placeholder="Enter new password"
                         className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#43B0B5]/30 focus:border-[#43B0B5] transition-all"
                       />
@@ -277,6 +313,8 @@ export default function SettingsPageContent() {
                       <label className="block text-sm font-bold text-gray-700 mb-1.5">Confirm New Password</label>
                       <input
                         type="password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
                         placeholder="Confirm new password"
                         className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#43B0B5]/30 focus:border-[#43B0B5] transition-all"
                       />

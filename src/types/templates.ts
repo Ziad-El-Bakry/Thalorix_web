@@ -7,6 +7,10 @@ export interface Template {
   description: string;
   createdAt?: string;
   updatedAt?: string;
+  fileSize?: string;
+  format?: string;
+  dimensions?: string;
+  license?: string;
   // ضيف بقية الحقول اللي الباك إند بيرجعها هنا
 }
 

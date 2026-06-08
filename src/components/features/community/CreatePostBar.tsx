@@ -86,6 +86,9 @@ export default function CreatePostBar({ userName = "User", userAvatar }: CreateP
         
       const newPost = await communityService.createPost(postData.content, imageUrl, postData.link);
       finalizePost(tempId, newPost);
+      if (localMediaBlob) {
+        URL.revokeObjectURL(localMediaBlob);
+      }
     } catch (error: any) {
       console.error("Failed to post:", error);
       updatePostUploadStatus(tempId, { 

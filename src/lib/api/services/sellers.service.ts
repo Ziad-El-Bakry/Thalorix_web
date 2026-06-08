@@ -150,4 +150,33 @@ export const sellersService = {
     });
     return data;
   },
+
+  /**
+   * Get dashboard statistics for the authenticated seller
+   */
+  async getDashboardStats(): Promise<{
+    recentSales: any[];
+    recentReviews: any[];
+    topProducts: any[];
+    recentSoldProducts: any[];
+  }> {
+    const { data } = await api.get('/seller/dashboard/stats');
+    return data;
+  },
+
+  /**
+   * Get total revenue for the authenticated seller
+   */
+  async getDashboardRevenue(): Promise<{ totalRevenue: number }> {
+    const { data } = await api.get<{ totalRevenue: number }>('/seller/dashboard/revenue');
+    return data;
+  },
+
+  /**
+   * Get total downloads for the authenticated seller
+   */
+  async getDashboardDownloads(): Promise<{ totalDownloads: number }> {
+    const { data } = await api.get<{ totalDownloads: number }>('/seller/dashboard/downloads');
+    return data;
+  },
 };

@@ -4,10 +4,14 @@ import { validateApiConfig } from './validateConfig';
 
 // Extend Axios config to include custom metadata property
 declare module 'axios' {
+  interface AxiosRequestConfig {
+    skipWarning?: boolean;
+  }
   interface InternalAxiosRequestConfig {
     metadata?: {
       startTime: number;
     };
+    skipWarning?: boolean;
   }
 }
 
@@ -55,7 +59,7 @@ export const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 30000,
+  timeout: 120000, // Increased timeout for file uploads
   withCredentials: true,
 });
 
@@ -130,10 +134,13 @@ api.interceptors.response.use(
     };
 
     // Only use console.warn to avoid triggering the Next.js Error Overlay for normal validations/network errors.
-    if (isNetworkError || error.response?.status && error.response.status >= 500) {
-      console.warn('🔴 API Error:', JSON.stringify(errorDetails, null, 2));
-    } else {
-      console.warn('🟡 API Warning (Handled):', JSON.stringify(errorDetails, null, 2));
+    const skipWarning = originalRequest?.skipWarning || error.config?.skipWarning;
+    if (!skipWarning) {
+      if (isNetworkError || error.response?.status && error.response.status >= 500) {
+        console.warn('🔴 API Error:', JSON.stringify(errorDetails, null, 2));
+      } else {
+        console.warn('🟡 API Warning (Handled):', JSON.stringify(errorDetails, null, 2));
+      }
     }
 
     // Token refresh logic (only for 401 errors, ignoring login endpoints)

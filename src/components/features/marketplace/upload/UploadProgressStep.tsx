@@ -5,9 +5,23 @@ import { motion } from "framer-motion";
 
 interface UploadProgressStepProps {
   progress: number;
+  file?: File | null;
 }
 
-export default function UploadProgressStep({ progress }: UploadProgressStepProps) {
+export default function UploadProgressStep({ progress, file }: UploadProgressStepProps) {
+  const formatFileSize = (bytes?: number) => {
+    if (bytes === undefined) return "Unknown Size";
+    if (bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  };
+
+  const fileName = file?.name || "template-file.zip";
+  const fileSizeStr = formatFileSize(file?.size);
+  const fileTypeStr = file?.type || "File Archive";
+
   return (
     <motion.div 
       key="uploading"
@@ -73,20 +87,20 @@ export default function UploadProgressStep({ progress }: UploadProgressStepProps
             <div className="w-12 h-12 bg-[#123E41] rounded-xl flex items-center justify-center text-white flex-shrink-0">
               <FileCode2 size={24} />
             </div>
-            <div>
-              <p className="font-semibold text-sm text-gray-900 leading-tight">template-component.jsx</p>
-              <p className="text-xs text-gray-500 mt-0.5">2.4 MB &middot; JavaScript React Component</p>
+            <div className="overflow-hidden">
+              <p className="font-semibold text-sm text-gray-900 leading-tight truncate" title={fileName}>{fileName}</p>
+              <p className="text-xs text-gray-500 mt-0.5 truncate">{fileSizeStr} &middot; {fileTypeStr}</p>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4 mt-4">
             <div className="border border-gray-200 rounded-xl p-3 text-center">
               <p className="text-xs text-gray-500 mb-1">File Size</p>
-              <p className="font-bold text-sm text-gray-900">2.4 MB</p>
+              <p className="font-bold text-sm text-gray-900">{fileSizeStr}</p>
             </div>
             <div className="border border-gray-200 rounded-xl p-3 text-center">
-              <p className="text-xs text-gray-500 mb-1">Upload Speed</p>
-              <p className="font-bold text-sm text-gray-900">1.2 MB/s</p>
+              <p className="text-xs text-gray-500 mb-1">Status</p>
+              <p className="font-bold text-sm text-gray-900">{progress < 100 ? "Uploading..." : "Complete"}</p>
             </div>
           </div>
         </div>

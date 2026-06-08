@@ -10,15 +10,15 @@ async function fetchUserSafe(uid: string) {
   
   const promise = (async () => {
     try {
-      const { data } = await api.get(ENDPOINTS.USERS.GET_BY_ID(uid));
+      const { data } = await api.get(ENDPOINTS.USERS.GET_BY_ID(uid), { skipWarning: true });
       return data.data || data;
     } catch {
       try {
-        const { data } = await api.get(ENDPOINTS.SELLERS.GET_BY_ID(uid));
+        const { data } = await api.get(ENDPOINTS.SELLERS.GET_BY_ID(uid), { skipWarning: true });
         return data.data || data;
       } catch {
         try {
-           const { data } = await api.get(ENDPOINTS.ADMINS.GET_BY_ID(uid));
+           const { data } = await api.get(ENDPOINTS.ADMINS.GET_BY_ID(uid), { skipWarning: true });
            return data.data || data;
         } catch {
            return { _id: uid, name: 'Unknown User', username: 'Unknown User' };

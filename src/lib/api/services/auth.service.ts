@@ -339,6 +339,17 @@ export const authService = {
   /**
    * Get stored user
    */
+  /**
+   * Change user password
+   */
+  async changePassword(id: string, role: string, payload: { oldPassword: string; newPassword: string; confirmPassword?: string }): Promise<void> {
+    let endpoint = ENDPOINTS.USERS.CHANGE_PASSWORD(id);
+    if (role === 'admin') endpoint = ENDPOINTS.ADMINS.CHANGE_PASSWORD(id);
+    if (role === 'seller') endpoint = ENDPOINTS.SELLERS.CHANGE_PASSWORD(id);
+    
+    await api.patch(endpoint, payload);
+  },
+
   getStoredUser(): User | null {
     if (typeof window === 'undefined') return null;
     const userStr = localStorage.getItem('user');

@@ -60,7 +60,7 @@ export default function PostCard({ post }: { post: PostData }) {
 
   const currentUser = authService.getStoredUser();
   const currentUserName = currentUser?.name || currentUser?.username || "User";
-  const currentUserId = currentUser?.id || (currentUser as any)?._id;
+  const currentUserId = currentUser?.id || (currentUser as any)?._id || 'guest';
   
   // Ensure we match either by explicit ID or by exact Name
   const isPostOwner = (currentUserId && post.author.id === currentUserId) || (post.author.name === currentUserName && post.author.name !== "Unknown User");
@@ -80,8 +80,8 @@ export default function PostCard({ post }: { post: PostData }) {
   const isLongContent = post.content.length > CONTENT_LIMIT;
 
   const handleLike = () => {
-    if (currentUser?.id) {
-      toggleLike(post.id, currentUser.id);
+    if (currentUserId) {
+      toggleLike(post.id, currentUserId);
     }
   };
 

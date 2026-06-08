@@ -137,6 +137,12 @@ export default function PaymentSuccessPage() {
               File Unavailable
             </button>
           )}
+          <button 
+            onClick={() => setShowReceipt(true)} 
+            className="w-full flex items-center justify-center gap-2 bg-white border border-[#123E41] text-[#123E41] font-bold py-3.5 rounded-xl hover:bg-[#123E41]/5 transition-colors shadow-sm text-center"
+          >
+            <Mail size={18} /> View Email Receipt
+          </button>
           <Link href="/dashboard/marketplace" className="block w-full bg-white border border-gray-200 text-[#123E41] font-bold py-3.5 rounded-xl hover:bg-gray-50 transition-colors shadow-sm text-center">
             Back to Marketplace
           </Link>
@@ -183,13 +189,13 @@ export default function PaymentSuccessPage() {
                 
                 <div className="space-y-4 text-sm mb-8 text-left">
                    <p className="text-gray-700">Hi Developer,</p>
-                   <p className="text-gray-700">We have successfully processed your {isFree ? "request" : "payment"}. The template "Business Dashboard UI Kit" is now available in your library.</p>
+                   <p className="text-gray-700">We have successfully processed your {isFree ? "request" : "payment"}. The template "{template.title}" is now available in your library.</p>
                 </div>
 
                 <div className="bg-gray-50 p-4 rounded-lg mb-8 text-left">
                   <div className="flex justify-between mb-2">
-                    <span className="text-gray-500 text-sm">Order ID</span>
-                    <span className="font-bold text-gray-900 text-sm">TXN-2847563</span>
+                    <span className="text-gray-500 text-sm">Order/Session ID</span>
+                    <span className="font-bold text-gray-900 text-sm truncate max-w-[200px]">{sessionId || "TXN-2847563"}</span>
                   </div>
                   <div className="flex justify-between mb-2">
                     <span className="text-gray-500 text-sm">Date</span>
@@ -197,7 +203,7 @@ export default function PaymentSuccessPage() {
                   </div>
                   <div className="flex justify-between border-t border-gray-200 pt-2 mt-2">
                     <span className="text-gray-500 font-bold text-sm mt-1">Total</span>
-                    <span className="font-bold text-[#103B40] text-xl">{isFree ? "$0.00" : "$58.80"}</span>
+                    <span className="font-bold text-[#103B40] text-xl">{isFree ? "$0.00" : `$${template.price.toFixed(2)}`}</span>
                   </div>
                 </div>
                 

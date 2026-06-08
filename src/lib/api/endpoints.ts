@@ -34,8 +34,8 @@ export const ENDPOINTS = {
     UPDATE: (id: string) => `/users/${id}`,
     DELETE: (id: string) => `/users/${id}`,
     ME: '/users/me',
+    CHANGE_PASSWORD: (id: string) => `/users/${id}/change-password`,
     UPDATE_PROFILE: (id: string) => `/users/${id}`,
-    CHANGE_PASSWORD: '/users/change-password',
     UPLOAD_AVATAR: '/users/upload/avatars',
     GET_CREDITS: '/users/credits',
 
@@ -64,6 +64,7 @@ export const ENDPOINTS = {
     GET_BY_ID: (id: string) => `/admins/${id}`,
     UPDATE: (id: string) => `/admins/${id}`,
     GET_ALL: '/admins',
+    CHANGE_PASSWORD: (id: string) => `/admins/${id}/change-password`,
   },
 
   // ============================================
@@ -74,6 +75,7 @@ export const ENDPOINTS = {
     REGISTER: '/seller/register',
     GET_BY_ID: (id: string) => `/seller/${id}`,
     UPDATE: (id: string) => `/seller/${id}`,
+    CHANGE_PASSWORD: (id: string) => `/seller/${id}/change-password`,
   },
 
   // ============================================
@@ -137,5 +139,23 @@ export const ENDPOINTS = {
     UPDATE: (id: string) => `/categories/${id}`,
     DELETE: (id: string) => `/categories/${id}`,
   },
-  // ... rest of endpoints
-} as const;
+
+  // ============================================
+  // AI BUILDER
+  // ============================================
+  AI: {
+    HEALTH: '/ai/health',
+    READY: '/ai/ready',
+    CHAT: '/ai/chat',
+    UPLOAD: '/ai/upload',
+    DEPLOYED: '/ai/projects/deployed',
+    GET_PROJECT: (id: string) => `/ai/projects/${id}`,
+    EDIT_PROJECT: (id: string) => `/ai/projects/${id}/edit`,
+    MANIFEST: (sessionId: string, projectName: string) => `/ai/project/${sessionId}/${projectName}/manifest`,
+    STATUS: (sessionId: string, projectName: string) => `/ai/project/${sessionId}/${projectName}/status`,
+    FILE: (sessionId: string, projectName: string) => `/ai/project/${sessionId}/${projectName}/file`,
+    PREVIEW: (sessionId: string, projectName: string) => `/ai/project/${sessionId}/${projectName}/preview`,
+    DIST_ZIP: (sessionId: string, projectName: string) => `/ai/project/${sessionId}/${projectName}/dist.zip`,
+    SOURCE_ZIP: (sessionId: string, projectName: string) => `/ai/project/${sessionId}/${projectName}/source.zip`,
+  },
+};

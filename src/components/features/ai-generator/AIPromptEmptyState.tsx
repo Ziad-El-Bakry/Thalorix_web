@@ -12,6 +12,9 @@ interface AIPromptEmptyStateProps {
   selectedModel: AIModel;
   onModelSelect: (model: AIModel) => void;
   credits?: number;
+  onFileUpload?: (file: File) => void;
+  uploadedFile?: { name: string } | null;
+  isUploadingFile?: boolean;
 }
 
 export function AIPromptEmptyState({
@@ -19,6 +22,9 @@ export function AIPromptEmptyState({
   selectedModel,
   onModelSelect,
   credits,
+  onFileUpload,
+  uploadedFile,
+  isUploadingFile,
 }: AIPromptEmptyStateProps) {
   const suggestions = [
     {
@@ -114,6 +120,9 @@ export function AIPromptEmptyState({
           onModelSelect={onModelSelect}
           isExpanded={true}
           credits={credits}
+          onFileUpload={onFileUpload}
+          uploadedFile={uploadedFile}
+          isUploadingFile={isUploadingFile}
         />
 
         <div className="flex items-center gap-6 mt-3 text-xs text-gray-400 ml-2">
@@ -125,27 +134,6 @@ export function AIPromptEmptyState({
             <div className="w-1.5 h-1.5 rounded-full bg-teal-600" />
             Mention any specific libraries or dependencies
           </div>
-        </div>
-      </div>
-
-      {/* Stats */}
-      <div className="text-center text-xs text-gray-400 mb-4">
-        Your code will be generated securely
-      </div>
-      <div className="flex items-center justify-center gap-4 sm:gap-8">
-        <div className="flex flex-col items-center">
-          <span className="text-2xl font-bold text-[#103B40]">24</span>
-          <span className="text-xs text-gray-400 mt-1">Generated</span>
-        </div>
-        <div className="w-px h-10 bg-gray-200" />
-        <div className="flex flex-col items-center">
-          <span className="text-2xl font-bold text-[#103B40]">18</span>
-          <span className="text-xs text-gray-400 mt-1">Successful</span>
-        </div>
-        <div className="w-px h-10 bg-gray-200" />
-        <div className="flex flex-col items-center">
-          <span className="text-2xl font-bold text-teal-600">75%</span>
-          <span className="text-xs text-gray-400 mt-1">Success Rate</span>
         </div>
       </div>
     </div>

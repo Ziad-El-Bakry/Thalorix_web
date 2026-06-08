@@ -79,6 +79,11 @@ export const usePostStore = create<PostStore>((set: any, get: any) => ({
     try {
       if (!id.startsWith("temp_")) {
         await communityService.deletePost(id);
+      } else {
+        const post = get().posts.find((p: any) => p.id === id);
+        if (post?.localMediaBlob) {
+          URL.revokeObjectURL(post.localMediaBlob);
+        }
       }
       set((state: any) => ({ posts: state.posts.filter((p: PostData) => p.id !== id) }));
     } catch (error) {
