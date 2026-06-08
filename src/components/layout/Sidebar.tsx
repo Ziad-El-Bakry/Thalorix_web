@@ -24,6 +24,7 @@ import {
 import { useNotifications } from "@/components/shared/useNotifications";
 import { useEffect, useState } from "react";
 import { authService } from "@/lib/api/services/auth.service";
+import { useAvatar } from "@/store/useAvatarStore";
 
 interface NavItem {
   label: string;
@@ -163,6 +164,7 @@ export default function Sidebar() {
   const [userRole, setUserRole] = useState<string>("user");
   const [userName, setUserName] = useState("User");
   const [userAvatar, setUserAvatar] = useState("/images/avatar.png");
+  const { avatar } = useAvatar();
 
   useEffect(() => {
     const user = authService.getStoredUser();
@@ -170,6 +172,8 @@ export default function Sidebar() {
       setUserRole(user.role || "user");
       setUserName(user.name || user.username || "User");
       if (user.avatar) setUserAvatar(user.avatar);
+      else if (user.avatarUrl) setUserAvatar(user.avatarUrl);
+      else if (user.logo) setUserAvatar(user.logo);
     }
   }, []);
 
@@ -315,7 +319,7 @@ export default function Sidebar() {
         >
           <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-white/10">
             <Image
-              src={userAvatar}
+              src={avatar !== "/images/avatar.png" ? avatar : (userAvatar || "/images/avatar.png")}
               alt={userName}
               width={36}
               height={36}
