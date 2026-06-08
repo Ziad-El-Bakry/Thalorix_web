@@ -18,6 +18,7 @@ import {
   List,
   LinkIcon,
 } from "lucide-react";
+import EmojiPicker from "emoji-picker-react";
 
 type PostTab = "text" | "video" | "photo" | "article";
 
@@ -49,6 +50,7 @@ export default function CreatePostModal({
   const [activeTab, setActiveTab] = useState<PostTab>(initialTab);
   const [visibility, setVisibility] = useState("Anyone");
   const [showVisibilityMenu, setShowVisibilityMenu] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
   const [mediaPreviews, setMediaPreviews] = useState<string[]>([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -67,6 +69,7 @@ export default function CreatePostModal({
       setMediaFiles([]);
       setMediaPreviews([]);
       setShowVisibilityMenu(false);
+      setShowEmojiPicker(false);
       // Focus textarea after animation
       setTimeout(() => textareaRef.current?.focus(), 300);
     }
@@ -393,13 +396,27 @@ export default function CreatePostModal({
             </div>
 
             {/* Emoji and Link row */}
-            <div className="px-5 py-2 flex items-center gap-3">
+            <div className="px-5 py-2 flex items-center gap-3 relative">
               <button 
                 type="button"
-                className="p-1.5 rounded-full hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600"
+                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                className={`p-1.5 rounded-full hover:bg-gray-100 transition-colors ${showEmojiPicker ? "text-teal-600 bg-teal-50" : "text-gray-400 hover:text-gray-600"}`}
               >
                 <Smile size={20} />
               </button>
+              
+              {showEmojiPicker && (
+                <div className="absolute top-10 left-5 z-[100] shadow-2xl rounded-lg">
+                  <EmojiPicker 
+                    onEmojiClick={(emojiData) => {
+                      setContent(prev => prev + emojiData.emoji);
+                      setShowEmojiPicker(false);
+                    }} 
+                    autoFocusSearch={false}
+                  />
+                </div>
+              )}
+
               <button 
                 type="button"
                 onClick={() => setShowLinkInput(!showLinkInput)}
