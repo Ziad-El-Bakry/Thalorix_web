@@ -16,6 +16,7 @@ type UploadState = "form" | "uploading" | "success";
 export default function UploadFlow() {
   const [step, setStep] = useState<UploadState>("form");
   const [progress, setProgress] = useState(0);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -26,6 +27,7 @@ export default function UploadFlow() {
   }, [router]);
 
   const handleUpload = async (data: TemplateFormData) => {
+    setUploadedFile(data.file);
     setStep("uploading");
     setProgress(10); // Start progress
 
@@ -56,10 +58,10 @@ export default function UploadFlow() {
   };
 
   return (
-    <div className="w-full h-full flex flex-col items-center pt-8 pb-12 overflow-y-auto custom-scrollbar">
+    <div className="w-full max-w-[800px] mx-auto h-full flex flex-col py-8 custom-scrollbar">
       
       {/* Header with Back Button */}
-      <div className="w-full max-w-[600px] flex items-center mb-8 relative justify-center">
+      <div className="flex items-center mb-8 relative justify-center">
         {step === "form" && (
           <Link 
             href="/dashboard/marketplace" 
@@ -68,12 +70,12 @@ export default function UploadFlow() {
             <ChevronLeft size={20} />
           </Link>
         )}
-        <h1 className="text-xl font-bold text-gray-900">
-          Upload New Template
+        <h1 className="text-2xl font-bold text-gray-900">
+          Upload Template
         </h1>
       </div>
 
-      <div className="w-full max-w-[600px]">
+      <div className="flex-grow flex flex-col">
         <AnimatePresence mode="wait">
           {step === "form" && (
             <UploadFormStep 
@@ -84,6 +86,7 @@ export default function UploadFlow() {
           {step === "uploading" && (
             <UploadProgressStep 
               progress={progress} 
+              file={uploadedFile}
             />
           )}
 

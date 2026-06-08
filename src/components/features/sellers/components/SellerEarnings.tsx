@@ -1,21 +1,42 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { DollarSign, ArrowUpRight, ArrowDownRight, Clock, CheckCircle, DownloadCloud } from "lucide-react";
 import { User } from "@/lib/api/services/auth.service";
-
-// Mock Data
-const TRANSACTIONS = [
-  { id: "TX-1049", type: "Sale", amount: "+$29.00", fee: "-$2.90", net: "+$26.10", date: "Today, 10:45 AM", status: "Completed" },
-  { id: "TX-1048", type: "Sale", amount: "+$19.00", fee: "-$1.90", net: "+$17.10", date: "Yesterday, 3:20 PM", status: "Completed" },
-  { id: "PO-502", type: "Payout", amount: "-$450.00", fee: "$0.00", net: "-$450.00", date: "May 28, 2026", status: "Completed" },
-  { id: "TX-1047", type: "Sale", amount: "+$49.00", fee: "-$4.90", net: "+$44.10", date: "May 27, 2026", status: "Completed" },
-  { id: "TX-1046", type: "Sale", amount: "+$29.00", fee: "-$2.90", net: "+$26.10", date: "May 26, 2026", status: "Completed" },
-];
+import { sellersService } from "@/lib/api/services/sellers.service";
 
 export default function SellerEarnings({ user }: { user: User | null }) {
   const [requestingPayout, setRequestingPayout] = useState(false);
+  const [revenue, setRevenue] = useState(0);
+  const [downloads, setDownloads] = useState(0);
+  const [recentSold, setRecentSold] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadEarnings = async () => {
+      try {
+        const [revData, dlData, statsData] = await Promise.all([
+          sellersService.getDashboardRevenue().catch(() => ({ totalRevenue: 0 })),
+          sellersService.getDashboardDownloads().catch(() => ({ totalDownloads: 0 })),
+          sellersService.getDashboardStats().catch(() => ({
+            recentSales: [],
+            recentReviews: [],
+            topProducts: [],
+            recentSoldProducts: []
+          }))
+        ]);
+        setRevenue(revData.totalRevenue || 0);
+        setDownloads(dlData.totalDownloads || 0);
+        setRecentSold(statsData.recentSoldProducts || []);
+      } catch (err) {
+        console.error("Failed to load earnings data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadEarnings();
+  }, []);
 
   const handlePayoutRequest = () => {
     setRequestingPayout(true);
@@ -31,12 +52,12 @@ export default function SellerEarnings({ user }: { user: User | null }) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-[#103B40] text-white rounded-2xl p-6 shadow-sm relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-10 translate-x-10" />
-          <p className="text-white/70 text-sm font-medium mb-1 relative z-10">Available for Payout</p>
-          <h2 className="text-4xl font-bold mb-4 relative z-10">$845.20</h2>
+          <p className="text-white/70 text-sm font-medium mb-1 relative z-10">Available for Payout (90%)</p>
+          <h2 className="text-4xl font-bold mb-4 relative z-10">${(revenue * 0.9).toFixed(2)}</h2>
           <button 
             onClick={handlePayoutRequest}
-            disabled={requestingPayout}
-            className="w-full py-2.5 bg-[#43B0B5] hover:bg-[#389b9f] transition-colors rounded-xl font-bold text-sm shadow-sm relative z-10 flex items-center justify-center gap-2"
+            disabled={requestingPayout || revenue === 0}
+            className="w-full py-2.5 bg-[#43B0B5] hover:bg-[#389b9f] transition-colors rounded-xl font-bold text-sm shadow-sm relative z-10 flex items-center justify-center gap-2 disabled:opacity-50"
           >
             {requestingPayout ? (
               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -48,16 +69,16 @@ export default function SellerEarnings({ user }: { user: User | null }) {
 
         <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col justify-center">
           <p className="text-gray-500 text-sm font-medium mb-1">Total Earnings (All Time)</p>
-          <h2 className="text-3xl font-bold text-gray-900">$12,450.80</h2>
+          <h2 className="text-3xl font-bold text-gray-900">${revenue.toFixed(2)}</h2>
           <div className="flex items-center gap-1.5 text-emerald-600 text-sm font-semibold mt-2">
             <ArrowUpRight size={16} />
-            +$2,450 this month
+            Live revenue from backend
           </div>
         </div>
 
         <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col justify-center">
           <p className="text-gray-500 text-sm font-medium mb-1">Pending Clearance</p>
-          <h2 className="text-3xl font-bold text-gray-900">$124.00</h2>
+          <h2 className="text-3xl font-bold text-gray-900">$0.00</h2>
           <div className="flex items-center gap-1.5 text-amber-500 text-sm font-semibold mt-2">
             <Clock size={16} />
             Clears in 2-5 days
@@ -87,33 +108,59 @@ export default function SellerEarnings({ user }: { user: User | null }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {TRANSACTIONS.map((tx) => (
-                <tr key={tx.id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-6 py-4 font-medium text-gray-900">{tx.id}</td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold ${
-                      tx.type === "Sale" ? "bg-emerald-50 text-emerald-600" : "bg-blue-50 text-blue-600"
-                    }`}>
-                      {tx.type === "Sale" ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
-                      {tx.type}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-gray-500">{tx.date}</td>
-                  <td className={`px-6 py-4 text-right font-semibold ${tx.amount.startsWith("+") ? "text-emerald-600" : "text-gray-900"}`}>
-                    {tx.amount}
-                  </td>
-                  <td className="px-6 py-4 text-right text-red-500">{tx.fee}</td>
-                  <td className={`px-6 py-4 text-right font-bold ${tx.net.startsWith("+") ? "text-gray-900" : "text-red-500"}`}>
-                    {tx.net}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-1.5 text-gray-600">
-                      <CheckCircle size={14} className="text-emerald-500" />
-                      {tx.status}
+              {loading ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-8 text-center text-gray-400 font-medium">
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-[#103B40] border-t-transparent" />
+                      Loading transactions...
                     </div>
                   </td>
                 </tr>
-              ))}
+              ) : recentSold.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-8 text-center text-gray-400 font-medium">
+                    No transactions recorded yet.
+                  </td>
+                </tr>
+              ) : (
+                recentSold.map((tx) => {
+                  const gross = tx.price * (tx.quantity || 1);
+                  const fee = gross * 0.1;
+                  const net = gross - fee;
+                  return (
+                    <tr key={tx.orderId} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="px-6 py-4 font-medium text-gray-900 truncate max-w-[150px]" title={tx.orderId}>
+                        {tx.orderId}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-600">
+                          <ArrowUpRight size={12} />
+                          Sale
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-gray-500">
+                        {new Date(tx.soldAt).toLocaleDateString()} {new Date(tx.soldAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </td>
+                      <td className="px-6 py-4 text-right font-semibold text-gray-900">
+                        +${gross.toFixed(2)}
+                      </td>
+                      <td className="px-6 py-4 text-right text-red-500">
+                        -${fee.toFixed(2)}
+                      </td>
+                      <td className="px-6 py-4 text-right font-bold text-emerald-600">
+                        +${net.toFixed(2)}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-1.5 text-gray-600">
+                          <CheckCircle size={14} className="text-emerald-500" />
+                          Completed
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>

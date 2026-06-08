@@ -5,6 +5,7 @@ import { X, Settings, AlertCircle, Eye, EyeOff, LogOut, Trash2 } from "lucide-re
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { usersService } from "@/lib/api/services/users.service";
+import { authService } from "@/lib/api/services/auth.service";
 
 type SettingsTab = "personal" | "password";
 
@@ -216,29 +217,7 @@ function PersonalDetails({ user, onSave, expertise, setExpertise, socialLinks, s
         </div>
       </motion.div>
 
-      <motion.div variants={itemVariants} className="mb-6 border-t border-gray-100 pt-6">
-        <h3 className="text-sm font-bold mb-4 text-[#103B40]">Expertise Percentages</h3>
-        {expertise?.map((exp, index) => (
-          <div key={index} className="flex gap-4 mb-3">
-            <div className="flex-1">
-              <label className="block text-xs font-semibold text-gray-700 mb-1">Skill</label>
-              <Input value={exp.name} onChange={(e: any) => {
-                const newExp = [...expertise];
-                newExp[index].name = e.target.value;
-                setExpertise(newExp);
-              }} className="bg-gray-50 border border-gray-200 shadow-sm h-10 text-sm" />
-            </div>
-            <div className="w-24">
-              <label className="block text-xs font-semibold text-gray-700 mb-1">Percent (%)</label>
-              <Input type="number" min="0" max="100" value={exp.percent} onChange={(e: any) => {
-                const newExp = [...expertise];
-                newExp[index].percent = Number(e.target.value);
-                setExpertise(newExp);
-              }} className="bg-gray-50 border border-gray-200 shadow-sm h-10 text-sm" />
-            </div>
-          </div>
-        ))}
-      </motion.div>
+
 
       <motion.div variants={itemVariants} className="flex justify-end">
         <Button onClick={handleSave} disabled={isSaving} variant="primary" className="bg-[#103B40] hover:bg-[#0c2e32] h-10 shadow-md font-medium px-8 transition-transform hover:scale-105 active:scale-95 disabled:opacity-70">
@@ -260,16 +239,17 @@ function ChangePassword({ user, onSave, onCancel }: { user: any; onSave: () => v
   const [error, setError] = useState("");
 
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-
   const handleSave = async () => {
     setError("");
-    if (!oldPassword) { setError("Please enter your current password."); return; }
-    if (!newPassword) { setError("Please enter a new password."); return; }
+    const targetId = user?.id || user?._id;
+    const role = user?.role || "user";
+    if (!targetId) return setError("User ID not found.");
+    if (!oldPassword || !newPassword || !confirmNewPassword) return setError("All fields are required.");
     if (!passwordRegex.test(newPassword)) { setError("New password must be at least 8 characters long and include uppercase, lowercase, number, and special character."); return; }
-    if (newPassword !== confirmNewPassword) { setError("New passwords do not match."); return; }
+    if (newPassword !== confirmNewPassword) return setError("New passwords do not match.");
     setIsSaving(true);
     try {
-      await usersService.changePassword({ currentPassword: oldPassword, newPassword, confirmPassword: confirmNewPassword });
+      await authService.changePassword(targetId, role, { oldPassword, newPassword, confirmPassword: confirmNewPassword });
       onSave();
     } catch (err: any) {
       setError(err?.response?.data?.message || "Failed to change password.");

@@ -51,7 +51,7 @@ export default function UserHeader({ name, avatar, badge, badgeIcon, compact = f
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className={`flex items-center justify-between mt-2 md:mt-0 relative z-50 ${compact ? 'mb-2 md:mb-3' : 'mb-6 md:mb-8'}`}
+      className={`flex items-center justify-between w-full relative z-50 ${compact ? 'mb-2 md:mb-3' : 'mb-6 md:mb-8'}`}
     >
       <Link href="/dashboard/profile" className="flex items-center gap-3 md:gap-4 hover:opacity-85 transition-opacity cursor-pointer">
         <div className="flex flex-shrink-0">

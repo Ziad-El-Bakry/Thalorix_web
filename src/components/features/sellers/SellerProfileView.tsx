@@ -146,11 +146,29 @@ export default function SellerProfileView({
   };
 
   const handleShareProfile = async () => {
+    const shareUrl = window.location.href;
     try {
-      await navigator.clipboard.writeText(window.location.href);
-      fireToast("Store link copied to clipboard!");
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(shareUrl);
+        fireToast("Store link copied to clipboard!");
+      } else {
+        // Fallback for non-secure HTTP contexts (e.g. local network IPs)
+        const textArea = document.createElement("textarea");
+        textArea.value = shareUrl;
+        textArea.style.top = "0";
+        textArea.style.left = "0";
+        textArea.style.position = "fixed";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+        fireToast("Store link copied to clipboard!");
+      }
     } catch (err) {
       console.error("Failed to copy link", err);
+      // Fallback display if copying is completely blocked
+      alert(`Copy this URL: ${shareUrl}`);
     }
   };
 

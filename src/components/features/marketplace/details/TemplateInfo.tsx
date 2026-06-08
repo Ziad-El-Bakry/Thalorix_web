@@ -3,6 +3,8 @@
 import { Star, Download, Check, User } from "lucide-react";
 import { Template } from "@/types";
 import Link from "next/link";
+import { authService } from "@/lib/api/services/auth.service";
+import { useEffect, useState } from "react";
 
 interface TemplateInfoProps {
   template: Template;
@@ -13,6 +15,20 @@ export default function TemplateInfo({ template }: TemplateInfoProps) {
   const sellerName = seller?.name || "Unknown Seller";
   const sellerId = seller?._id || seller?.id;
   const sellerAvatar = seller?.avatarUrl || seller?.avatar || seller?.logo || "";
+
+  const [profileUrl, setProfileUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (sellerId) {
+      const user = authService.getStoredUser() as any;
+      if (user && (user._id === sellerId || user.id === sellerId)) {
+        setProfileUrl("/dashboard/profile");
+      } else {
+        setProfileUrl(`/dashboard/seller/${sellerId}`);
+      }
+    }
+  }, [sellerId]);
+
   return (
     <div className="space-y-8">
       <div>
@@ -21,8 +37,8 @@ export default function TemplateInfo({ template }: TemplateInfoProps) {
         {/* We removed mock ratings/downloads per instructions */}
 
         <div className="flex items-center gap-3 mt-6 mb-6">
-          {sellerId ? (
-            <Link href={`/dashboard/seller/${sellerId}`} className="flex items-center gap-3 hover:opacity-85 transition-opacity">
+          {profileUrl ? (
+            <Link href={profileUrl} className="flex items-center gap-3 hover:opacity-85 transition-opacity">
               <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden flex-shrink-0 flex items-center justify-center border border-gray-100 shadow-sm">
                 {sellerAvatar ? (
                   <img

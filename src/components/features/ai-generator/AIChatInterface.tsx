@@ -14,6 +14,9 @@ interface AIChatInterfaceProps {
   onModelSelect: (model: AIModel) => void;
   onReset: () => void;
   credits?: number;
+  onFileUpload?: (file: File) => void;
+  uploadedFile?: { name: string } | null;
+  isUploadingFile?: boolean;
 }
 
 export function AIChatInterface({
@@ -24,6 +27,9 @@ export function AIChatInterface({
   onModelSelect,
   onReset,
   credits,
+  onFileUpload,
+  uploadedFile,
+  isUploadingFile,
 }: AIChatInterfaceProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -71,6 +77,9 @@ export function AIChatInterface({
             isExpanded={false}
             isGenerating={isGenerating}
             credits={credits}
+            onFileUpload={onFileUpload}
+            uploadedFile={uploadedFile}
+            isUploadingFile={isUploadingFile}
           />
         </div>
       </div>
