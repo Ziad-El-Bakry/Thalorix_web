@@ -159,9 +159,6 @@ export default function SellerDashboardContent({
   const [recentSales, setRecentSales] = useState<any[]>([]);
   const [recentReviews, setRecentReviews] = useState<any[]>([]);
   const [topProducts, setTopProducts] = useState<any[]>([]);
-  const [revenueRange, setRevenueRange] = useState<"week" | "month" | "year">(
-    "week",
-  );
 
   useEffect(() => {
     const loadData = async () => {
