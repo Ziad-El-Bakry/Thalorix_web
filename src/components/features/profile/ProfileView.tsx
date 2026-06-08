@@ -391,7 +391,7 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
       {/* ═══════════════════════════════════════
           THREE COLUMN BODY (Left Nav + Feed + Right Sidebar)
          ═══════════════════════════════════════ */}
-      <div className="flex flex-col lg:flex-row gap-6 items-start">
+      <div className="flex flex-col lg:flex-row gap-6 lg:items-start w-full">
         
         {/* Left Vertical Nav */}
         <div className="w-full lg:w-[220px] flex-shrink-0">
@@ -399,9 +399,9 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.4 }}
-            className="bg-white rounded-xl shadow-sm border border-gray-100 p-3 lg:sticky lg:top-24 flex flex-row lg:flex-col gap-1.5 overflow-x-auto scrollbar-hide"
+            className="bg-white rounded-xl shadow-sm border border-gray-100 p-3 lg:sticky lg:top-24 grid grid-cols-2 sm:grid-cols-3 lg:flex lg:flex-col gap-1.5"
           >
-          <h3 className="hidden lg:block text-[10px] font-bold text-gray-400 tracking-widest uppercase mb-2 px-3 pt-2">Menu</h3>
+          <h3 className="col-span-full hidden lg:block text-[10px] font-bold text-gray-400 tracking-widest uppercase mb-2 px-3 pt-2">Menu</h3>
           {[
             { id: "posts", label: "Posts", icon: FileText },
             { id: "projects", label: "Projects", icon: Briefcase },
@@ -416,7 +416,7 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
               <button
                 key={tab.id}
                 onClick={() => setActiveProfileTab(tab.id as any)}
-                className={`flex-shrink-0 lg:flex-shrink w-auto lg:w-full text-left px-4 py-2.5 rounded-lg text-sm font-semibold capitalize transition-all duration-200 flex items-center gap-3 ${
+                className={`w-full text-center lg:text-left px-2 py-2 lg:px-4 lg:py-2.5 rounded-lg text-xs lg:text-sm font-semibold capitalize transition-all duration-200 flex flex-col lg:flex-row items-center justify-center lg:justify-start gap-1 lg:gap-3 ${
                   isActive
                     ? "bg-[#103B40] text-white shadow-sm"
                     : "text-gray-600 hover:bg-gray-50 hover:text-[#103B40]"

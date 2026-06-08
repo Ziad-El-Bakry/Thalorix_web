@@ -124,35 +124,35 @@ export default function CreatePostBar({ userName = "User", userAvatar }: CreateP
         <div className="h-px bg-gray-200/70 my-3" />
 
         {/* Action buttons row */}
-        <div className="flex items-center justify-around">
+        <div className="flex items-center justify-between gap-1 sm:gap-2">
           <motion.button
             whileHover={{ backgroundColor: "rgba(0,0,0,0.04)" }}
             whileTap={{ scale: 0.97 }}
             onClick={() => openModal("video")}
-            className="flex items-center gap-1.5 px-2 py-3 rounded-lg text-xs font-semibold text-gray-600 transition-colors duration-200 cursor-pointer whitespace-nowrap"
+            className="flex flex-1 justify-center items-center gap-1.5 px-2 py-3 rounded-lg text-xs font-semibold text-gray-600 transition-colors duration-200 cursor-pointer"
           >
             <Video size={20} className="text-red-500" strokeWidth={2.2} />
-            Video
+            <span className="hidden sm:inline">Video</span>
           </motion.button>
 
           <motion.button
             whileHover={{ backgroundColor: "rgba(0,0,0,0.04)" }}
             whileTap={{ scale: 0.97 }}
             onClick={() => openModal("photo")}
-            className="flex items-center gap-1.5 px-2 py-3 rounded-lg text-xs font-semibold text-gray-600 transition-colors duration-200 cursor-pointer whitespace-nowrap"
+            className="flex flex-1 justify-center items-center gap-1.5 px-2 py-3 rounded-lg text-xs font-semibold text-gray-600 transition-colors duration-200 cursor-pointer"
           >
             <ImageIcon size={20} className="text-blue-500" strokeWidth={2.2} />
-            Photo
+            <span className="hidden sm:inline">Photo</span>
           </motion.button>
 
           <motion.button
             whileHover={{ backgroundColor: "rgba(0,0,0,0.04)" }}
             whileTap={{ scale: 0.97 }}
             onClick={() => openModal("article")}
-            className="flex items-center gap-1.5 px-2 py-3 rounded-lg text-xs font-semibold text-gray-600 transition-colors duration-200 cursor-pointer whitespace-nowrap"
+            className="flex flex-1 justify-center items-center gap-1.5 px-2 py-3 rounded-lg text-xs font-semibold text-gray-600 transition-colors duration-200 cursor-pointer"
           >
             <FileText size={20} className="text-orange-500" strokeWidth={2.2} />
-            Write article
+            <span className="hidden sm:inline">Write article</span>
           </motion.button>
         </div>
       </motion.div>
