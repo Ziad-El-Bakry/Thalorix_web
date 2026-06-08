@@ -60,7 +60,13 @@ export const templatesService = {
     return response.data;
   },
 
-  // حذف Template
+  // تحديث حالة القالب (active, suspended)
+  updateStatus: async (id: string, status: 'active' | 'suspended'): Promise<any> => {
+    const response = await axiosInstance.patch(`${ENDPOINTS.TEMPLATES.UPDATE(id)}/status`, { status });
+    return response.data;
+  },
+
+  // حذف القالب
   delete: async (id: string): Promise<void> => {
     await axiosInstance.delete(ENDPOINTS.TEMPLATES.DELETE(id));
   },

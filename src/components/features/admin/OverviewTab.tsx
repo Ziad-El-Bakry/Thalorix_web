@@ -41,6 +41,11 @@ export default function OverviewTab() {
           const allUsers = usersData.users || [];
           totalUsersCount = usersData.total || allUsers.length;
           blockedUsers = allUsers.filter((u: any) => u.isBlocked);
+          blockedUsers.sort((a: any, b: any) => {
+            const dateA = new Date(a.createdAt || a.updatedAt || 0).getTime();
+            const dateB = new Date(b.createdAt || b.updatedAt || 0).getTime();
+            return dateB - dateA;
+          });
           setRestrictedUsers(blockedUsers);
         } catch (e) {
           console.error("Failed to fetch users", e);
