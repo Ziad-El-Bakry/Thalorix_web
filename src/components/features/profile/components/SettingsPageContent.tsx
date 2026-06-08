@@ -1,34 +1,76 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { User as UserIcon, Lock, Bell, Eye, Store, LogOut, Trash2, CheckCircle, Shield, Settings } from "lucide-react";
+import { User as UserIcon, Lock, LogOut, Trash2, CheckCircle, Palette, Sun, Moon, Monitor } from "lucide-react";
 import { authService, User } from "@/lib/api/services/auth.service";
 import { usersService } from "@/lib/api/services/users.service";
 import { useRouter } from "next/navigation";
 import { LogoutModal, DeleteAccountModal } from "@/components/shared/ProfileModals";
 
+type ThemeMode = "light" | "dark" | "system";
+
+function getSystemTheme(): "light" | "dark" {
+  if (typeof window === "undefined") return "light";
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
+function applyTheme(mode: ThemeMode) {
+  const resolved = mode === "system" ? getSystemTheme() : mode;
+  const root = document.documentElement;
+  if (resolved === "dark") {
+    root.classList.add("dark");
+  } else {
+    root.classList.remove("dark");
+  }
+}
+
 export default function SettingsPageContent() {
   const [user, setUser] = useState<User | null>(null);
-  const [activeTab, setActiveTab] = useState<"account" | "password" | "notifications" | "privacy" | "store" | "admin">("account");
+  const [activeTab, setActiveTab] = useState<"account" | "password" | "appearance">("account");
   const [isLoading, setIsLoading] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
-  
+
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  
+
+  // Appearance state
+  const [themeMode, setThemeMode] = useState<ThemeMode>("light");
+
   const router = useRouter();
 
   useEffect(() => {
     const storedUser = authService.getStoredUser();
     if (storedUser) {
       setUser(storedUser);
-      // Set the appropriate default tab based on role if needed, or keep 'account'
     } else {
-        router.push("/login");
+      router.push("/login");
     }
   }, [router]);
+
+  // Load persisted appearance settings
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("thalorix-appearance");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.themeMode) setThemeMode(parsed.themeMode);
+        applyTheme(parsed.themeMode || "light");
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  // Listen for system theme changes when mode is "system"
+  useEffect(() => {
+    if (themeMode !== "system") return;
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const handler = () => applyTheme("system");
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, [themeMode]);
 
   const fireToast = (msg: string) => {
     setToastMessage(msg);
@@ -39,7 +81,6 @@ export default function SettingsPageContent() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Mock save
     setTimeout(() => {
       setIsLoading(false);
       fireToast("Settings saved successfully");
@@ -52,15 +93,31 @@ export default function SettingsPageContent() {
   };
 
   const handleDeleteConfirm = async () => {
-    if(user?.id) {
-        try {
-            await usersService.deleteUser(user.id);
-            await authService.logout();
-            router.push("/login");
-        } catch (error) {
-            fireToast("Failed to delete account");
-        }
+    if (user?.id) {
+      try {
+        await usersService.deleteUser(user.id);
+        await authService.logout();
+        router.push("/login");
+      } catch (error) {
+        fireToast("Failed to delete account");
+      }
     }
+  };
+
+  const persistAppearance = useCallback(
+    (overrides: Partial<{ themeMode: ThemeMode }>) => {
+      const next = {
+        themeMode: overrides.themeMode ?? themeMode,
+      };
+      localStorage.setItem("thalorix-appearance", JSON.stringify(next));
+    },
+    [themeMode]
+  );
+
+  const handleThemeChange = (mode: ThemeMode) => {
+    setThemeMode(mode);
+    applyTheme(mode);
+    persistAppearance({ themeMode: mode });
   };
 
   if (!user) return null;
@@ -68,11 +125,14 @@ export default function SettingsPageContent() {
   const tabs = [
     { id: "account", label: "Account Settings", icon: <UserIcon size={18} /> },
     { id: "password", label: "Password & Security", icon: <Lock size={18} /> },
-    { id: "notifications", label: "Notifications", icon: <Bell size={18} /> },
-    { id: "privacy", label: "Privacy & Visibility", icon: <Eye size={18} /> },
-    ...(user.role === "seller" ? [{ id: "store", label: "Store Preferences", icon: <Store size={18} /> }] : []),
-    ...(user.role === "admin" ? [{ id: "admin", label: "Platform Settings", icon: <Shield size={18} /> }] : []),
+    { id: "appearance", label: "Appearance", icon: <Palette size={18} /> },
   ] as const;
+
+  const themeModes: { id: ThemeMode; label: string; icon: React.ReactNode; desc: string }[] = [
+    { id: "light", label: "Light", icon: <Sun size={22} />, desc: "Clean & bright interface" },
+    { id: "dark", label: "Dark", icon: <Moon size={22} />, desc: "Easy on the eyes" },
+    { id: "system", label: "System", icon: <Monitor size={22} />, desc: "Match your device" },
+  ];
 
   return (
     <div className="flex flex-col md:flex-row gap-8">
@@ -225,35 +285,98 @@ export default function SettingsPageContent() {
                 </motion.div>
               )}
 
-              {(activeTab === "notifications" || activeTab === "privacy" || activeTab === "store" || activeTab === "admin") && (
+              {activeTab === "appearance" && (
                 <motion.div
-                  key="other"
+                  key="appearance"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="flex flex-col items-center justify-center py-12 text-center"
+                  className="space-y-8"
                 >
-                  <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-                    <Settings size={24} className="text-gray-400" />
-                  </div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-2">Preferences Configuration</h3>
-                  <p className="text-gray-500 max-w-sm">
-                    Configure your {activeTab} settings here. These options control your overall experience on the platform.
-                  </p>
-                  
-                  {/* Mock Toggles */}
-                  <div className="w-full max-w-md mt-8 space-y-4 text-left">
-                     {[1, 2, 3].map(i => (
-                         <div key={i} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
-                             <div>
-                                 <p className="font-bold text-gray-800 text-sm">Setting Option {i}</p>
-                                 <p className="text-xs text-gray-500 mt-0.5">Toggle this setting on or off</p>
-                             </div>
-                             <div className="w-10 h-6 bg-[#43B0B5] rounded-full relative cursor-pointer shadow-inner">
-                                 <div className="absolute right-1 top-1 bottom-1 w-4 bg-white rounded-full shadow-sm" />
-                             </div>
-                         </div>
-                     ))}
+                  {/* ─── Theme Mode Selector ─── */}
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-700 mb-1">Theme Mode</h3>
+                    <p className="text-xs text-gray-400 mb-4">Choose how Thalorix looks to you</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      {themeModes.map((mode) => {
+                        const isActive = themeMode === mode.id;
+                        return (
+                          <button
+                            key={mode.id}
+                            type="button"
+                            onClick={() => handleThemeChange(mode.id)}
+                            className={`relative flex flex-col items-center gap-3 p-5 rounded-2xl border-2 transition-all duration-200 cursor-pointer group ${
+                              isActive
+                                ? "border-[#43B0B5] bg-[#43B0B5]/5 shadow-lg shadow-[#43B0B5]/10"
+                                : "border-gray-100 bg-gray-50 hover:border-gray-200 hover:bg-gray-100/50"
+                            }`}
+                          >
+                            {/* Active indicator */}
+                            {isActive && (
+                              <motion.div
+                                layoutId="theme-active"
+                                className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-[#43B0B5] rounded-full flex items-center justify-center shadow-md"
+                              >
+                                <CheckCircle size={12} className="text-white" />
+                              </motion.div>
+                            )}
+
+                            {/* Preview card */}
+                            <div
+                              className={`w-full h-20 rounded-xl border overflow-hidden ${
+                                mode.id === "dark"
+                                  ? "bg-gray-900 border-gray-700"
+                                  : mode.id === "light"
+                                  ? "bg-white border-gray-200"
+                                  : "bg-gradient-to-br from-white via-gray-100 to-gray-900 border-gray-300"
+                              }`}
+                            >
+                              {/* Mini UI preview */}
+                              <div className="p-2 h-full flex flex-col gap-1.5">
+                                <div
+                                  className={`h-2 w-10 rounded-full ${
+                                    mode.id === "dark" ? "bg-gray-700" : "bg-gray-200"
+                                  }`}
+                                />
+                                <div
+                                  className={`h-1.5 w-16 rounded-full ${
+                                    mode.id === "dark" ? "bg-gray-800" : "bg-gray-100"
+                                  }`}
+                                />
+                                <div className="flex gap-1 mt-auto">
+                                  <div className="h-2 w-6 rounded bg-[#43B0B5]/60" />
+                                  <div
+                                    className={`h-2 w-8 rounded ${
+                                      mode.id === "dark" ? "bg-gray-700" : "bg-gray-200"
+                                    }`}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <div
+                                className={`${
+                                  isActive ? "text-[#43B0B5]" : "text-gray-400 group-hover:text-gray-600"
+                                } transition-colors`}
+                              >
+                                {mode.icon}
+                              </div>
+                              <div className="text-left">
+                                <p
+                                  className={`text-sm font-bold ${
+                                    isActive ? "text-[#103B40]" : "text-gray-700"
+                                  }`}
+                                >
+                                  {mode.label}
+                                </p>
+                                <p className="text-[11px] text-gray-400">{mode.desc}</p>
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 </motion.div>
               )}
@@ -272,7 +395,7 @@ export default function SettingsPageContent() {
           </form>
         </div>
       </div>
-      
+
       <LogoutModal isOpen={isLogoutModalOpen} isLoggingOut={false} onClose={() => setIsLogoutModalOpen(false)} onConfirm={handleLogoutConfirm} />
       <DeleteAccountModal isOpen={isDeleteModalOpen} isDeleting={false} onClose={() => setIsDeleteModalOpen(false)} onConfirm={handleDeleteConfirm} />
     </div>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Search, Filter, MoreVertical, Edit2, Trash2, Eye, EyeOff, Package, AlertCircle } from "lucide-react";
+import { Search, MoreVertical, Edit2, Trash2, Eye, EyeOff, Package, AlertCircle } from "lucide-react";
 import { sellersService } from "@/lib/api/services/sellers.service";
 import { User } from "@/lib/api/services/auth.service";
 import Link from "next/link";
@@ -62,9 +62,6 @@ export default function SellerProductsManager({ user }: SellerProductsManagerPro
           />
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 transition-colors text-sm font-medium">
-            <Filter size={16} /> Filter
-          </button>
           <Link href="/dashboard/marketplace/upload" className="flex-1 sm:flex-none">
             <button className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-[#103B40] text-white rounded-xl hover:bg-[#0d2c2e] transition-colors text-sm font-medium shadow-sm">
               <Package size={16} /> New Product
