@@ -14,7 +14,10 @@ import {
   UserPlus,
   Clock,
   UserCheck,
-  Trash2
+  Trash2,
+  Facebook,
+  Instagram,
+  Github
 } from "lucide-react";
 import { usersService } from "@/lib/api/services/users.service";
 import { chatService } from "@/lib/api/services/chat.service";
@@ -273,9 +276,21 @@ export default function ProfileHeader({
               </p>
               <div className="flex flex-wrap items-center gap-3 text-xs text-gray-400 mt-1">
                 <span className="flex items-center gap-1"><MapPin size={12} /> Cairo, Egypt</span>
-                <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-teal-600 hover:text-teal-700 font-medium transition-colors">
-                  <ExternalLink size={12} /> github.com/{userName.toLowerCase().replace(/\s+/g, '')}
-                </a>
+                {user?.socialLinks?.facebook && (
+                  <a href={user.socialLinks.facebook.startsWith('http') ? user.socialLinks.facebook : `https://${user.socialLinks.facebook}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-blue-600 hover:text-blue-700 font-medium transition-colors" title="Facebook">
+                    <Facebook size={14} />
+                  </a>
+                )}
+                {user?.socialLinks?.instagram && (
+                  <a href={user.socialLinks.instagram.startsWith('http') ? user.socialLinks.instagram : `https://${user.socialLinks.instagram}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-pink-600 hover:text-pink-700 font-medium transition-colors" title="Instagram">
+                    <Instagram size={14} />
+                  </a>
+                )}
+                {user?.socialLinks?.github && (
+                  <a href={user.socialLinks.github.startsWith('http') ? user.socialLinks.github : `https://${user.socialLinks.github}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-gray-800 hover:text-black font-medium transition-colors" title="GitHub">
+                    <Github size={14} />
+                  </a>
+                )}
               </div>
             </div>
 

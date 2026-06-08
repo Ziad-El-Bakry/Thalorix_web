@@ -189,7 +189,7 @@ export default function CreatePostModal({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-[100] flex items-start justify-center pt-[8vh] px-4"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6"
           onClick={(e) => {
             if (e.target === e.currentTarget) onClose();
           }}
@@ -204,7 +204,7 @@ export default function CreatePostModal({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.97 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
-            className="relative w-full max-w-[560px] bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]"
+            className="relative w-full max-w-[570px] bg-white rounded-xl shadow-2xl overflow-visible  flex-col max-h-[75vh]"
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
@@ -406,13 +406,15 @@ export default function CreatePostModal({
               </button>
               
               {showEmojiPicker && (
-                <div className="absolute top-10 left-5 z-[100] shadow-2xl rounded-lg">
+                <div className="absolute bottom-12 left-2 z-[100] shadow-2xl rounded-xl overflow-hidden border border-gray-100">
                   <EmojiPicker 
                     onEmojiClick={(emojiData) => {
                       setContent(prev => prev + emojiData.emoji);
                       setShowEmojiPicker(false);
                     }} 
                     autoFocusSearch={false}
+                    width={320}
+                    height={380}
                   />
                 </div>
               )}
