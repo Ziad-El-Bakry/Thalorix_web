@@ -362,8 +362,12 @@ export default function UploadFormStep({ onNext }: UploadFormStepProps) {
 
         {/* Action Buttons */}
         <div className="flex gap-4 pt-4">
-          <button className="flex-1 bg-[#A5C9D3]/70 text-[#123E41] font-bold py-3.5 rounded-xl hover:bg-[#A5C9D3] transition-colors">
-            Save as Draft
+          <button 
+            type="button"
+            onClick={() => window.history.back()}
+            className="flex-1 bg-[#A5C9D3]/70 text-[#123E41] font-bold py-3.5 rounded-xl hover:bg-[#A5C9D3] transition-colors"
+          >
+            Cancel
           </button>
           <button 
             onClick={handleSubmit}

@@ -79,14 +79,12 @@ const MOCK_RECENT_REVIEWS = [
   { id: "3", reviewer: "Lisa Wang", rating: 5, comment: "Best purchase I've made. Highly recommend!", template: "Portfolio Template", time: "2d ago" },
 ];
 
-// Mock revenue data
-const REVENUE_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const REVENUE_VALUES = [120, 95, 180, 145, 210, 175, 250];
-const MAX_REV = Math.max(...REVENUE_VALUES);
+// Mock revenue data will be generated dynamically based on selected range
 
 export default function SellerDashboardContent({ user }: { user: User | null }) {
   const [templates, setTemplates] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [revenueRange, setRevenueRange] = useState<"week" | "month" | "year">("week");
   const [revenue, setRevenue] = useState(0);
   const [downloads, setDownloads] = useState(0);
   const [recentSales, setRecentSales] = useState<any[]>([]);
@@ -136,15 +134,6 @@ export default function SellerDashboardContent({ user }: { user: User | null }) 
       bg: "#ecfdf5",
     },
     {
-      label: "Active Templates",
-      value: String(templates.length),
-      trend: "+0",
-      trendUp: true,
-      icon: <Package size={20} className="text-blue-600" />,
-      color: "#3B82F6",
-      bg: "#eff6ff",
-    },
-    {
       label: "Total Downloads",
       value: String(downloads),
       trend: "+24%",
@@ -163,6 +152,30 @@ export default function SellerDashboardContent({ user }: { user: User | null }) 
       bg: "#fffbeb",
     },
   ];
+
+  const getRevenueData = () => {
+    switch (revenueRange) {
+      case "year":
+        return {
+          labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+          values: [400, 300, 500, 450, 600, 700, 650, 800, 950, 1100, 1050, 1200]
+        };
+      case "month":
+        return {
+          labels: ["W1", "W2", "W3", "W4"],
+          values: [450, 520, 480, 610]
+        };
+      case "week":
+      default:
+        return {
+          labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+          values: [120, 95, 180, 145, 210, 175, 250]
+        };
+    }
+  };
+
+  const chartData = getRevenueData();
+  const maxRev = Math.max(...chartData.values);
 
   return (
     <motion.div
@@ -203,7 +216,7 @@ export default function SellerDashboardContent({ user }: { user: User | null }) 
       </motion.div>
 
       {/* Stat Cards */}
-      <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-3 gap-5">
         {stats.map((stat) => (
           <SellerStatCard key={stat.label} stat={stat} />
         ))}
@@ -213,31 +226,50 @@ export default function SellerDashboardContent({ user }: { user: User | null }) 
       <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Revenue Chart */}
         <div className="lg:col-span-2 bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
             <div>
               <h3 className="text-base font-bold text-gray-900">Revenue Overview</h3>
-              <p className="text-xs text-gray-500 mt-0.5">Last 7 days</p>
+              <div className="flex items-center gap-1 mt-2 bg-gray-50/80 p-1 rounded-lg w-fit border border-gray-100">
+                {(["week", "month", "year"] as const).map((range) => (
+                  <button
+                    key={range}
+                    onClick={() => setRevenueRange(range)}
+                    className={`px-3 py-1.5 text-[11px] font-bold rounded-md capitalize transition-all ${
+                      revenueRange === range
+                        ? "bg-white text-[#103B40] shadow-sm border border-gray-200/60"
+                        : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    {range === "week" ? "This Week" : range === "month" ? "This Month" : "This Year"}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="flex items-center gap-1.5 text-emerald-600 text-sm font-semibold">
+            <div className="flex items-center gap-1.5 text-emerald-600 text-sm font-semibold bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100 self-start sm:self-auto">
               <TrendingUp size={16} />
-              +18%
+              {revenueRange === "week" ? "+18%" : revenueRange === "month" ? "+24%" : "+42%"}
             </div>
           </div>
-          <div className="flex items-end gap-3 h-[200px]">
-            {REVENUE_DAYS.map((day, i) => (
-              <div key={day} className="flex-1 flex flex-col items-center gap-2">
+          <div className="flex items-end gap-2 sm:gap-3 h-[200px]">
+            {chartData.labels.map((label, i) => (
+              <div key={label} className="flex-1 flex flex-col items-center gap-2 group">
                 <motion.div
                   initial={{ height: 0 }}
-                  animate={{ height: `${(REVENUE_VALUES[i] / MAX_REV) * 100}%` }}
-                  transition={{ delay: i * 0.1, duration: 0.5, ease: "easeOut" }}
-                  className="w-full rounded-t-lg min-h-[8px]"
+                  animate={{ height: `${(chartData.values[i] / maxRev) * 100}%` }}
+                  transition={{ duration: 0.5, ease: "easeOut" }}
+                  className="w-full rounded-t-lg min-h-[8px] relative transition-all duration-300 group-hover:opacity-80"
                   style={{
-                    background: i === REVENUE_DAYS.length - 1
+                    background: i === chartData.labels.length - 1
                       ? "linear-gradient(180deg, #43B0B5 0%, #103B40 100%)"
                       : "linear-gradient(180deg, #e5e7eb 0%, #d1d5db 100%)",
                   }}
-                />
-                <span className="text-[11px] text-gray-400 font-medium">{day}</span>
+                >
+                  {/* Tooltip on hover */}
+                  <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[10px] font-bold py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                    ${chartData.values[i]}
+                  </div>
+                </motion.div>
+                <span className="text-[10px] sm:text-[11px] text-gray-400 font-medium">{label}</span>
               </div>
             ))}
           </div>

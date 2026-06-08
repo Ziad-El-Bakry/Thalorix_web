@@ -39,92 +39,94 @@ export default function SellerHeader({
       </div>
 
       {/* Brand row */}
-      <div className="px-6 sm:px-8 pb-8 relative flex flex-col md:flex-row items-center md:items-end gap-6 md:gap-6 -mt-16 sm:-mt-20">
-        {/* Store Logo */}
-        <div className="w-42 h-42 sm:w-50 sm:h-50 rounded-full border-4 border-white bg-slate-50 overflow-hidden shadow-2xl relative z-10 flex-shrink-0 flex items-center justify-center">
-          {seller.logo ? (
-            <img src={seller.logo} alt={seller.storeName || seller.name} className="w-full h-full object-cover" />
-          ) : (
-            <div className="bg-gradient-to-tr from-teal-600 to-cyan-500 w-full h-full flex items-center justify-center text-white text-3xl font-bold font-serif shadow-inner">
-              {(seller.storeName || seller.name || "S")[0].toUpperCase()}
-            </div>
-          )}
-        </div>
-
-        {/* Store Name & Location Info */}
-        <div className="flex-1 text-center md:text-left pt-2 md:pl-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-center md:justify-start gap-2.5 mb-2">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
-              {seller.storeName || seller.name || "Store Name"}
-            </h1>
-            {seller.isVerified && (
-              <div className="inline-flex items-center gap-1 bg-teal-50 text-teal-700 px-3 py-0.5 rounded-full text-xs font-bold w-fit mx-auto sm:mx-0 border border-teal-100 shadow-sm">
-                <CheckCircle size={12} className="fill-teal-600 text-white" />
-                <span>Verified Creator</span>
+      <div className="px-6 sm:px-8 pb-8 relative">
+        <div className="flex flex-col md:flex-row md:items-end gap-4 md:gap-6">
+          {/* Store Logo */}
+          <div className="-mt-16 sm:-mt-20 w-32 h-32 sm:w-44 sm:h-44 rounded-full border-4 border-white bg-slate-50 overflow-hidden shadow-xl relative z-10 flex-shrink-0 flex items-center justify-center mx-auto md:mx-0">
+            {seller.logo ? (
+              <img src={seller.logo} alt={seller.storeName || seller.name} className="w-full h-full object-cover" />
+            ) : (
+              <div className="bg-gradient-to-tr from-teal-600 to-cyan-500 w-full h-full flex items-center justify-center text-white text-4xl font-bold font-serif shadow-inner">
+                {(seller.storeName || seller.name || "S")[0].toUpperCase()}
               </div>
             )}
           </div>
 
-          <p className="text-gray-500 font-medium text-sm mb-3">
-            Owned by <span className="text-gray-700 font-semibold">{seller.name}</span>
-          </p>
+          {/* Store Name & Location Info */}
+          <div className="flex-1 min-w-0 text-center md:text-left pt-2 md:pb-2">
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-2.5 mb-2">
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight break-words line-clamp-2">
+                {seller.storeName || seller.name || "Store Name"}
+              </h1>
+              {seller.isVerified && (
+                <div className="inline-flex items-center gap-1 bg-teal-50 text-teal-700 px-3 py-0.5 rounded-full text-xs font-bold border border-teal-100 shadow-sm flex-shrink-0">
+                  <CheckCircle size={12} className="fill-teal-600 text-white" />
+                  <span>Verified Creator</span>
+                </div>
+              )}
+            </div>
 
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-xs font-medium text-gray-600">
-            <div className="flex items-center gap-1.5">
-              <MapPin size={14} className="text-teal-600" />
-              <span>{seller.address || "Global Presence"}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Calendar size={14} className="text-teal-600" />
-              <span>Joined {dayjs(seller.createdAt).format("MMMM YYYY")}</span>
-            </div>
-            {seller.businessCategory && (
-              <div className="bg-teal-50/50 border border-teal-100 px-2.5 py-0.5 rounded text-teal-700 font-bold uppercase tracking-wider text-[10px]">
-                {seller.businessCategory}
+            <p className="text-gray-500 font-medium text-sm mb-3 truncate">
+              Owned by <span className="text-gray-700 font-semibold">{seller.name}</span>
+            </p>
+
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 sm:gap-4 text-xs font-medium text-gray-600">
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                <MapPin size={14} className="text-teal-600" />
+                <span className="truncate max-w-[150px] sm:max-w-none">{seller.address || "Global Presence"}</span>
               </div>
-            )}
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                <Calendar size={14} className="text-teal-600" />
+                <span>Joined {dayjs(seller.createdAt).format("MMMM YYYY")}</span>
+              </div>
+              {seller.businessCategory && (
+                <div className="bg-teal-50/50 border border-teal-100 px-2.5 py-0.5 rounded text-teal-700 font-bold uppercase tracking-wider text-[10px] flex-shrink-0">
+                  {seller.businessCategory}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* Actions panel */}
-        <div className="flex flex-wrap items-center justify-center gap-3 mt-4 md:mt-0 relative z-10 w-full sm:w-auto">
-          {isOwnProfile ? (
+          {/* Actions panel */}
+          <div className="flex flex-wrap items-center justify-center md:justify-end gap-3 mt-2 md:mt-0 md:pb-2 relative z-10 w-full md:w-auto">
+            {isOwnProfile ? (
+              <button
+                onClick={() => router.push("/dashboard/seller/settings")}
+                className="flex items-center gap-2 bg-[#123E41] hover:bg-[#0d2c2e] text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all hover:shadow-lg active:scale-95 w-full sm:w-auto justify-center"
+              >
+                <Edit2 size={16} />
+                Edit Profile
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={onFollowToggle}
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all hover:shadow-md active:scale-95 w-full sm:w-auto justify-center ${
+                    isFollowing
+                      ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200"
+                      : "bg-[#123E41] hover:bg-[#0d2c2e] text-white"
+                  }`}
+                >
+                  <Plus size={16} className={isFollowing ? "rotate-45 transition-transform" : ""} />
+                  {isFollowing ? "Unfollow Store" : "Follow Store"}
+                </button>
+                <button
+                  onClick={onMessageClick}
+                  className="flex items-center gap-2 bg-teal-50 text-[#123E41] border border-teal-100 hover:bg-teal-100/50 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all hover:shadow-md active:scale-95 w-full sm:w-auto justify-center"
+                >
+                  <MessageSquare size={16} />
+                  Message
+                </button>
+              </>
+            )}
             <button
-              onClick={() => router.push("/dashboard/seller/settings")}
-              className="flex items-center gap-2 bg-[#123E41] hover:bg-[#0d2c2e] text-white px-5 py-3 rounded-xl text-sm font-semibold transition-all hover:shadow-lg active:scale-95 w-full sm:w-auto justify-center"
+              onClick={onShareClick}
+              className="flex items-center justify-center p-2.5 rounded-xl bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-600 transition-colors w-[42px] h-[42px] active:scale-95 flex-shrink-0"
+              title="Share Profile"
             >
-              <Edit2 size={16} />
-              Edit Profile
+              <Share2 size={16} />
             </button>
-          ) : (
-            <>
-              <button
-                onClick={onFollowToggle}
-                className={`flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold transition-all hover:shadow-md active:scale-95 w-full sm:w-auto justify-center ${
-                  isFollowing
-                    ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200"
-                    : "bg-[#123E41] hover:bg-[#0d2c2e] text-white"
-                }`}
-              >
-                <Plus size={16} className={isFollowing ? "rotate-45 transition-transform" : ""} />
-                {isFollowing ? "Unfollow Store" : "Follow Store"}
-              </button>
-              <button
-                onClick={onMessageClick}
-                className="flex items-center gap-2 bg-teal-50 text-[#123E41] border border-teal-100 hover:bg-teal-100/50 px-5 py-3 rounded-xl text-sm font-semibold transition-all hover:shadow-md active:scale-95 w-full sm:w-auto justify-center"
-              >
-                <MessageSquare size={16} />
-                Message
-              </button>
-            </>
-          )}
-          <button
-            onClick={onShareClick}
-            className="flex items-center justify-center p-3 rounded-xl bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-600 transition-colors w-12 h-12 active:scale-95"
-            title="Share Profile"
-          >
-            <Share2 size={16} />
-          </button>
+          </div>
         </div>
       </div>
     </div>
