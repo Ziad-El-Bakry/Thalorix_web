@@ -63,36 +63,7 @@ export function AICodeGenContainer() {
   // Polling Reference
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Load User Info & Deployed Projects on Mount
-  useEffect(() => {
-    const user = authService.getStoredUser() as any;
-    if (user) {
-      setUserName((user?.name || user?.username)?.split(' ')[0] || 'User');
-      setUserId(user.id || user._id || '');
-      // Fetch credits if endpoint exists, otherwise fallback to default
-      apiGetCredits();
-    }
-    
-    checkServiceHealth();
-    fetchDeployedProjects();
 
-    const handleResize = () => {
-      if (window.innerWidth < 768) {
-        setIsSidebarOpen(false);
-      } else {
-        setIsSidebarOpen(true);
-      }
-    };
-    if (typeof window !== 'undefined' && window.innerWidth < 768) {
-      setIsSidebarOpen(false);
-    }
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
 
   const apiGetCredits = async () => {
     try {
@@ -235,6 +206,7 @@ export function AICodeGenContainer() {
       
       if (result && result.projectId) {
         // Start polling the project details
+        localStorage.setItem('activeProjectId', result.projectId);
         startPollingProject(result.projectId);
       } else {
         throw new Error('No projectId returned from server');
@@ -282,6 +254,7 @@ export function AICodeGenContainer() {
     try {
       const result = await aiService.editProject(activeProject._id, prompt);
       if (result && result.projectId) {
+        localStorage.setItem('activeProjectId', result.projectId);
         startPollingProject(result.projectId);
       } else {
         throw new Error('No projectId returned from edit request');
@@ -304,6 +277,7 @@ export function AICodeGenContainer() {
   const handleLoadProject = async (projectId: string) => {
     setActiveTab('chat');
     setIsGenerating(true);
+    localStorage.setItem('activeProjectId', projectId);
     
     // Reset message logs
     setCurrentMessages([
@@ -408,6 +382,7 @@ export function AICodeGenContainer() {
     setActiveProject(null);
     setCurrentMessages([]);
     setUploadedFile(null);
+    localStorage.removeItem('activeProjectId');
   }, []);
 
   const handleDeleteProject = useCallback((id: string) => {
@@ -416,11 +391,47 @@ export function AICodeGenContainer() {
     if (activeProject?._id === id) {
       handleNewChat();
     }
-  }, [activeProject]);
+  }, [activeProject, handleNewChat]);
 
   // View toggler UI helpers
   const handleSelectConversation = useCallback((id: string) => {
     handleLoadProject(id);
+  }, []);
+
+  // Load User Info & Deployed Projects on Mount
+  useEffect(() => {
+    const user = authService.getStoredUser() as any;
+    if (user) {
+      setUserName((user?.name || user?.username)?.split(' ')[0] || 'User');
+      setUserId(user.id || user._id || '');
+      // Fetch credits if endpoint exists, otherwise fallback to default
+      apiGetCredits();
+    }
+    
+    checkServiceHealth();
+    fetchDeployedProjects();
+
+    const storedProjectId = localStorage.getItem('activeProjectId');
+    if (storedProjectId) {
+      handleLoadProject(storedProjectId);
+    }
+
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setIsSidebarOpen(false);
+      } else {
+        setIsSidebarOpen(true);
+      }
+    };
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      setIsSidebarOpen(false);
+    }
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+      window.removeEventListener('resize', handleResize);
+    };
   }, []);
 
   return (

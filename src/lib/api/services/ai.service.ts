@@ -36,6 +36,27 @@ export const aiService = {
   },
 
   /**
+   * Send chat messages to the AI Builder (conforms to handover task v2 contract)
+   */
+  async sendMessage(payload: {
+    message: string;
+    session_id?: string;
+    output_preference?: string;
+    stack?: string;
+    userId?: string;
+  }): Promise<any> {
+    const requestPayload = {
+      prompt: payload.message,
+      stack: payload.stack,
+      userId: payload.userId,
+      session_id: payload.session_id,
+      output_preference: payload.output_preference,
+    };
+    const { data } = await api.post(ENDPOINTS.AI.CHAT, requestPayload);
+    return data.data || data;
+  },
+
+  /**
    * Upload file to AI Builder for processing
    * @param file File object
    * @param sessionId Optional session ID to attach the file to
