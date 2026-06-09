@@ -48,6 +48,13 @@ const SELLER_NAV: NavItem[] = [
   { label: "Earnings", href: "/dashboard/seller/earnings", icon: DollarSign },
 ];
 
+const ADMIN_NAV: NavItem[] = [
+  { label: "Admin Dashboard", href: "/dashboard/admin", icon: LayoutDashboard },
+  { label: "Users", href: "/dashboard/admin/users", icon: Users },
+  { label: "Sellers", href: "/dashboard/admin/sellers", icon: Store },
+  { label: "Categories", href: "/dashboard/admin/categories", icon: Package },
+];
+
 const BOTTOM_NAV: NavItem[] = [
   { label: "Profile", href: "/dashboard/profile", icon: User },
   { label: "Settings", href: "/dashboard/settings", icon: Settings },
@@ -292,6 +299,21 @@ export default function Sidebar() {
           </>
         )}
 
+        {/* Admin Tools Section */}
+        {isAdmin && (
+          <>
+            <SectionLabel label="Admin Tools" />
+            <ul className="space-y-0.5">
+              {ADMIN_NAV.map((item) => (
+                <NavLink
+                  key={item.href}
+                  item={item}
+                  isActive={isRouteActive(pathname, item.href, item.label)}
+                />
+              ))}
+            </ul>
+          </>
+        )}
 
       </nav>
 
