@@ -10,9 +10,7 @@ class SocketService {
     const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
     if (!token) return null;
 
-    const isProd = typeof window !== 'undefined' ? window.location.hostname !== 'localhost' : process.env.NODE_ENV === 'production';
-    const baseURL = process.env.NEXT_PUBLIC_SOCKET_URL || 
-                    (isProd ? 'https://pleny-task.onrender.com' : 'http://localhost:5000');
+    const baseURL = process.env.NEXT_PUBLIC_SOCKET_URL || 'https://pleny-task.onrender.com';
 
     this.socket = io(`${baseURL}/chat`, {
       auth: { token },

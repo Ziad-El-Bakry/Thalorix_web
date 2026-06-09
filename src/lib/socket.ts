@@ -2,10 +2,9 @@
 import { io } from 'socket.io-client';
 
 // Get WebSocket URL from environment
-const isProd = typeof window !== 'undefined' ? window.location.hostname !== 'localhost' : process.env.NODE_ENV === 'production';
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 
                process.env.NEXT_PUBLIC_SOCKET_URL || 
-               (isProd ? 'https://pleny-task.onrender.com' : 'http://localhost:5001');
+               'https://pleny-task.onrender.com';
 
 // Create WebSocket connection
 export const socket = io(WS_URL, {
