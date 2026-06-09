@@ -7,6 +7,9 @@ import Image from 'next/image';
 import { Copy, Check, Terminal, Edit2 } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+
 interface MessageBubbleProps {
   message: AIMessage;
 }
@@ -30,6 +33,48 @@ export function MessageBubble({ message }: MessageBubbleProps) {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  const renderMarkdown = (content: string, isUserMessage: boolean) => (
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
+      components={{
+        h1: ({ node, ...props }) => <h1 className="text-xl font-bold mb-3 mt-2" {...props} />,
+        h2: ({ node, ...props }) => <h2 className="text-lg font-bold mb-2 mt-4" {...props} />,
+        h3: ({ node, ...props }) => <h3 className="text-base font-bold mb-2 mt-3" {...props} />,
+        p: ({ node, ...props }) => <p className="mb-2 leading-relaxed" {...props} />,
+        ul: ({ node, ...props }) => <ul className="list-disc pl-5 mb-3 space-y-1" {...props} />,
+        ol: ({ node, ...props }) => <ol className="list-decimal pl-5 mb-3 space-y-1" {...props} />,
+        li: ({ node, ...props }) => <li className="pl-1" {...props} />,
+        strong: ({ node, ...props }) => <strong className="font-semibold" {...props} />,
+        a: ({ node, ...props }) => (
+          <a className="text-teal-600 hover:underline" target="_blank" rel="noopener noreferrer" {...props} />
+        ),
+        code: ({ node, inline, className, children, ...props }: any) => {
+          if (!inline) {
+            return (
+              <div className="bg-[#1e1e1e] text-gray-200 p-3 rounded-lg my-3 overflow-x-auto text-[13px] font-mono shadow-inner border border-gray-800">
+                <code className={className} {...props}>
+                  {children}
+                </code>
+              </div>
+            );
+          }
+          return (
+            <code
+              className={`${
+                isUserMessage ? 'bg-teal-900/50 text-teal-100' : 'bg-gray-100 text-teal-700'
+              } px-1.5 py-0.5 rounded text-[13px] font-mono mx-0.5`}
+              {...props}
+            >
+              {children}
+            </code>
+          );
+        },
+      }}
+    >
+      {content}
+    </ReactMarkdown>
+  );
 
   return (
     <div className={`flex w-full ${isUser ? 'justify-end' : 'justify-start'} mb-6`}>
@@ -63,14 +108,14 @@ export function MessageBubble({ message }: MessageBubbleProps) {
           )}
 
           {isUser ? (
-            <div className="bg-[#103B40] text-white px-4 py-2.5 rounded-2xl rounded-tr-md text-sm shadow-sm leading-relaxed">
-              {message.content}
+            <div className="bg-[#103B40] text-white px-5 py-3.5 rounded-2xl rounded-tr-md text-sm shadow-sm leading-relaxed overflow-hidden">
+              {renderMarkdown(message.content, true)}
             </div>
           ) : (
             <div className="w-full">
               {!message.isCode && (
-                <div className="bg-white border border-gray-200 rounded-2xl rounded-tl-md px-4 py-2.5 text-sm text-gray-700 shadow-sm leading-relaxed">
-                  {message.content}
+                <div className="bg-white border border-gray-200 rounded-2xl rounded-tl-md px-5 py-4 text-sm text-gray-700 shadow-sm leading-relaxed overflow-hidden">
+                  {renderMarkdown(message.content, false)}
                 </div>
               )}
 
