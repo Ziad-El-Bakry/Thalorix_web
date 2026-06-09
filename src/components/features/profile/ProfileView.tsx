@@ -96,6 +96,9 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
             setDisplayAvatar(storedUser.avatar);
             setGlobalAvatar(storedUser.avatar);
           }
+          if (storedUser.cover) {
+            setCoverImage(storedUser.cover);
+          }
         }
 
         if (!idToFetch) {
@@ -136,6 +139,9 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
               if (isOwnProfile) {
                 setGlobalAvatar(data.avatar);
               }
+            }
+            if (data.cover) {
+              setCoverImage(data.cover);
             }
           }
         }
@@ -259,16 +265,26 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
     if (file && isOwnProfile) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        const result = reader.result as string;
-        setCoverImage(result);
-        try {
-          localStorage.setItem("thalorix_user_cover", result);
-        } catch (err) {
-          console.warn("Could not save cover to localStorage", err);
-        }
+        setCoverImage(reader.result as string);
       };
       reader.readAsDataURL(file);
-      fireToast("Cover photo updated!");
+      try {
+        const { coverUrl } = await usersService.uploadCover(file);
+        if (coverUrl) {
+          setCoverImage(coverUrl);
+          if (user?.id || user?._id) {
+            await usersService.updateProfile(user.id || user._id, { coverUrl });
+            // Update local storage user
+            const updatedUser = { ...user, cover: coverUrl };
+            setUser(updatedUser);
+            localStorage.setItem("user", JSON.stringify(updatedUser));
+          }
+        }
+        fireToast("Cover photo updated!");
+      } catch (error: any) {
+        console.error("Failed to upload cover", error);
+        fireToast("Failed to upload cover photo. Please try again.");
+      }
     }
   };
 
@@ -386,6 +402,7 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
         relationship={relationship}
         setRelationship={setRelationship}
         postsCount={posts.length}
+        setUser={setUser}
       />
 
       {/* ═══════════════════════════════════════

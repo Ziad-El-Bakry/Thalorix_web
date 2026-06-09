@@ -34,6 +34,8 @@ export interface User {
   credits: number;
   avatar?: string;
   avatarUrl?: string;
+  cover?: string;
+  coverUrl?: string;
   bio?: string;
   expertise?: { name: string; percent: number }[];
   socialLinks?: {

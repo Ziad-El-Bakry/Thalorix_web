@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { User as UserIcon, Lock, LogOut, Trash2, CheckCircle, Palette, Sun, Moon, Monitor, Eye, EyeOff } from "lucide-react";
+import { User as UserIcon, Lock, LogOut, Trash2, CheckCircle, Palette, Sun, Moon, Monitor, Eye, EyeOff, Mail, Volume2, Bell } from "lucide-react";
 import { authService, User } from "@/lib/api/services/auth.service";
 import { usersService } from "@/lib/api/services/users.service";
 import { useRouter } from "next/navigation";
@@ -37,6 +37,9 @@ export default function SettingsPageContent() {
 
   // Appearance state
   const [themeMode, setThemeMode] = useState<ThemeMode>("light");
+  const [emailAlerts, setEmailAlerts] = useState(true);
+  const [soundAlerts, setSoundAlerts] = useState(true);
+  const [pushNotifications, setPushNotifications] = useState(false);
 
   
   const [oldPassword, setOldPassword] = useState("");
@@ -64,6 +67,9 @@ export default function SettingsPageContent() {
         const parsed = JSON.parse(saved);
         if (parsed.themeMode) setThemeMode(parsed.themeMode);
         applyTheme(parsed.themeMode || "light");
+        if (parsed.emailAlerts !== undefined) setEmailAlerts(parsed.emailAlerts);
+        if (parsed.soundAlerts !== undefined) setSoundAlerts(parsed.soundAlerts);
+        if (parsed.pushNotifications !== undefined) setPushNotifications(parsed.pushNotifications);
       }
     } catch {
       // ignore
@@ -140,19 +146,40 @@ export default function SettingsPageContent() {
   };
 
   const persistAppearance = useCallback(
-    (overrides: Partial<{ themeMode: ThemeMode }>) => {
+    (overrides: Partial<{ themeMode: ThemeMode; emailAlerts: boolean; soundAlerts: boolean; pushNotifications: boolean }>) => {
       const next = {
         themeMode: overrides.themeMode ?? themeMode,
+        emailAlerts: overrides.emailAlerts ?? emailAlerts,
+        soundAlerts: overrides.soundAlerts ?? soundAlerts,
+        pushNotifications: overrides.pushNotifications ?? pushNotifications,
       };
       localStorage.setItem("thalorix-appearance", JSON.stringify(next));
     },
-    [themeMode]
+    [themeMode, emailAlerts, soundAlerts, pushNotifications]
   );
 
   const handleThemeChange = (mode: ThemeMode) => {
     setThemeMode(mode);
     applyTheme(mode);
     persistAppearance({ themeMode: mode });
+  };
+
+  const handleToggleEmail = () => {
+    const nextVal = !emailAlerts;
+    setEmailAlerts(nextVal);
+    persistAppearance({ emailAlerts: nextVal });
+  };
+
+  const handleToggleSound = () => {
+    const nextVal = !soundAlerts;
+    setSoundAlerts(nextVal);
+    persistAppearance({ soundAlerts: nextVal });
+  };
+
+  const handleTogglePush = () => {
+    const nextVal = !pushNotifications;
+    setPushNotifications(nextVal);
+    persistAppearance({ pushNotifications: nextVal });
   };
 
   if (!user) return null;
@@ -433,6 +460,94 @@ export default function SettingsPageContent() {
                           </button>
                         );
                       })}
+                    </div>
+                  </div>
+
+                  {/* ─── Notification Settings ─── */}
+                  <div className="pt-6 border-t border-gray-100">
+                    <h3 className="text-sm font-bold text-gray-700 mb-1">Notification Settings</h3>
+                    <p className="text-xs text-gray-400 mb-4">Manage how you receive updates and alerts</p>
+                    <div className="space-y-4">
+                      {/* Email Alerts Toggle */}
+                      <div className="flex items-center justify-between p-4 bg-gray-50 border border-gray-100 rounded-2xl hover:border-gray-200 transition-all">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-teal-50 rounded-xl text-[#43B0B5] flex-shrink-0">
+                            <Mail size={18} />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-[#103B40]">Email Notifications</p>
+                            <p className="text-xs text-gray-400">Receive email alerts for new messages, posts activity, and updates.</p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleToggleEmail}
+                          className={`w-11 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 focus:outline-none ${
+                            emailAlerts ? "bg-[#43B0B5]" : "bg-gray-200"
+                          }`}
+                        >
+                          <motion.div
+                            layout
+                            className="bg-white w-4 h-4 rounded-full shadow-md"
+                            animate={{ x: emailAlerts ? 20 : 0 }}
+                            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                          />
+                        </button>
+                      </div>
+
+                      {/* Sound Alerts Toggle */}
+                      <div className="flex items-center justify-between p-4 bg-gray-50 border border-gray-100 rounded-2xl hover:border-gray-200 transition-all">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-teal-50 rounded-xl text-[#43B0B5] flex-shrink-0">
+                            <Volume2 size={18} />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-[#103B40]">Sound Alerts</p>
+                            <p className="text-xs text-gray-400">Play an alert sound when a new message or notification arrives.</p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleToggleSound}
+                          className={`w-11 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 focus:outline-none ${
+                            soundAlerts ? "bg-[#43B0B5]" : "bg-gray-200"
+                          }`}
+                        >
+                          <motion.div
+                            layout
+                            className="bg-white w-4 h-4 rounded-full shadow-md"
+                            animate={{ x: soundAlerts ? 20 : 0 }}
+                            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                          />
+                        </button>
+                      </div>
+
+                      {/* Push Notifications Toggle */}
+                      <div className="flex items-center justify-between p-4 bg-gray-50 border border-gray-100 rounded-2xl hover:border-gray-200 transition-all">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-teal-50 rounded-xl text-[#43B0B5] flex-shrink-0">
+                            <Bell size={18} />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-[#103B40]">Push Notifications</p>
+                            <p className="text-xs text-gray-400">Receive browser alerts when Thalorix runs in the background.</p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleTogglePush}
+                          className={`w-11 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 focus:outline-none ${
+                            pushNotifications ? "bg-[#43B0B5]" : "bg-gray-200"
+                          }`}
+                        >
+                          <motion.div
+                            layout
+                            className="bg-white w-4 h-4 rounded-full shadow-md"
+                            animate={{ x: pushNotifications ? 20 : 0 }}
+                            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                          />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </motion.div>
