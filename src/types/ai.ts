@@ -49,6 +49,7 @@ export interface AIProject {
 
 export interface DeployedProject {
   projectId: string;
+  sessionId?: string;
   projectName: string | null;
   templateName: string | null;
   deploymentStatus: 'building' | 'completed' | 'failed';

@@ -154,14 +154,26 @@ export function AICodeGenContainer() {
             setBuildLogs(prev => [...prev, '✨ [System] Compilation completed successfully!', '🚀 [System] Project deployed and preview link generated.']);
             setActiveProject(project);
 
-            const displayName = project.projectName || `Project #${project._id.toString().slice(-6)}`;
-            const successMessage: AIMessage = {
-              id: `sys-${Date.now()}`,
-              role: 'assistant',
-              content: `### 🎉 Generation Completed!\nYour project **${displayName}** has been successfully generated and deployed using the **${project.stack || 'React 18+ Vite'}** template stack.\n\nYou can explore the files inside the Workspace Viewer on the right, view the live preview, or download the ZIP archives. Use the chat input below to request modifications.`,
-              timestamp: new Date()
-            };
-            setCurrentMessages(prev => [...prev.filter(m => m.id !== 'loading-spinner'), successMessage]);
+            const aiReplyFile = project.files?.find((f: any) => f.path === '_ai_reply.md' || f.path === '_chat_reply.md');
+            
+            if (aiReplyFile && aiReplyFile.content && aiReplyFile.content.trim() !== '') {
+              const aiMessage: AIMessage = {
+                id: `ai-${Date.now()}-reply`,
+                role: 'assistant',
+                content: aiReplyFile.content,
+                timestamp: new Date()
+              };
+              setCurrentMessages(prev => [...prev.filter(m => m.id !== 'loading-spinner'), aiMessage]);
+            } else {
+              const displayName = project.projectName || `Project #${project._id.toString().slice(-6)}`;
+              const successMessage: AIMessage = {
+                id: `sys-${Date.now()}`,
+                role: 'assistant',
+                content: `### 🎉 Generation Completed!\nYour project **${displayName}** has been successfully generated and deployed using the **${project.stack || 'React 18+ Vite'}** template stack.\n\nYou can explore the files inside the Workspace Viewer on the right, view the live preview, or download the ZIP archives. Use the chat input below to request modifications.`,
+                timestamp: new Date()
+              };
+              setCurrentMessages(prev => [...prev.filter(m => m.id !== 'loading-spinner'), successMessage]);
+            }
           }
         } else if (project.status === 'failed') {
           if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
@@ -389,9 +401,23 @@ export function AICodeGenContainer() {
     try {
       const blob = await aiService.downloadDistZip(project.sessionId, project.projectName);
       triggerBlobDownload(blob, `${project.projectName}-dist.zip`);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Dist zip download failed:', err);
-      alert('Could not download built files. Please check service health.');
+      let errMsg = err.message || 'Could not download built files.';
+      if (err.response?.data instanceof Blob) {
+        try {
+          const text = await err.response.data.text();
+          const json = JSON.parse(text);
+          errMsg = json.message || text;
+        } catch (e) {}
+      }
+      const errorMessage: AIMessage = {
+        id: `err-${Date.now()}`,
+        role: 'assistant',
+        content: `❌ **Download Failed**: ${errMsg}`,
+        timestamp: new Date()
+      };
+      setCurrentMessages(prev => [...prev, errorMessage]);
     }
   };
 
@@ -401,9 +427,23 @@ export function AICodeGenContainer() {
     try {
       const blob = await aiService.downloadSourceZip(project.sessionId, project.projectName);
       triggerBlobDownload(blob, `${project.projectName}-source.zip`);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Source zip download failed:', err);
-      alert('Could not download source files. Please check service health.');
+      let errMsg = err.message || 'Could not download source files.';
+      if (err.response?.data instanceof Blob) {
+        try {
+          const text = await err.response.data.text();
+          const json = JSON.parse(text);
+          errMsg = json.message || text;
+        } catch (e) {}
+      }
+      const errorMessage: AIMessage = {
+        id: `err-${Date.now()}`,
+        role: 'assistant',
+        content: `❌ **Download Failed**: ${errMsg}`,
+        timestamp: new Date()
+      };
+      setCurrentMessages(prev => [...prev, errorMessage]);
     }
   };
 
@@ -626,13 +666,13 @@ export function AICodeGenContainer() {
 
                       <div className="absolute right-0 bottom-full mb-1 bg-white border border-gray-200 rounded-lg shadow-lg hidden group-hover:block z-50 w-[150px] overflow-hidden">
                         <button
-                          onClick={() => handleDownloadDist({ sessionId: proj.projectId, projectName: proj.projectName })}
+                          onClick={() => handleDownloadDist({ sessionId: proj.sessionId || proj.projectId, projectName: proj.projectName })}
                           className="w-full text-left px-3 py-2 text-xs text-gray-700 hover:bg-teal-50 hover:text-[#103B40] transition-colors font-medium border-b border-gray-100 cursor-pointer"
                         >
                           Built ZIP (.dist)
                         </button>
                         <button
-                          onClick={() => handleDownloadSource({ sessionId: proj.projectId, projectName: proj.projectName })}
+                          onClick={() => handleDownloadSource({ sessionId: proj.sessionId || proj.projectId, projectName: proj.projectName })}
                           className="w-full text-left px-3 py-2 text-xs text-gray-700 hover:bg-teal-50 hover:text-[#103B40] transition-colors font-medium cursor-pointer"
                         >
                           Source ZIP (.src)
@@ -792,19 +832,22 @@ export function AICodeGenContainer() {
                             Project Files
                           </div>
                           <div className="flex flex-row md:flex-col p-1.5 md:space-y-1 gap-2 md:gap-0 flex-1 overflow-x-auto md:overflow-y-auto whitespace-nowrap md:whitespace-normal">
-                            {activeProject.files.map((file, idx) => (
-                              <button
-                                key={file.path}
-                                onClick={() => setActiveFileIndex(idx)}
-                                className={`flex items-center gap-1.5 px-3 py-1.5 md:px-2 rounded text-xs font-mono transition-colors cursor-pointer flex-shrink-0 md:w-full md:text-left ${activeFileIndex === idx
-                                    ? 'bg-[#103B40] text-white font-medium'
-                                    : 'text-gray-400 hover:bg-[#252525] hover:text-white'
-                                  }`}
-                              >
-                                <FileCode className="w-3.5 h-3.5 text-teal-400 flex-shrink-0" />
-                                <span className="truncate max-w-[120px] md:max-w-none">{file.path}</span>
-                              </button>
-                            ))}
+                            {activeProject.files.map((file, idx) => {
+                              if (!file) return null;
+                              return (
+                                <button
+                                  key={file.path || `file-${idx}`}
+                                  onClick={() => setActiveFileIndex(idx)}
+                                  className={`flex items-center gap-1.5 px-3 py-1.5 md:px-2 rounded text-xs font-mono transition-colors cursor-pointer flex-shrink-0 md:w-full md:text-left ${activeFileIndex === idx
+                                      ? 'bg-[#103B40] text-white font-medium'
+                                      : 'text-gray-400 hover:bg-[#252525] hover:text-white'
+                                    }`}
+                                >
+                                  <FileCode className="w-3.5 h-3.5 text-teal-400 flex-shrink-0" />
+                                  <span className="truncate max-w-[120px] md:max-w-none">{file.path || `File ${idx}`}</span>
+                                </button>
+                              );
+                            })}
                           </div>
                         </div>
 

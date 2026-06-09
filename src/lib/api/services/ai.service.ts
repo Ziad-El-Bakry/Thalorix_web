@@ -143,17 +143,21 @@ export const aiService = {
    * Download built frontend package (dist.zip)
    */
   async downloadDistZip(sessionId: string, projectName: string): Promise<Blob> {
-    const response = await api.get(ENDPOINTS.AI.DIST_ZIP(sessionId, projectName), {
+    const url = ENDPOINTS.AI.DIST_ZIP(sessionId, projectName);
+    console.log('[Frontend Download] DIST_ZIP ->', { sessionId, projectName, finalUrl: url });
+    const response = await api.get(url, {
       responseType: 'blob',
     });
     return response.data;
   },
 
   /**
-   * Download full project source code (source.zip)
+   * Download source code package (source.zip)
    */
   async downloadSourceZip(sessionId: string, projectName: string): Promise<Blob> {
-    const response = await api.get(ENDPOINTS.AI.SOURCE_ZIP(sessionId, projectName), {
+    const url = ENDPOINTS.AI.SOURCE_ZIP(sessionId, projectName);
+    console.log('[Frontend Download] SOURCE_ZIP ->', { sessionId, projectName, finalUrl: url });
+    const response = await api.get(url, {
       responseType: 'blob',
     });
     return response.data;
