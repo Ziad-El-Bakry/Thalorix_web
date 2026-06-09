@@ -1,6 +1,7 @@
 // lib/api/services/auth.service.ts
 import { api } from '../axios';
 import { ENDPOINTS } from '../endpoints';
+import Cookies from 'js-cookie';
 
 // ============================================
 // TYPES
@@ -108,7 +109,10 @@ export const authService = {
     const processData = (data: any, fallbackRole: string) => {
       const token = data.access_token || data.accessToken;
       const refresh = data.refresh_token || data.refreshToken;
-      if (token) localStorage.setItem('access_token', token);
+      if (token) {
+        localStorage.setItem('access_token', token);
+        Cookies.set('auth_token', token, { expires: 1 }); // Expires in 1 day
+      }
       if (refresh) localStorage.setItem('refresh_token', refresh);
       
       let userObj = data.user || data.seller || data.admin;
@@ -116,6 +120,7 @@ export const authService = {
         if (!userObj.role) userObj.role = fallbackRole as any;
         userObj = normalizeUser(userObj);
         localStorage.setItem('user', JSON.stringify(userObj));
+        Cookies.set('user_role', userObj.role, { expires: 1 });
         data.user = userObj; // Ensure .user is always available
       }
       
@@ -132,6 +137,9 @@ export const authService = {
         // 2. Try Seller
         const { data } = await api.post<AuthResponse>(ENDPOINTS.SELLERS.LOGIN, dto);
         
+        // Process tokens first so subsequent request (GET /seller/:id) is authenticated
+        processData(data, 'seller');
+        
         // Fetch the full seller data to get the logo/avatar
         try {
           const sellerObj = data.seller || data;
@@ -141,13 +149,15 @@ export const authService = {
             const fullSeller = response.data?.data || response.data;
             if (fullSeller) {
               data.seller = { ...sellerObj, ...fullSeller };
+              // Re-save normalized user data since it contains the full seller profile now
+              processData(data, 'seller');
             }
           }
         } catch (e) {
           console.warn("Failed to fetch full seller profile on login:", e);
         }
         
-        return processData(data, 'seller');
+        return data;
       }
       throw err;
     }
@@ -202,7 +212,10 @@ export const authService = {
     const processData = (data: any, fallbackRole: string) => {
       const token = data.access_token || data.accessToken;
       const refresh = data.refresh_token || data.refreshToken;
-      if (token) localStorage.setItem('access_token', token);
+      if (token) {
+        localStorage.setItem('access_token', token);
+        Cookies.set('auth_token', token, { expires: 1 });
+      }
       if (refresh) localStorage.setItem('refresh_token', refresh);
       
       let userObj = data.user || data.seller || data.admin;
@@ -210,6 +223,7 @@ export const authService = {
         if (!userObj.role) userObj.role = fallbackRole as any;
         userObj = normalizeUser(userObj);
         localStorage.setItem('user', JSON.stringify(userObj));
+        Cookies.set('user_role', userObj.role, { expires: 1 });
         data.user = userObj;
       }
       
@@ -248,6 +262,8 @@ export const authService = {
       }
     } finally {
       localStorage.clear();
+      Cookies.remove('auth_token');
+      Cookies.remove('user_role');
     }
   },
 
@@ -263,7 +279,10 @@ export const authService = {
     const token = data.access_token || data.accessToken;
     const refresh = data.refresh_token || data.refreshToken;
     
-    if (token) localStorage.setItem('access_token', token);
+    if (token) {
+      localStorage.setItem('access_token', token);
+      Cookies.set('auth_token', token, { expires: 1 });
+    }
     if (refresh) localStorage.setItem('refresh_token', refresh);
 
     return data;
@@ -291,11 +310,13 @@ export const authService = {
     
     if (token) {
       localStorage.setItem('access_token', token);
+      Cookies.set('auth_token', token, { expires: 1 });
       if (refresh) localStorage.setItem('refresh_token', refresh);
       if (response.data.user) {
         const userObj = normalizeUser(response.data.user);
         response.data.user = userObj;
         localStorage.setItem('user', JSON.stringify(userObj));
+        Cookies.set('user_role', userObj.role, { expires: 1 });
       }
     }
     
