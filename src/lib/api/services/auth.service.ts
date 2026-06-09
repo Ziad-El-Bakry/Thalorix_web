@@ -121,14 +121,49 @@ export const authService = {
         userObj = normalizeUser(userObj);
         localStorage.setItem('user', JSON.stringify(userObj));
         Cookies.set('user_role', userObj.role, { expires: 1 });
+        localStorage.setItem('last_used_role', userObj.role); // Save role for performance optimization
         data.user = userObj; // Ensure .user is always available
       }
 
       return data;
     };
 
+    const lastRole = typeof window !== 'undefined' ? localStorage.getItem('last_used_role') : null;
+
+    // Performance Optimization: Try the cached role endpoint first to save network round trips
+    if (lastRole === 'seller') {
+      try {
+        const { data } = await api.post<AuthResponse>(ENDPOINTS.SELLERS.LOGIN, dto);
+        processData(data, 'seller');
+        try {
+          const sellerObj = data.seller || data.user;
+          const sellerId = sellerObj?.id || sellerObj?._id;
+          if (sellerId) {
+            const response = await api.get(ENDPOINTS.SELLERS.GET_BY_ID(sellerId));
+            const fullSeller = response.data?.data || response.data;
+            if (fullSeller) {
+              data.seller = { ...sellerObj, ...fullSeller };
+              processData(data, 'seller');
+            }
+          }
+        } catch (e) {
+          console.warn("Failed to fetch full seller profile on login:", e);
+        }
+        return data;
+      } catch (err) {
+        // Fallback to default user-first sequence if cached credentials fail
+      }
+    } else if (lastRole === 'admin') {
+      try {
+        const { data } = await api.post<AuthResponse>(ENDPOINTS.ADMINS.LOGIN, dto);
+        return processData(data, 'admin');
+      } catch (err) {
+        // Fallback
+      }
+    }
+
     try {
-      // 1. Try User
+      // 1. Try User (Default)
       const endpoint = platform === 'web' ? ENDPOINTS.AUTH.WEB_LOGIN : ENDPOINTS.AUTH.MOB_LOGIN;
       const { data } = await api.post<AuthResponse>(endpoint, dto);
       return processData(data, 'user');
