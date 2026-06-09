@@ -24,7 +24,7 @@ import { formatters } from "@/lib/utils/formatters";
 
 type FilterType = "all" | "message" | "alert" | "friend_request";
 
-export default function NotificationsPage() {
+export default function NotificationsSettingsTab() {
   const store = useNotificationStore();
   const storeUserId = useAuthStore((state) => state.currentUserId);
   const user = authService.getStoredUser();
@@ -113,15 +113,15 @@ export default function NotificationsPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:py-8 lg:px-8 min-h-[calc(100vh-100px)]">
+    <div className="w-full">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-[#103B40] flex items-center gap-3">
-            <Bell className="text-[#43B0B5] stroke-[2.5]" />
+          <h1 className="text-xl sm:text-2xl font-bold text-[#103B40] flex items-center gap-3">
+            <Bell className="text-[#43B0B5] stroke-[2.5]" size={24} />
             Notifications
           </h1>
-          <p className="text-gray-500 text-sm mt-1.5">
+          <p className="text-gray-500 text-sm mt-1">
             Manage your alerts, friend requests, and messages activity.
           </p>
         </div>
