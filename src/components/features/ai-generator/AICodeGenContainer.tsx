@@ -743,7 +743,7 @@ export function AICodeGenContainer() {
                     <span className="text-xs font-bold text-[#103B40]">AI Generation Thread</span>
                     {activeProject && (
                       <span className="text-[10px] font-medium text-gray-400">
-                        Session: {activeProject.sessionId.substring(0, 10)}...
+                        Session: {activeProject.sessionId ? `${activeProject.sessionId.substring(0, 10)}...` : 'N/A'}
                       </span>
                     )}
                   </div>

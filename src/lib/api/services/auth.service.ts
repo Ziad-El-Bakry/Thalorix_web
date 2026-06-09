@@ -132,22 +132,27 @@ export const authService = {
         // 2. Try Seller
         const { data } = await api.post<AuthResponse>(ENDPOINTS.SELLERS.LOGIN, dto);
         
+        // Save token to localStorage immediately so subsequent api.get uses it
+        processData(data, 'seller');
+        
         // Fetch the full seller data to get the logo/avatar
         try {
-          const sellerObj = data.seller || data;
-          const sellerId = sellerObj.id || sellerObj._id;
+          const sellerObj = data.seller || data.user;
+          const sellerId = sellerObj?.id || sellerObj?._id;
           if (sellerId) {
             const response = await api.get(ENDPOINTS.SELLERS.GET_BY_ID(sellerId));
             const fullSeller = response.data?.data || response.data;
             if (fullSeller) {
               data.seller = { ...sellerObj, ...fullSeller };
+              // Call processData again to overwrite localStorage with the enriched seller object
+              processData(data, 'seller');
             }
           }
         } catch (e) {
           console.warn("Failed to fetch full seller profile on login:", e);
         }
         
-        return processData(data, 'seller');
+        return data;
       }
       throw err;
     }
