@@ -47,7 +47,7 @@ export interface User {
   isBlocked?: boolean;
   phone?: string;
   createdAt: string;
-  
+
   // Seller fields
   storeName?: string;
   storeDescription?: string;
@@ -114,7 +114,7 @@ export const authService = {
         Cookies.set('auth_token', token, { expires: 1 }); // Expires in 1 day
       }
       if (refresh) localStorage.setItem('refresh_token', refresh);
-      
+
       let userObj = data.user || data.seller || data.admin;
       if (userObj) {
         if (!userObj.role) userObj.role = fallbackRole as any;
@@ -123,7 +123,7 @@ export const authService = {
         Cookies.set('user_role', userObj.role, { expires: 1 });
         data.user = userObj; // Ensure .user is always available
       }
-      
+
       return data;
     };
 
@@ -136,14 +136,10 @@ export const authService = {
       if (err.response?.status === 401 || err.response?.status === 404) {
         // 2. Try Seller
         const { data } = await api.post<AuthResponse>(ENDPOINTS.SELLERS.LOGIN, dto);
-        
-<<<<<<< HEAD
-        // Save token to localStorage immediately so subsequent api.get uses it
-=======
+
         // Process tokens first so subsequent request (GET /seller/:id) is authenticated
->>>>>>> a3c15a206fd48ccbdfecbb85b5189900fae69604
         processData(data, 'seller');
-        
+
         // Fetch the full seller data to get the logo/avatar
         try {
           const sellerObj = data.seller || data.user;
@@ -153,18 +149,14 @@ export const authService = {
             const fullSeller = response.data?.data || response.data;
             if (fullSeller) {
               data.seller = { ...sellerObj, ...fullSeller };
-<<<<<<< HEAD
-              // Call processData again to overwrite localStorage with the enriched seller object
-=======
               // Re-save normalized user data since it contains the full seller profile now
->>>>>>> a3c15a206fd48ccbdfecbb85b5189900fae69604
               processData(data, 'seller');
             }
           }
         } catch (e) {
           console.warn("Failed to fetch full seller profile on login:", e);
         }
-        
+
         return data;
       }
       throw err;
@@ -175,8 +167,8 @@ export const authService = {
    * Register new user (Web or Mobile)
    */
   async register(dto: RegisterDto, platform: Platform = 'web'): Promise<AuthResponse> {
-    const endpoint = platform === 'web' 
-      ? ENDPOINTS.AUTH.WEB_REGISTER 
+    const endpoint = platform === 'web'
+      ? ENDPOINTS.AUTH.WEB_REGISTER
       : ENDPOINTS.AUTH.MOB_REGISTER;
 
     // Map frontend DTO to backend DTO expected fields
@@ -186,7 +178,7 @@ export const authService = {
       password: dto.password,
       cPassword: dto.confirmPassword,
     };
-    
+
     // Send phone as it is required by the backend
     backendPayload.phone = dto.phone;
 
@@ -225,7 +217,7 @@ export const authService = {
         Cookies.set('auth_token', token, { expires: 1 });
       }
       if (refresh) localStorage.setItem('refresh_token', refresh);
-      
+
       let userObj = data.user || data.seller || data.admin;
       if (userObj) {
         if (!userObj.role) userObj.role = fallbackRole as any;
@@ -234,7 +226,7 @@ export const authService = {
         Cookies.set('user_role', userObj.role, { expires: 1 });
         data.user = userObj;
       }
-      
+
       return data;
     };
 
@@ -286,7 +278,7 @@ export const authService = {
     // Update tokens
     const token = data.access_token || data.accessToken;
     const refresh = data.refresh_token || data.refreshToken;
-    
+
     if (token) {
       localStorage.setItem('access_token', token);
       Cookies.set('auth_token', token, { expires: 1 });
@@ -311,11 +303,11 @@ export const authService = {
       email: data.email,
       code: data.otp,
     });
-    
+
     // If verification returns tokens, save them
     const token = response.data?.access_token || response.data?.accessToken;
     const refresh = response.data?.refresh_token || response.data?.refreshToken;
-    
+
     if (token) {
       localStorage.setItem('access_token', token);
       Cookies.set('auth_token', token, { expires: 1 });
@@ -327,7 +319,7 @@ export const authService = {
         Cookies.set('user_role', userObj.role, { expires: 1 });
       }
     }
-    
+
     return response.data;
   },
 
@@ -375,7 +367,7 @@ export const authService = {
     let endpoint = ENDPOINTS.USERS.CHANGE_PASSWORD(id);
     if (role === 'admin') endpoint = ENDPOINTS.ADMINS.CHANGE_PASSWORD(id);
     if (role === 'seller') endpoint = ENDPOINTS.SELLERS.CHANGE_PASSWORD(id);
-    
+
     await api.patch(endpoint, payload);
   },
 
