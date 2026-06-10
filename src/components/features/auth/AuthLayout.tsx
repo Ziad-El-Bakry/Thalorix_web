@@ -34,66 +34,21 @@ export function AuthLayout({ children, variant = "default" }: AuthLayoutProps) {
                                 THALORIX
                             </motion.h1>
 
-                            {/* Profile images with orbit */}
+                            {/* Brand Logo Illustration */}
                             <motion.div 
                                 initial={{ scale: 0.8, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
                                 transition={{ delay: 0.4, duration: 0.6 }}
-                                className="relative w-60 h-60 flex items-center justify-center -translate-y-4"
+                                className="relative w-64 h-64 flex items-center justify-center -translate-y-4"
                             >
-                                {/* Dotted orbit ring */}
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                    <motion.svg
-                                        viewBox="0 0 240 240"
-                                        className="w-full h-full"
-                                        fill="none"
-                                        animate={{ rotate: 360 }}
-                                        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                                    >
-                                        <ellipse
-                                            cx="120"
-                                            cy="120"
-                                            rx="100"
-                                            ry="100"
-                                            stroke="rgba(255,255,255,0.25)"
-                                            strokeWidth="1.5"
-                                            strokeDasharray="6 6"
-                                        />
-                                    </motion.svg>
-                                </div>
-
-                                {/* Top profile */}
-                                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-20 rounded-full overflow-hidden border-2 border-white/30 shadow-lg">
-                                    <Image
-                                        src="/images/profile1.png"
-                                        alt="User 1"
-                                        width={80}
-                                        height={80}
-                                        className="object-cover w-full h-full"
-                                    />
-                                </div>
-
-                                {/* Bottom-left profile */}
-                                <div className="absolute bottom-4 left-2 w-20 h-20 rounded-full overflow-hidden border-2 border-teal-400/50 shadow-lg">
-                                    <Image
-                                        src="/images/profile2.png"
-                                        alt="User 2"
-                                        width={80}
-                                        height={80}
-                                        className="object-cover w-full h-full"
-                                    />
-                                </div>
-
-                                {/* Bottom-right profile */}
-                                <div className="absolute bottom-4 right-2 w-20 h-20 rounded-full overflow-hidden border-2 border-white/30 shadow-lg">
-                                    <Image
-                                        src="/images/profile3.png"
-                                        alt="User 3"
-                                        width={80}
-                                        height={80}
-                                        className="object-cover w-full h-full"
-                                    />
-                                </div>
+                                <Image
+                                    src="/images/thalorix.png"
+                                    alt="Thalorix Logo"
+                                    width={220}
+                                    height={220}
+                                    className="object-contain drop-shadow-[0_0_15px_rgba(45,212,191,0.35)]"
+                                    priority
+                                />
                             </motion.div>
 
                             {/* Tagline */}

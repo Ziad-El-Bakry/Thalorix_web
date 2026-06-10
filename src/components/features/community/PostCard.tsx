@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ThumbsUp, MessageCircle, Share2, MoreHorizontal, Send, Check, Link2 } from "lucide-react";
+import { ThumbsUp, MessageCircle, Share2, MoreHorizontal, Send, Check, Link2, Smile } from "lucide-react";
+import EmojiPicker, { Theme } from "emoji-picker-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAvatar } from "@/store/useAvatarStore";
 import { authService } from "@/lib/api/services/auth.service";
@@ -53,6 +54,7 @@ export default function PostCard({ post }: { post: PostData }) {
   const [showComments, setShowComments] = useState(false);
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [commentText, setCommentText] = useState("");
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [comments, setComments] = useState<CommentData[]>([]);
   const [showMore, setShowMore] = useState(false);
   const [isShared, setIsShared] = useState(false);
@@ -533,7 +535,7 @@ export default function PostCard({ post }: { post: PostData }) {
               );})}
 
               {/* Comment input */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 relative">
                 <Image
                   src={globalAvatar || "/images/avatar.png"}
                   alt="You"
@@ -541,19 +543,44 @@ export default function PostCard({ post }: { post: PostData }) {
                   height={32}
                   className="w-8 h-8 rounded-full object-cover flex-shrink-0"
                 />
+
+                {showEmojiPicker && (
+                  <div className="absolute bottom-[calc(100%+8px)] left-0 sm:left-10 z-50 animate-in fade-in zoom-in-95 slide-in-from-bottom-3 duration-150 shadow-xl rounded-xl border border-gray-100">
+                    <EmojiPicker
+                      theme={Theme.LIGHT}
+                      onEmojiClick={(emojiData) => setCommentText(prev => prev + emojiData.emoji)}
+                      lazyLoadEmojis={true}
+                      width={280}
+                      height={350}
+                    />
+                  </div>
+                )}
+
                 <div className="flex-1 flex items-center bg-gray-50 rounded-full border border-gray-200 overflow-hidden">
+                  <button 
+                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                    className="pl-3 py-2 text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <Smile size={16} />
+                  </button>
                   <input
                     value={commentText}
                     onChange={(e) => setCommentText(e.target.value)}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter") handleAddComment();
+                      if (e.key === "Enter") {
+                        handleAddComment();
+                        setShowEmojiPicker(false);
+                      }
                     }}
                     placeholder="Add a comment..."
-                    className="flex-1 text-xs bg-transparent px-3.5 py-2 focus:outline-none text-gray-700 placeholder-gray-400"
+                    className="flex-1 text-xs bg-transparent px-2.5 py-2 focus:outline-none text-gray-700 placeholder-gray-400"
                   />
                   <motion.button
                     whileTap={{ scale: 0.9 }}
-                    onClick={handleAddComment}
+                    onClick={() => {
+                      handleAddComment();
+                      setShowEmojiPicker(false);
+                    }}
                     disabled={!commentText.trim()}
                     className={`p-2 transition-colors ${
                       commentText.trim()

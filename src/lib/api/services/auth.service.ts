@@ -391,12 +391,9 @@ export const authService = {
    */
   isAuthenticated(): boolean {
     if (typeof window === 'undefined') return false;
-    return !!localStorage.getItem('access_token');
+    return !!Cookies.get('auth_token') && !!localStorage.getItem('access_token');
   },
 
-  /**
-   * Get stored user
-   */
   /**
    * Change user password
    */
@@ -410,6 +407,16 @@ export const authService = {
 
   getStoredUser(): User | null {
     if (typeof window === 'undefined') return null;
+    
+    // Ensure the auth cookie exists. If it's cleared, log out the user.
+    const token = Cookies.get('auth_token');
+    if (!token) {
+      localStorage.removeItem('user');
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      return null;
+    }
+    
     const userStr = localStorage.getItem('user');
     return userStr ? normalizeUser(JSON.parse(userStr)) : null;
   },
