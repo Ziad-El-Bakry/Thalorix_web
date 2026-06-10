@@ -16,10 +16,20 @@ const MessageBubble = React.memo(({ message, isOwn = false, onImageClick, onRepl
     }
   };
 
+  const getDownloadUrl = (url: string) => {
+    if (!url) return url;
+    if (url.includes("res.cloudinary.com") && url.includes("/upload/")) {
+      if (!url.includes("fl_attachment")) {
+        return url.replace("/upload/", "/upload/fl_attachment/");
+      }
+    }
+    return url;
+  };
+
   const handleFileDownload = () => {
     if (!message.fileUrl) return;
     const a = document.createElement("a");
-    a.href = message.fileUrl;
+    a.href = getDownloadUrl(message.fileUrl);
     a.download = message.fileName || "download";
     document.body.appendChild(a);
     a.click();
@@ -102,8 +112,11 @@ const MessageBubble = React.memo(({ message, isOwn = false, onImageClick, onRepl
             alt="Sent image"
             className="rounded-xl max-w-full h-auto border border-black/5 max-h-[280px] object-cover w-full"
           />
-          <div className="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-xl">
-            <div className="bg-white/20 backdrop-blur-sm rounded-full p-2">
+          <div className="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-xl pointer-events-none">
+            <div 
+              className="bg-white/20 backdrop-blur-sm rounded-full p-2 pointer-events-auto hover:bg-white/30 transition-colors"
+              onClick={(e) => { e.stopPropagation(); handleFileDownload(); }}
+            >
               <Download className="text-white w-5 h-5" />
             </div>
           </div>
@@ -124,7 +137,12 @@ const MessageBubble = React.memo(({ message, isOwn = false, onImageClick, onRepl
             <p className="text-sm font-medium truncate leading-tight">{message.fileName || "Document.pdf"}</p>
             <p className="text-[11px] opacity-60 uppercase mt-0.5 font-medium tracking-wide">PDF · Tap to view</p>
           </div>
-          <Download className="w-4 h-4 opacity-50 shrink-0" />
+          <button 
+            onClick={(e) => { e.stopPropagation(); handleFileDownload(); }}
+            className="opacity-50 hover:opacity-100 shrink-0 p-1"
+          >
+            <Download className="w-4 h-4" />
+          </button>
         </div>
       );
     }
@@ -142,7 +160,12 @@ const MessageBubble = React.memo(({ message, isOwn = false, onImageClick, onRepl
             <p className="text-sm font-medium truncate leading-tight">{message.fileName || "Archive.zip"}</p>
             <p className="text-[11px] opacity-60 uppercase mt-0.5 font-medium tracking-wide">ZIP · Tap to view</p>
           </div>
-          <Download className="w-4 h-4 opacity-50 shrink-0" />
+          <button 
+            onClick={(e) => { e.stopPropagation(); handleFileDownload(); }}
+            className="opacity-50 hover:opacity-100 shrink-0 p-1"
+          >
+            <Download className="w-4 h-4" />
+          </button>
         </div>
       );
     }
