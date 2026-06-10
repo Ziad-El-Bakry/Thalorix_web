@@ -94,33 +94,16 @@ export default function Notifications({ alignClass = "-right-[90px] md:right-0 w
             {/* Overlay to close when clicking outside */}
             <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
 
-<<<<<<< HEAD
-    return (
-        <div className="relative">
-            <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={() => {
-                    setIsOpen(!isOpen);
-                    markNotificationsRead();
-                }}
-                className="relative p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors focus:outline-none"
-=======
             <motion.div
               initial={{ opacity: 0, y: 10, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.95 }}
               className={`absolute ${alignClass} top-12 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 z-[100] overflow-hidden`}
->>>>>>> 9d67dc4a472208c3afa41cf8fd796a332f73081e
             >
               <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
                 <h3 className="font-semibold text-[#103B40]">Notifications</h3>
                 {hasUnread && (
-<<<<<<< HEAD
-                    <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-gray-900"></span>
-=======
                   <span className="bg-[#103B40] text-white text-[10px] px-2 py-0.5 rounded-full font-bold">New</span>
->>>>>>> 9d67dc4a472208c3afa41cf8fd796a332f73081e
                 )}
               </div>
               <div className="max-h-[300px] overflow-y-auto sidebar-scrollbar">
@@ -128,9 +111,8 @@ export default function Notifications({ alignClass = "-right-[90px] md:right-0 w
                   store.notifications.map((notif) => (
                     <div
                       key={notif.id}
-                      className={`p-4 border-b border-gray-50 hover:bg-gray-50/80 transition-colors flex gap-3 cursor-pointer group relative ${
-                        !notif.isRead ? "bg-teal-50/10" : ""
-                      }`}
+                      className={`p-4 border-b border-gray-50 hover:bg-gray-50/80 transition-colors flex gap-3 cursor-pointer group relative ${!notif.isRead ? "bg-teal-50/10" : ""
+                        }`}
                     >
                       <div className="mt-1 flex-shrink-0">
                         {getNotificationIcon(notif.type)}
@@ -168,55 +150,6 @@ export default function Notifications({ alignClass = "-right-[90px] md:right-0 w
                           </div>
                         )}
 
-<<<<<<< HEAD
-                        <motion.div
-                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                            className={`absolute ${alignClass} top-12 mt-2 bg-white dark:bg-gray-900 rounded-xl shadow-xl border border-gray-100 dark:border-gray-800 z-[100] overflow-hidden`}
-                        >
-                            <div className="p-4 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50 dark:bg-gray-800/50">
-                                <h3 className="font-semibold text-[#103B40] dark:text-[#43B0B5]">Notifications</h3>
-                                {hasUnread && (
-                                    <span className="bg-[#103B40] text-white text-[10px] px-2 py-0.5 rounded-full font-bold">New</span>
-                                )}
-                            </div>
-                            <div className="max-h-[300px] overflow-y-auto">
-                                {notifications.length > 0 ? (
-                                    notifications.map((notif) => (
-                                        <div key={notif.id} className="p-4 border-b border-gray-50 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors flex gap-3 cursor-pointer">
-                                            <div className="mt-1 flex-shrink-0">
-                                                {notif.icon}
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-semibold text-gray-800 dark:text-white">{notif.title}</p>
-                                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-normal break-words">{notif.desc}</p>
-                                                
-                                                {notif.type === "friend_request" && notif.actionTaken === null && (
-                                                    <div className="flex gap-2 mt-2.5">
-                                                        <button 
-                                                            disabled={actionLoadingId !== null}
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                if (notif.senderId) handleAcceptFriend(notif.id.toString(), notif.senderId);
-                                                            }}
-                                                            className="px-3.5 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-[11px] font-bold shadow-sm transition-all disabled:opacity-50"
-                                                        >
-                                                            {actionLoadingId === notif.id ? "Accepting..." : "Accept"}
-                                                        </button>
-                                                        <button 
-                                                            disabled={actionLoadingId !== null}
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                if (notif.senderId) handleRejectFriend(notif.id.toString(), notif.senderId);
-                                                            }}
-                                                            className="px-3.5 py-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-[11px] font-bold transition-all disabled:opacity-50"
-                                                        >
-                                                            Decline
-                                                        </button>
-                                                    </div>
-                                                )}
-=======
                         {notif.type === "friend_request" && notif.actionTaken === "accepted" && (
                           <motion.p
                             initial={{ opacity: 0, x: -5 }}
@@ -226,7 +159,6 @@ export default function Notifications({ alignClass = "-right-[90px] md:right-0 w
                             <CheckCircle size={14} /> Request Accepted!
                           </motion.p>
                         )}
->>>>>>> 9d67dc4a472208c3afa41cf8fd796a332f73081e
 
                         {notif.type === "friend_request" && notif.actionTaken === "rejected" && (
                           <motion.p
@@ -238,33 +170,6 @@ export default function Notifications({ alignClass = "-right-[90px] md:right-0 w
                           </motion.p>
                         )}
 
-<<<<<<< HEAD
-                                                {notif.type === "friend_request" && notif.actionTaken === "rejected" && (
-                                                    <motion.p 
-                                                        initial={{ opacity: 0, x: -5 }}
-                                                        animate={{ opacity: 1, x: 0 }}
-                                                        className="text-xs font-bold text-red-600 mt-2 flex items-center gap-1"
-                                                    >
-                                                        <XCircle size={14} /> Request Declined
-                                                    </motion.p>
-                                                )}
-                                                
-                                                <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-2">{notif.time}</p>
-                                            </div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="p-6 text-center text-gray-500 text-sm">
-                                        No new notifications
-                                    </div>
-                                )}
-                            </div>
-                            <div className="p-3 text-center border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
-                                <button className="text-xs font-semibold text-[#103B40] dark:text-[#43B0B5] hover:underline">View all</button>
-                            </div>
-                        </motion.div>
-                    </>
-=======
                         <p className="text-[10px] text-gray-400 mt-2">
                           {formatters.relativeTime(notif.time)}
                         </p>
@@ -284,7 +189,6 @@ export default function Notifications({ alignClass = "-right-[90px] md:right-0 w
                   <div className="p-6 text-center text-gray-400 text-sm">
                     No new notifications
                   </div>
->>>>>>> 9d67dc4a472208c3afa41cf8fd796a332f73081e
                 )}
               </div>
               <div className="p-3 text-center border-t border-gray-100 bg-gray-50">
