@@ -13,9 +13,9 @@ const data = [
 
 export default function NetworkGrowthChart() {
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col h-full">
+    <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col h-full">
       <div className="mb-6">
-        <h3 className="text-sm font-bold text-gray-400 tracking-wider uppercase">Network Growth</h3>
+        <h3 className="text-sm font-bold text-gray-400 dark:text-gray-500 tracking-wider uppercase">Network Growth</h3>
       </div>
       
       <div className="flex-1 w-full min-h-[250px]">

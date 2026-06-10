@@ -41,10 +41,10 @@ export default function ChatListItem({
   return (
     <div
       {...rest}
-      className={`flex items-center px-3 py-2.5 cursor-pointer transition-colors relative border-b border-gray-50 ${
+      className={`flex items-center px-3 py-2.5 cursor-pointer transition-colors relative border-b border-gray-50 dark:border-gray-800 ${
         selected
-          ? "bg-[#103B40]/5 border-l-[3px] border-l-[#103B40]"
-          : "hover:bg-gray-50 border-l-[3px] border-l-transparent"
+          ? "bg-[#103B40]/5 dark:bg-[#103B40]/20 border-l-[3px] border-l-[#103B40]"
+          : "hover:bg-gray-50 dark:hover:bg-gray-800/50 border-l-[3px] border-l-transparent"
       }`}
       onClick={onClick}
     >
@@ -64,14 +64,14 @@ export default function ChatListItem({
           className="w-11 h-11 rounded-full object-cover shadow-md"
         />
         {other.online && (
-          <span className="absolute bottom-0.5 right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white" />
+          <span className="absolute bottom-0.5 right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white dark:border-gray-900" />
         )}
       </div>
 
       {/* Content */}
       <div className="ml-3 flex-1 min-w-0">
         <div className="flex justify-between items-baseline mb-0.5">
-          <span className={`text-sm truncate pr-2 ${selected || unread ? "font-semibold text-gray-900" : "font-medium text-gray-800"}`}>
+          <span className={`text-sm truncate pr-2 ${selected || unread ? "font-semibold text-gray-900 dark:text-white" : "font-medium text-gray-800 dark:text-gray-200"}`}>
             {other.name}
           </span>
           {last && (
@@ -90,7 +90,7 @@ export default function ChatListItem({
                   }`}
                 />
               )}
-              <p className={`text-xs truncate ${unread ? "text-gray-700 font-medium" : "text-gray-500"}`}>
+              <p className={`text-xs truncate ${unread ? "text-gray-700 dark:text-gray-200 font-medium" : "text-gray-500 dark:text-gray-400"}`}>
                 {last.text || (last.imageUrl ? "Photo" : last.fileUrl ? "Document" : last.audioUrl ? "Voice message" : "Message")}
               </p>
             </div>  

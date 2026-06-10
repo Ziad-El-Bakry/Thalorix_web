@@ -64,7 +64,7 @@ export default function UserHeader({ name, avatar, badge, badgeIcon, compact = f
           />
         </div>
         <div>
-          <h1 className={`${compact ? 'text-lg md:text-[18px]' : 'text-xl md:text-[22px]'} font-bold text-[#103B40] mb-0.5 md:mb-1`}>
+          <h1 className={`${compact ? 'text-lg md:text-[18px]' : 'text-xl md:text-[22px]'} font-bold text-[#103B40] dark:text-white mb-0.5 md:mb-1`}>
             Welcome {displayName}
           </h1>
         </div>

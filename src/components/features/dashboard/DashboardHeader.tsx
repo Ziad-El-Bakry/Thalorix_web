@@ -27,7 +27,7 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
           Good morning, {(user?.name || user?.username)?.split(' ')[0] || "User"}   
        </h1>
-        <p className="text-gray-500 text-sm mt-1">
+        <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
           Here's what's happening with your profile today.
         </p>
       </div>

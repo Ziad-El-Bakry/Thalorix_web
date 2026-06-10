@@ -39,7 +39,7 @@ function ShortcutCard({ icon, label, description, href, gradient, iconBg }: Shor
     <motion.div whileHover={{ y: -3 }} transition={{ duration: 0.2 }}>
       <Link
         href={href}
-        className="group relative flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 hover:shadow-lg hover:border-gray-200/80 transition-all duration-300 overflow-hidden"
+        className="group relative flex items-center gap-4 p-4 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 hover:shadow-lg dark:hover:shadow-gray-900/40 hover:border-gray-200/80 dark:hover:border-gray-700 transition-all duration-300 overflow-hidden"
       >
         {/* Accent gradient */}
         <div
@@ -55,16 +55,16 @@ function ShortcutCard({ icon, label, description, href, gradient, iconBg }: Shor
 
         {/* Text */}
         <div className="relative z-10 flex-1 min-w-0">
-          <p className="text-sm font-bold text-gray-900 group-hover:text-gray-900 transition-colors">
+          <p className="text-sm font-bold text-gray-900 dark:text-white group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
             {label}
           </p>
-          <p className="text-xs text-gray-400 mt-0.5 truncate">{description}</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 truncate">{description}</p>
         </div>
 
         {/* Arrow */}
         <ArrowRight
           size={16}
-          className="relative z-10 text-gray-300 group-hover:text-[#103B40] transition-all duration-300 group-hover:translate-x-1 shrink-0"
+          className="relative z-10 text-gray-300 dark:text-gray-600 group-hover:text-[#103B40] dark:group-hover:text-[#43B0B5] transition-all duration-300 group-hover:translate-x-1 shrink-0"
         />
       </Link>
     </motion.div>
@@ -133,11 +133,11 @@ export default function UserDashboardContent({ user }: { user: User | null }) {
       {/* ─── Quick Shortcuts Grid ─── */}
       <motion.div variants={itemVariants}>
         <div className="flex items-center gap-2 mb-4 px-1">
-          <div className="w-1.5 h-1.5 rounded-full bg-[#103B40]" />
-          <h3 className="text-xs font-bold text-gray-400 tracking-[0.15em] uppercase">
+          <div className="w-1.5 h-1.5 rounded-full bg-[#103B40] dark:bg-[#43B0B5]" />
+          <h3 className="text-xs font-bold text-gray-400 dark:text-gray-500 tracking-[0.15em] uppercase">
             Quick Actions
           </h3>
-          <div className="h-px flex-1 bg-gradient-to-r from-gray-200 to-transparent" />
+          <div className="h-px flex-1 bg-gradient-to-r from-gray-200 dark:from-gray-700 to-transparent" />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">

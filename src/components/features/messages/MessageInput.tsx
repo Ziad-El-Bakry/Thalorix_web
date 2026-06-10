@@ -148,7 +148,7 @@ export default function MessageInput({ value, onChange, onSend, replyingTo, onCa
 
       {/* Attachment Menu */}
       {showAttachments && (
-        <div className="absolute bottom-[calc(100%+6px)] left-3 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden w-52 animate-in fade-in zoom-in-95 slide-in-from-bottom-3 duration-150">
+        <div className="absolute bottom-[calc(100%+6px)] left-3 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-800 overflow-hidden w-52 animate-in fade-in zoom-in-95 slide-in-from-bottom-3 duration-150">
           <AttachmentOption icon={<ImageIcon className="w-4.5 h-4.5 text-blue-500" />} label="Photos & Videos" onClick={() => handleAttachmentClick("images")} />
           <AttachmentOption icon={<FileText className="w-4.5 h-4.5 text-rose-500" />} label="PDF Document" onClick={() => handleAttachmentClick("pdf")} />
           <AttachmentOption icon={<Archive className="w-4.5 h-4.5 text-amber-500" />} label="Zip Archive" onClick={() => handleAttachmentClick("zip")} hideBorder />
@@ -234,11 +234,11 @@ function AttachmentOption({
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-3 w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors ${
-        !hideBorder ? "border-b border-gray-50" : ""
+      className={`flex items-center gap-3 w-full px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 active:bg-gray-100 dark:active:bg-gray-700 transition-colors ${
+        !hideBorder ? "border-b border-gray-50 dark:border-gray-800" : ""
       }`}
     >
-      <div className="bg-gray-50 p-2 rounded-full border border-gray-100 shrink-0">{icon}</div>
+      <div className="bg-gray-50 dark:bg-gray-800 p-2 rounded-full border border-gray-100 dark:border-gray-700 shrink-0">{icon}</div>
       <span className="font-medium">{label}</span>
     </button>
   );

@@ -232,8 +232,8 @@ const MessageBubble = React.memo(({ message, isOwn = false, onImageClick, onRepl
           {/* Main Bubble */}
           <div
             className={`relative flex flex-col min-w-[100px] break-words shadow-sm w-fit
-            ${message.isDeleted ? (isOwn ? "bg-teal-900/60" : "bg-white/60") : (isOwn ? "bg-[#103B40]" : "bg-white")} 
-            ${isOwn ? "rounded-2xl rounded-tr-sm text-white" : "rounded-2xl rounded-tl-sm text-gray-800 border border-gray-100"}
+            ${message.isDeleted ? (isOwn ? "bg-teal-900/60" : "bg-white/60 dark:bg-gray-800/60") : (isOwn ? "bg-[#103B40]" : "bg-white dark:bg-gray-800")} 
+            ${isOwn ? "rounded-2xl rounded-tr-sm text-white" : "rounded-2xl rounded-tl-sm text-gray-800 dark:text-gray-200 border border-gray-100 dark:border-gray-700"}
             ${message.imageUrl || (message.attachmentUrl && message.attachmentUrl.match(/\.(jpg|jpeg|png|gif|webp)/i)) ? "p-1.5 pb-6" : "px-3 pt-2.5 pb-6"}
             `}
             onContextMenu={handleContextMenu}
@@ -243,7 +243,7 @@ const MessageBubble = React.memo(({ message, isOwn = false, onImageClick, onRepl
           >
             {/* Render Reply Banner if exists */}
             {message.replyToMessage && !message.isDeleted && (
-              <div className={`mb-1.5 p-2 rounded-lg text-xs border-l-4 ${isOwn ? "bg-black/10 border-white/50 text-white/90" : "bg-gray-100 border-teal-500 text-gray-700"}`}>
+              <div className={`mb-1.5 p-2 rounded-lg text-xs border-l-4 ${isOwn ? "bg-black/10 border-white/50 text-white/90" : "bg-gray-100 dark:bg-gray-700/50 border-teal-500 text-gray-700 dark:text-gray-300"}`}>
                 <span className="font-semibold block mb-0.5">{message.replyToMessage.sender?.name || "User"}</span>
                 <span className="truncate opacity-80 block max-w-xs">{message.replyToMessage.text || "Attachment"}</span>
               </div>
@@ -281,7 +281,7 @@ const MessageBubble = React.memo(({ message, isOwn = false, onImageClick, onRepl
           <div className={`hidden md:group-hover:flex items-center px-2 gap-1.5 ${isOwn ? "flex-row-reverse" : "flex-row"}`}>
             <button
               onClick={handleMenuReply}
-              className="p-1.5 text-gray-400 hover:text-teal-600 hover:bg-teal-50 rounded-full transition-colors tooltip-trigger relative"
+              className="p-1.5 text-gray-400 hover:text-teal-600 dark:hover:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-500/10 rounded-full transition-colors tooltip-trigger relative"
               title="Reply"
             >
               <Reply className="w-4 h-4" />
@@ -289,7 +289,7 @@ const MessageBubble = React.memo(({ message, isOwn = false, onImageClick, onRepl
             {isOwn && !message.isDeleted && (
               <button
                 onClick={handleDelete}
-                className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-full transition-colors"
                 title="Delete"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
@@ -360,7 +360,7 @@ function CustomAudioPlayer({ src, isOwn }: { src: string; isOwn?: boolean }) {
   const progress = duration ? (currentTime / duration) * 100 : 0;
 
   return (
-    <div className={`flex items-center gap-3 rounded-2xl px-4 py-2.5 mb-2 w-full sm:w-[280px] ${isOwn ? "bg-white/10" : "bg-gray-100"}`}>
+    <div className={`flex items-center gap-3 rounded-2xl px-4 py-2.5 mb-2 w-full sm:w-[280px] ${isOwn ? "bg-white/10" : "bg-gray-100 dark:bg-gray-700/50"}`}>
       <audio ref={audioRef} src={src} preload="metadata" />
       <button
         onClick={toggle}
@@ -370,7 +370,7 @@ function CustomAudioPlayer({ src, isOwn }: { src: string; isOwn?: boolean }) {
         {isPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current ml-0.5" />}
       </button>
       <div className="flex-1 flex flex-col gap-1.5">
-        <div className={`w-full rounded-full h-1.5 relative cursor-pointer overflow-hidden ${isOwn ? "bg-white/20" : "bg-gray-300"}`}>
+        <div className={`w-full rounded-full h-1.5 relative cursor-pointer overflow-hidden ${isOwn ? "bg-white/20" : "bg-gray-300 dark:bg-gray-600"}`}>
           <div
             className={`h-full rounded-full transition-all ${isOwn ? "bg-white/80" : "bg-[#103B40]"}`}
             style={{ width: `${progress}%` }}

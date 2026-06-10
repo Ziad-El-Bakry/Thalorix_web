@@ -8,9 +8,9 @@ export default function ProfileScore() {
   const dashOffset = dashArray - (dashArray * score) / 100;
 
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col h-full">
+    <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col h-full">
       <div className="mb-6">
-        <h3 className="text-sm font-bold text-gray-400 tracking-wider uppercase">Profile Score</h3>
+        <h3 className="text-sm font-bold text-gray-400 dark:text-gray-500 tracking-wider uppercase">Profile Score</h3>
       </div>
       
       <div className="flex items-center gap-6">
@@ -20,7 +20,8 @@ export default function ProfileScore() {
             <circle 
               cx="40" cy="40" r="36" 
               fill="none" 
-              stroke="#f3f4f6" 
+              stroke="#f3f4f6"
+              className="dark:stroke-gray-700" 
               strokeWidth="6" 
             />
             <circle 
@@ -35,8 +36,8 @@ export default function ProfileScore() {
             />
           </svg>
           <div className="absolute flex flex-col items-center justify-center">
-            <span className="text-2xl font-bold text-[#103B40] leading-none">{score}</span>
-            <span className="text-[10px] font-medium text-gray-400">/ 100</span>
+            <span className="text-2xl font-bold text-[#103B40] dark:text-[#43B0B5] leading-none">{score}</span>
+            <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500">/ 100</span>
           </div>
         </div>
 
@@ -44,19 +45,19 @@ export default function ProfileScore() {
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-2">
             <CheckCircle2 size={16} className="text-[#103B40]" />
-            <span className="text-sm text-gray-600">Skills</span>
+            <span className="text-sm text-gray-600 dark:text-gray-300">Skills</span>
           </div>
           <div className="flex items-center gap-2">
             <CheckCircle2 size={16} className="text-[#103B40]" />
-            <span className="text-sm text-gray-600">Cover photo</span>
+            <span className="text-sm text-gray-600 dark:text-gray-300">Cover photo</span>
           </div>
           <div className="flex items-center gap-2">
             <Circle size={16} className="text-gray-300" />
-            <span className="text-sm text-gray-400">Portfolio</span>
+            <span className="text-sm text-gray-400 dark:text-gray-500">Portfolio</span>
           </div>
           <div className="flex items-center gap-2">
             <Circle size={16} className="text-gray-300" />
-            <span className="text-sm text-gray-400">Recommendations</span>
+            <span className="text-sm text-gray-400 dark:text-gray-500">Recommendations</span>
           </div>
         </div>
       </div>

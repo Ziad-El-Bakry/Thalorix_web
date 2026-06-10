@@ -55,9 +55,9 @@ input::-webkit-credentials-auto-fill-button {
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
+  --background: oklch(0.15 0.015 255); /* Premium deep bluish-black */
   --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
+  --card: oklch(0.18 0.015 255); /* Slightly lighter than background */
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
@@ -86,6 +86,24 @@ input::-webkit-credentials-auto-fill-button {
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+}
+
+/* Premium Animated LED ambient glow effect for dark mode backgrounds */
+@keyframes led-glow {
+  0% { background-position: 0% 0%; }
+  50% { background-position: 100% 100%; }
+  100% { background-position: 0% 0%; }
+}
+
+.dark body {
+  background:
+    radial-gradient(circle at 15% 20%, rgba(139, 92, 246, 0.07) 0%, transparent 35%), /* Subtle Violet */
+    radial-gradient(circle at 85% 30%, rgba(56, 189, 248, 0.07) 0%, transparent 35%), /* Subtle Sky Blue */
+    radial-gradient(circle at 50% 80%, rgba(236, 72, 153, 0.05) 0%, transparent 40%), /* Subtle Pink */
+    var(--background);
+  background-attachment: fixed;
+  background-size: 130% 130%;
+  animation: led-glow 20s ease-in-out infinite;
 }
 
 @theme inline {

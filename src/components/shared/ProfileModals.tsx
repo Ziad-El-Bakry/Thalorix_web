@@ -27,27 +27,27 @@ export function LogoutModal({ isOpen, onClose, onConfirm, isLoggingOut }: Logout
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            className="relative bg-white rounded-2xl shadow-xl border border-gray-100 w-full max-w-sm overflow-hidden z-10 m-auto"
+            className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 w-full max-w-sm overflow-hidden z-10 m-auto"
           >
             <div className="p-6 text-center">
-              <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
-                <LogOut className="text-gray-600" size={24} />
+              <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mx-auto mb-4">
+                <LogOut className="text-gray-600 dark:text-gray-300" size={24} />
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Sign Out</h3>
-              <p className="text-sm text-gray-500">Are you sure you want to sign out of your account?</p>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Sign Out</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Are you sure you want to sign out of your account?</p>
             </div>
-            <div className="flex border-t border-gray-100">
+            <div className="flex border-t border-gray-100 dark:border-gray-800">
               <button
                 onClick={onClose}
                 disabled={isLoggingOut}
-                className="flex-1 py-3 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors border-r border-gray-100 disabled:opacity-50"
+                className="flex-1 py-3 text-sm font-semibold text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border-r border-gray-100 dark:border-gray-800 disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 onClick={onConfirm}
                 disabled={isLoggingOut}
-                className="flex-1 py-3 text-sm font-bold text-[#103B40] hover:bg-[#103B40]/5 transition-colors disabled:opacity-50"
+                className="flex-1 py-3 text-sm font-bold text-[#103B40] dark:text-[#43B0B5] hover:bg-[#103B40]/5 dark:hover:bg-[#43B0B5]/10 transition-colors disabled:opacity-50"
               >
                 {isLoggingOut ? "Signing out..." : "Sign Out"}
               </button>
@@ -82,14 +82,14 @@ export function DeleteAccountModal({ isOpen, isDeleting, onClose, onConfirm }: D
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            className="relative bg-white rounded-2xl shadow-xl border border-gray-100 w-full max-w-md overflow-hidden z-10 m-auto"
+            className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 w-full max-w-md overflow-hidden z-10 m-auto"
           >
             <div className="p-6 text-center">
               <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
                 <AlertCircle className="text-red-600" size={28} />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Delete Account</h3>
-              <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Delete Account</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 leading-relaxed">
                 Are you absolutely sure you want to delete your account? This action cannot be undone. All your data, posts, and connections will be permanently removed.
               </p>
               <div className="flex flex-col gap-3">
@@ -103,7 +103,7 @@ export function DeleteAccountModal({ isOpen, isDeleting, onClose, onConfirm }: D
                 <button
                   onClick={onClose}
                   disabled={isDeleting}
-                  className="w-full py-3 px-4 bg-gray-100 text-gray-700 text-sm font-bold rounded-xl hover:bg-gray-200 transition-colors disabled:opacity-70"
+                  className="w-full py-3 px-4 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm font-bold rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-70"
                 >
                   Cancel
                 </button>

@@ -23,6 +23,17 @@ export interface AIMessage {
   language?: string;
   timestamp: Date;
   status?: 'building' | 'completed' | 'failed'; // Custom addition for tracing logs
+  /** When message type is 'build_completed', this holds the build card data */
+  buildCard?: WorkerBuildCard;
+}
+
+/** Data used to render the build-completed card inside a chat message */
+export interface WorkerBuildCard {
+  projectName: string;
+  filesCount?: number;
+  previewUrl?: string;
+  downloadUrl?: string;
+  distUrl?: string;
 }
 
 export interface ProjectFile {
@@ -38,11 +49,16 @@ export interface AIProject {
   jobId: string | null;
   status: 'building' | 'completed' | 'failed';
   previewUrl: string | null;
+  /** Direct download URL for source.zip (from RunPod worker) */
+  downloadUrl?: string | null;
+  /** Direct download URL for dist.zip (from RunPod worker) */
+  distUrl?: string | null;
   files: ProjectFile[];
   stack: string;
   buildErrors: string[];
   projectName: string | null;
   userId: string | null;
+  filesCount?: number;
   createdAt: string;
   updatedAt: string;
 }

@@ -79,7 +79,7 @@ export function AICodeGenContainer() {
   const checkServiceHealth = async () => {
     try {
       // Check ready status
-      const readyData = await aiService.getReady();
+      await aiService.getReady();
       setServiceStatus('healthy');
       setServiceMessage('AI Builder Service Online');
     } catch (err: any) {
@@ -154,26 +154,22 @@ export function AICodeGenContainer() {
             setBuildLogs(prev => [...prev, '✨ [System] Compilation completed successfully!', '🚀 [System] Project deployed and preview link generated.']);
             setActiveProject(project);
 
+            // Add the UI Card for the completed project
             const aiReplyFile = project.files?.find((f: any) => f.path === '_ai_reply.md' || f.path === '_chat_reply.md');
-            
-            if (aiReplyFile && aiReplyFile.content && aiReplyFile.content.trim() !== '') {
-              const aiMessage: AIMessage = {
-                id: `ai-${Date.now()}-reply`,
-                role: 'assistant',
-                content: aiReplyFile.content,
-                timestamp: new Date()
-              };
-              setCurrentMessages(prev => [...prev.filter(m => m.id !== 'loading-spinner'), aiMessage]);
-            } else {
-              const displayName = project.projectName || `Project #${project._id.toString().slice(-6)}`;
-              const successMessage: AIMessage = {
-                id: `sys-${Date.now()}`,
-                role: 'assistant',
-                content: `### 🎉 Generation Completed!\nYour project **${displayName}** has been successfully generated and deployed using the **${project.stack || 'React 18+ Vite'}** template stack.\n\nYou can explore the files inside the Workspace Viewer on the right, view the live preview, or download the ZIP archives. Use the chat input below to request modifications.`,
-                timestamp: new Date()
-              };
-              setCurrentMessages(prev => [...prev.filter(m => m.id !== 'loading-spinner'), successMessage]);
-            }
+            const cardMsg: AIMessage = {
+              id: `build-${Date.now()}`,
+              role: 'assistant',
+              content: aiReplyFile?.content || '',
+              buildCard: {
+                projectName: project.projectName || 'My Project',
+                filesCount: project.filesCount || project.files?.length,
+                previewUrl: project.previewUrl ?? undefined,
+                downloadUrl: project.downloadUrl ?? undefined,
+                distUrl: project.distUrl ?? undefined,
+              },
+              timestamp: new Date()
+            };
+            setCurrentMessages(prev => [...prev.filter(m => m.id !== 'loading-spinner'), cardMsg]);
           }
         } else if (project.status === 'failed') {
           if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
@@ -227,7 +223,6 @@ export function AICodeGenContainer() {
 
     try {
       // Call Chat generation endpoint
-      // Stack is determined by the selected model name or defaults to React 18 + Vite
       const techStack = model.includes('Pro') ? 'Next.js 14 App Router' : 'React 18+ Vite';
       const result = await aiService.generateProject(prompt, techStack, userId);
 
@@ -243,10 +238,10 @@ export function AICodeGenContainer() {
         return;
       }
 
-      if (result && result.projectId) {
-        // Start polling the project details
-        localStorage.setItem('activeProjectId', result.projectId);
-        startPollingProject(result.projectId);
+      const pid = (result as any).projectId || (result as any)._id;
+      if (pid) {
+        localStorage.setItem('activeProjectId', pid);
+        startPollingProject(pid);
       } else {
         throw new Error('No projectId returned from server');
       }
@@ -305,9 +300,10 @@ export function AICodeGenContainer() {
         return;
       }
 
-      if (result && result.projectId) {
-        localStorage.setItem('activeProjectId', result.projectId);
-        startPollingProject(result.projectId);
+      const pid = (result as any).projectId || (result as any)._id;
+      if (pid) {
+        localStorage.setItem('activeProjectId', pid);
+        startPollingProject(pid);
       } else {
         throw new Error('No projectId returned from edit request');
       }
@@ -348,13 +344,45 @@ export function AICodeGenContainer() {
       setIsGenerating(false);
 
       // Populate messages
-      const welcomeMsg: AIMessage = {
-        id: `sys-${Date.now()}`,
-        role: 'assistant',
-        content: `### 📁 Project Workspace: **${project.projectName}**\nLoaded project using **${project.stack}** stack.\n\nYou can view the source code in the IDE workspace, open the preview URL, or type instructions below to modify the project.`,
-        timestamp: new Date()
-      };
-      setCurrentMessages([welcomeMsg]);
+      const initialMessages: AIMessage[] = [
+        {
+          id: `sys-${Date.now()}`,
+          role: 'assistant',
+          content: `### 📁 Project Workspace: **${project.projectName || 'My Project'}**\nLoaded project using **${project.stack}** stack.\n\nYou can view the source code in the IDE workspace, open the preview URL, or type instructions below to modify the project.`,
+          timestamp: new Date()
+        }
+      ];
+
+      // Add original prompt if available
+      if ((project as any).prompt) {
+        initialMessages.push({
+          id: `user-${Date.now()}`,
+          role: 'user',
+          content: (project as any).prompt,
+          timestamp: new Date(project.createdAt || Date.now())
+        });
+      }
+
+      // Add AI reply / build card if completed
+      if (project.status === 'completed') {
+        const aiReplyFile = project.files?.find((f: any) => f.path === '_ai_reply.md' || f.path === '_chat_reply.md');
+        const cardMsg: AIMessage = {
+          id: `build-${Date.now()}`,
+          role: 'assistant',
+          content: aiReplyFile?.content || '',
+          buildCard: {
+            projectName: project.projectName || 'My Project',
+            filesCount: project.filesCount || project.files?.length,
+            previewUrl: project.previewUrl ?? undefined,
+            downloadUrl: project.downloadUrl ?? undefined,
+            distUrl: project.distUrl ?? undefined,
+          },
+          timestamp: new Date(project.updatedAt || Date.now())
+        };
+        initialMessages.push(cardMsg);
+      }
+
+      setCurrentMessages(initialMessages);
 
       // If it is somehow stuck in building state, resume polling
       if (project.status === 'building') {
@@ -396,7 +424,11 @@ export function AICodeGenContainer() {
   };
 
   // Trigger download of built package
-  const handleDownloadDist = async (project: { sessionId: string; projectName: string | null }) => {
+  const handleDownloadDist = async (project: { sessionId: string; projectName: string | null; distUrl?: string }) => {
+    if (project.distUrl) {
+      window.open(project.distUrl, '_blank');
+      return;
+    }
     if (!project.projectName) return;
     try {
       const blob = await aiService.downloadDistZip(project.sessionId, project.projectName);
@@ -422,7 +454,11 @@ export function AICodeGenContainer() {
   };
 
   // Trigger download of source code
-  const handleDownloadSource = async (project: { sessionId: string; projectName: string | null }) => {
+  const handleDownloadSource = async (project: { sessionId: string; projectName: string | null; downloadUrl?: string }) => {
+    if (project.downloadUrl) {
+      window.open(project.downloadUrl, '_blank');
+      return;
+    }
     if (!project.projectName) return;
     try {
       const blob = await aiService.downloadSourceZip(project.sessionId, project.projectName);
@@ -666,13 +702,13 @@ export function AICodeGenContainer() {
 
                       <div className="absolute right-0 bottom-full mb-1 bg-white border border-gray-200 rounded-lg shadow-lg hidden group-hover:block z-50 w-[150px] overflow-hidden">
                         <button
-                          onClick={() => handleDownloadDist({ sessionId: proj.sessionId || proj.projectId, projectName: proj.projectName })}
+                          onClick={() => handleDownloadDist({ sessionId: proj.sessionId || proj.projectId, projectName: proj.projectName, distUrl: (proj as any).distUrl ?? undefined })}
                           className="w-full text-left px-3 py-2 text-xs text-gray-700 hover:bg-teal-50 hover:text-[#103B40] transition-colors font-medium border-b border-gray-100 cursor-pointer"
                         >
                           Built ZIP (.dist)
                         </button>
                         <button
-                          onClick={() => handleDownloadSource({ sessionId: proj.sessionId || proj.projectId, projectName: proj.projectName })}
+                          onClick={() => handleDownloadSource({ sessionId: proj.sessionId || proj.projectId, projectName: proj.projectName, downloadUrl: (proj as any).downloadUrl ?? undefined })}
                           className="w-full text-left px-3 py-2 text-xs text-gray-700 hover:bg-teal-50 hover:text-[#103B40] transition-colors font-medium cursor-pointer"
                         >
                           Source ZIP (.src)
@@ -789,7 +825,7 @@ export function AICodeGenContainer() {
                             </button>
                           )}
                           <button
-                            onClick={() => handleDownloadDist({ sessionId: activeProject.sessionId, projectName: activeProject.projectName })}
+                            onClick={() => handleDownloadDist({ sessionId: activeProject.sessionId, projectName: activeProject.projectName, distUrl: activeProject.distUrl ?? undefined })}
                             className="flex items-center gap-1 px-2 py-1 hover:bg-white/10 rounded text-xs text-white/80 hover:text-white transition-colors cursor-pointer border border-[#333]"
                             title="Download package (dist.zip)"
                           >
@@ -797,7 +833,7 @@ export function AICodeGenContainer() {
                             Build
                           </button>
                           <button
-                            onClick={() => handleDownloadSource({ sessionId: activeProject.sessionId, projectName: activeProject.projectName })}
+                            onClick={() => handleDownloadSource({ sessionId: activeProject.sessionId, projectName: activeProject.projectName, downloadUrl: activeProject.downloadUrl ?? undefined })}
                             className="flex items-center gap-1 px-2 py-1 hover:bg-white/10 rounded text-xs text-white/80 hover:text-white transition-colors cursor-pointer border border-[#333]"
                             title="Download source code"
                           >

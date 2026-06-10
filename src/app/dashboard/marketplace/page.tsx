@@ -52,9 +52,9 @@ export default function MarketplacePage() {
   }, []);
 
   return (
-    <div className="-m-4 md:-m-6 lg:-m-10 p-4 md:p-6 lg:p-10 bg-[#E2E3EA] min-h-[calc(100vh-60px)]">
+    <div className="-m-4 md:-m-6 lg:-m-10 p-4 md:p-6 lg:p-10 bg-[#E2E3EA] dark:bg-gray-950 min-h-[calc(100vh-60px)]">
       <div className="w-full max-w-[1200px] mx-auto flex flex-col h-full">
-        <div className="border-b-2 border-[#b0c4c4] pb-2 mb-4 relative z-50">
+        <div className="border-b-2 border-[#b0c4c4] dark:border-gray-800 pb-2 mb-4 relative z-50">
           <UserHeader name={userName} compact={true} />
         </div>
 
@@ -66,19 +66,19 @@ export default function MarketplacePage() {
           className="flex justify-between items-center gap-4 mt-2 mb-2"
         >
           <div className="flex-1">
-            <h2 className="text-[#103B40] font-bold text-2xl">All Templates</h2>
+            <h2 className="text-[#103B40] dark:text-[#43B0B5] font-bold text-2xl">All Templates</h2>
           </div>
           <div className="flex items-center gap-2">
             <Link
               href="/dashboard/marketplace/history"
-              className="flex items-center gap-2 bg-white text-[#123E41] px-4 py-3.5 rounded-xl transition-colors font-medium text-sm shadow-sm border border-teal-50 hover:bg-teal-50"
+              className="flex items-center gap-2 bg-white dark:bg-gray-900 text-[#123E41] dark:text-gray-200 px-4 py-3.5 rounded-xl transition-colors font-medium text-sm shadow-sm border border-teal-50 dark:border-gray-700 hover:bg-teal-50 dark:hover:bg-gray-800"
             >
               <History size={18} />
               <span className="hidden sm:inline">History</span>
             </Link>
             <Link
               href="/dashboard/marketplace/cart"
-              className="flex items-center gap-2 bg-white text-[#123E41] px-4 py-3.5 rounded-xl transition-colors font-medium text-sm shadow-sm border border-teal-50 hover:bg-teal-50 relative"
+              className="flex items-center gap-2 bg-white dark:bg-gray-900 text-[#123E41] dark:text-gray-200 px-4 py-3.5 rounded-xl transition-colors font-medium text-sm shadow-sm border border-teal-50 dark:border-gray-700 hover:bg-teal-50 dark:hover:bg-gray-800 relative"
             >
               <ShoppingCart size={18} />
               <span className="hidden sm:inline">Cart</span>
@@ -101,7 +101,7 @@ export default function MarketplacePage() {
         </motion.div>
 
         {loading ? (
-          <div className="flex justify-center items-center py-20 text-[#123E41]">
+          <div className="flex justify-center items-center py-20 text-[#123E41] dark:text-gray-400">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#123E41]"></div>
           </div>
         ) : (

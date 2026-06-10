@@ -105,27 +105,27 @@ export default function PurchaseCard({ template }: PurchaseCardProps) {
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5, delay: 0.4 }}
       >
-      <div className="bg-white rounded-2xl p-6 shadow-sm sticky top-6 border border-teal-50">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-sm sticky top-6 border border-teal-50 dark:border-gray-800">
         <div className="flex items-end gap-3 justify-center mb-6">
-           <span className="text-3xl font-bold text-gray-900">{isFree ? "Free" : `$${template.price.toFixed(2)}`}</span>
+           <span className="text-3xl font-bold text-gray-900 dark:text-white">{isFree ? "Free" : `$${template.price.toFixed(2)}`}</span>
         </div>
 
         <div className="grid grid-cols-2 gap-4 mb-8">
-          <div className="bg-teal-50/50 rounded-xl p-3 border border-teal-50">
-            <p className="text-xs text-gray-500 mb-1">File Format</p>
-            <p className="text-sm font-semibold text-[#103B40]">{fileFormat}</p>
+          <div className="bg-teal-50/50 dark:bg-gray-800 rounded-xl p-3 border border-teal-50 dark:border-gray-700">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">File Format</p>
+            <p className="text-sm font-semibold text-[#103B40] dark:text-[#43B0B5]">{fileFormat}</p>
           </div>
-          <div className="bg-teal-50/50 rounded-xl p-3 border border-teal-50">
-            <p className="text-xs text-gray-500 mb-1">File Size</p>
-            <p className="text-sm font-semibold text-[#103B40]">{fileSize}</p>
+          <div className="bg-teal-50/50 dark:bg-gray-800 rounded-xl p-3 border border-teal-50 dark:border-gray-700">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">File Size</p>
+            <p className="text-sm font-semibold text-[#103B40] dark:text-[#43B0B5]">{fileSize}</p>
           </div>
-          <div className="bg-teal-50/50 rounded-xl p-3 border border-teal-50">
-            <p className="text-xs text-gray-500 mb-1">Dimensions</p>
-            <p className="text-sm font-semibold text-[#103B40]">{dimensions}</p>
+          <div className="bg-teal-50/50 dark:bg-gray-800 rounded-xl p-3 border border-teal-50 dark:border-gray-700">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Dimensions</p>
+            <p className="text-sm font-semibold text-[#103B40] dark:text-[#43B0B5]">{dimensions}</p>
           </div>
-          <div className="bg-teal-50/50 rounded-xl p-3 border border-teal-50">
-            <p className="text-xs text-gray-500 mb-1">License</p>
-            <p className="text-sm font-semibold text-[#103B40]">{licenseType}</p>
+          <div className="bg-teal-50/50 dark:bg-gray-800 rounded-xl p-3 border border-teal-50 dark:border-gray-700">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">License</p>
+            <p className="text-sm font-semibold text-[#103B40] dark:text-[#43B0B5]">{licenseType}</p>
           </div>
         </div>
 

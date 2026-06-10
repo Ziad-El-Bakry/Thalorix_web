@@ -188,7 +188,7 @@ export default function SettingsPageContent() {
 
       {/* Sidebar Tabs */}
       <div className="w-full md:w-64 flex-shrink-0">
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col p-2 space-y-1">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden flex flex-col p-2 space-y-1">
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -196,23 +196,23 @@ export default function SettingsPageContent() {
               className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                 activeTab === tab.id
                   ? "bg-[#103B40] text-white shadow-md"
-                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
               }`}
             >
-              <div className={activeTab === tab.id ? "text-white" : "text-gray-400"}>
+              <div className={activeTab === tab.id ? "text-white" : "text-gray-400 dark:text-gray-500"}>
                 {tab.icon}
               </div>
               {tab.label}
             </button>
           ))}
 
-          <div className="h-px bg-gray-100 my-2 mx-2" />
+          <div className="h-px bg-gray-100 dark:bg-gray-800 my-2 mx-2" />
 
           <button
             onClick={() => setIsLogoutModalOpen(true)}
-            className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-all"
+            className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all"
           >
-            <LogOut size={18} className="text-gray-400" />
+            <LogOut size={18} className="text-gray-400 dark:text-gray-500" />
             Log Out
           </button>
           <button
@@ -227,8 +227,8 @@ export default function SettingsPageContent() {
 
       {/* Main Content Area */}
       <div className="flex-1">
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8 min-h-[500px]">
-          <h2 className="text-xl font-bold text-gray-900 mb-6 border-b border-gray-100 pb-4">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-6 sm:p-8 min-h-[500px]">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">
             {tabs.find((t) => t.id === activeTab)?.label}
           </h2>
 
@@ -243,30 +243,30 @@ export default function SettingsPageContent() {
                   className="space-y-5"
                 >
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-1.5">Full Name</label>
+                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5">Full Name</label>
                     <input
                       type="text"
                       defaultValue={user.name}
                       placeholder="Enter your full name"
-                      className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#43B0B5]/30 focus:border-[#43B0B5] transition-all"
+                      className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#43B0B5]/30 focus:border-[#43B0B5] transition-all text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-1.5">Email Address</label>
+                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5">Email Address</label>
                     <input
                       type="email"
                       defaultValue={user.email}
                       placeholder="Enter your email address"
-                      className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#43B0B5]/30 focus:border-[#43B0B5] transition-all"
+                      className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#43B0B5]/30 focus:border-[#43B0B5] transition-all text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-1.5">Bio</label>
+                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5">Bio</label>
                     <textarea
                       rows={4}
                       defaultValue={user.bio}
                       placeholder="Tell us about yourself"
-                      className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#43B0B5]/30 focus:border-[#43B0B5] transition-all resize-none"
+                      className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#43B0B5]/30 focus:border-[#43B0B5] transition-all resize-none text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
                     />
                   </div>
                 </motion.div>
@@ -281,14 +281,14 @@ export default function SettingsPageContent() {
                   className="space-y-5"
                 >
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-1.5">Current Password</label>
+                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5">Current Password</label>
                     <div className="relative">
                       <input
                         type={showOldPassword ? "text" : "password"}
                         value={oldPassword}
                         onChange={(e) => setOldPassword(e.target.value)}
                         placeholder="Enter current password"
-                        className="w-full pl-4 pr-12 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#43B0B5]/30 focus:border-[#43B0B5] transition-all"
+                        className="w-full pl-4 pr-12 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#43B0B5]/30 focus:border-[#43B0B5] transition-all text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
                       />
                       <button
                         type="button"
@@ -301,14 +301,14 @@ export default function SettingsPageContent() {
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-1.5">New Password</label>
+                      <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5">New Password</label>
                       <div className="relative">
                         <input
                           type={showNewPassword ? "text" : "password"}
                           value={newPassword}
                           onChange={(e) => setNewPassword(e.target.value)}
                           placeholder="Enter new password"
-                          className="w-full pl-4 pr-12 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#43B0B5]/30 focus:border-[#43B0B5] transition-all"
+                          className="w-full pl-4 pr-12 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#43B0B5]/30 focus:border-[#43B0B5] transition-all text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
                         />
                         <button
                           type="button"
@@ -320,14 +320,14 @@ export default function SettingsPageContent() {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-1.5">Confirm New Password</label>
+                      <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5">Confirm New Password</label>
                       <div className="relative">
                         <input
                           type={showConfirmPassword ? "text" : "password"}
                           value={confirmPassword}
                           onChange={(e) => setConfirmPassword(e.target.value)}
                           placeholder="Confirm new password"
-                          className="w-full pl-4 pr-12 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#43B0B5]/30 focus:border-[#43B0B5] transition-all"
+                          className="w-full pl-4 pr-12 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#43B0B5]/30 focus:border-[#43B0B5] transition-all text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
                         />
                         <button
                           type="button"
@@ -352,8 +352,8 @@ export default function SettingsPageContent() {
                 >
                   {/* ─── Theme Mode Selector ─── */}
                   <div>
-                    <h3 className="text-sm font-bold text-gray-700 mb-1">Theme Mode</h3>
-                    <p className="text-xs text-gray-400 mb-4">Choose how Thalorix looks to you</p>
+                    <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Theme Mode</h3>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">Choose how Thalorix looks to you</p>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       {themeModes.map((mode) => {
                         const isActive = themeMode === mode.id;
@@ -364,8 +364,8 @@ export default function SettingsPageContent() {
                             onClick={() => handleThemeChange(mode.id)}
                             className={`relative flex flex-col items-center gap-3 p-5 rounded-2xl border-2 transition-all duration-200 cursor-pointer group ${
                               isActive
-                                ? "border-[#43B0B5] bg-[#43B0B5]/5 shadow-lg shadow-[#43B0B5]/10"
-                                : "border-gray-100 bg-gray-50 hover:border-gray-200 hover:bg-gray-100/50"
+                                ? "border-[#43B0B5] bg-[#43B0B5]/5 dark:bg-[#43B0B5]/10 shadow-lg shadow-[#43B0B5]/10"
+                                : "border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 hover:border-gray-200 dark:hover:border-gray-600 hover:bg-gray-100/50 dark:hover:bg-gray-700/50"
                             }`}
                           >
                             {/* Active indicator */}
@@ -422,12 +422,12 @@ export default function SettingsPageContent() {
                               <div className="text-left">
                                 <p
                                   className={`text-sm font-bold ${
-                                    isActive ? "text-[#103B40]" : "text-gray-700"
+                                    isActive ? "text-[#103B40] dark:text-[#43B0B5]" : "text-gray-700 dark:text-gray-200"
                                   }`}
                                 >
                                   {mode.label}
                                 </p>
-                                <p className="text-[11px] text-gray-400">{mode.desc}</p>
+                                <p className="text-[11px] text-gray-400 dark:text-gray-500">{mode.desc}</p>
                               </div>
                             </div>
                           </button>
@@ -439,7 +439,7 @@ export default function SettingsPageContent() {
               )}
             </AnimatePresence>
 
-            <div className="pt-6 border-t border-gray-100 flex justify-end">
+            <div className="pt-6 border-t border-gray-100 dark:border-gray-800 flex justify-end">
               <button
                 type="submit"
                 disabled={isLoading}

@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { AIMessage } from '@/types/ai';
 import { useAvatar } from '@/store/useAvatarStore';
 import Image from 'next/image';
-import { Copy, Check, Terminal, Edit2 } from 'lucide-react';
+import { Copy, Check, Terminal, Edit2, ExternalLink, Download, CheckCircle2, Folder } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 
 import ReactMarkdown from 'react-markdown';
@@ -112,10 +112,71 @@ export function MessageBubble({ message }: MessageBubbleProps) {
               {renderMarkdown(message.content, true)}
             </div>
           ) : (
-            <div className="w-full">
-              {!message.isCode && (
+            <div className="w-full flex flex-col gap-3">
+              {!message.isCode && message.content && (
                 <div className="bg-white border border-gray-200 rounded-2xl rounded-tl-md px-5 py-4 text-sm text-gray-700 shadow-sm leading-relaxed overflow-hidden">
                   {renderMarkdown(message.content, false)}
+                </div>
+              )}
+
+              {/* Build Completed Card */}
+              {message.buildCard && (
+                <div className="rounded-2xl rounded-tl-md border border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 p-4 shadow-sm overflow-hidden">
+                  {/* Card Header */}
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0">
+                      <CheckCircle2 className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-emerald-800 uppercase tracking-wide">Build Completed</p>
+                      <p className="text-sm font-semibold text-[#103B40] truncate">{message.buildCard.projectName}</p>
+                    </div>
+                  </div>
+
+                  {/* Files count */}
+                  {message.buildCard.filesCount !== undefined && (
+                    <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-3">
+                      <Folder className="w-3.5 h-3.5 text-teal-600" />
+                      <span>{message.buildCard.filesCount} files generated</span>
+                    </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  <div className="flex flex-wrap gap-2">
+                    {message.buildCard.previewUrl && (
+                      <a
+                        href={message.buildCard.previewUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-[#103B40] hover:bg-teal-800 text-white rounded-lg text-xs font-medium transition-colors"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        Open Preview
+                      </a>
+                    )}
+                    {message.buildCard.downloadUrl && (
+                      <a
+                        href={message.buildCard.downloadUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 rounded-lg text-xs font-medium transition-colors"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        Download Source
+                      </a>
+                    )}
+                    {message.buildCard.distUrl && (
+                      <a
+                        href={message.buildCard.distUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 rounded-lg text-xs font-medium transition-colors"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        Download Build
+                      </a>
+                    )}
+                  </div>
                 </div>
               )}
 
