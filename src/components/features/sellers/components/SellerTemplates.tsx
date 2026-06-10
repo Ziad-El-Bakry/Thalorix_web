@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { ShoppingBag, Eye } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -11,6 +11,7 @@ interface SellerTemplatesProps {
 
 export default function SellerTemplates({ templates }: SellerTemplatesProps) {
   const router = useRouter();
+  const [showAll, setShowAll] = useState(false);
 
   if (templates.length === 0) {
     return (
@@ -26,9 +27,12 @@ export default function SellerTemplates({ templates }: SellerTemplatesProps) {
     );
   }
 
+  const visibleTemplates = showAll ? templates : templates.slice(0, 4);
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-      {templates.map((tpl) => (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        {visibleTemplates.map((tpl) => (
         <motion.div
           key={tpl._id || tpl.id}
           initial={{ opacity: 0, scale: 0.95 }}
@@ -62,6 +66,17 @@ export default function SellerTemplates({ templates }: SellerTemplatesProps) {
           </button>
         </motion.div>
       ))}
+      </div>
+      {templates.length > 4 && (
+        <div className="flex justify-center mt-4">
+          <button
+            onClick={() => setShowAll(!showAll)}
+            className="text-teal-600 hover:text-teal-700 text-sm font-bold border border-teal-100 bg-teal-50 hover:bg-teal-100 px-6 py-2.5 rounded-full transition-all active:scale-95 shadow-sm"
+          >
+            {showAll ? "See Less" : "See More Templates"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

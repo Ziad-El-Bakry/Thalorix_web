@@ -40,8 +40,8 @@ export default function RoleGuard({ children }: RoleGuardProps) {
     // Add specific restricted base routes here
     const checkAccess = () => {
       if (!role) {
-        // Not logged in? Handled by other auth wrappers usually, but just in case
-        return true; 
+        // Not logged in? Redirect to login page
+        return false; 
       }
 
       // Admin routes
@@ -67,8 +67,8 @@ export default function RoleGuard({ children }: RoleGuardProps) {
     if (checkAccess()) {
       setIsAuthorized(true);
     } else {
-      // Unauthorized, redirect to their default path
-      const defaultPath = getRoleDefaultPath(role || "user");
+      // Unauthorized, redirect to their default path or login if not authenticated
+      const defaultPath = role ? getRoleDefaultPath(role) : "/login";
       router.replace(defaultPath);
     }
   }, [pathname, router]);

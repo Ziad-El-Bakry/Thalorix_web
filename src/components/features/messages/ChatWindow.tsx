@@ -5,7 +5,7 @@ import { Conversation, Message } from "../../../types/message";
 import ChatHeader from "./ChatHeader";
 import MessageBubble from "./MessageBubble";
 import MessageInput from "./MessageInput";
-import { X, Trash2 } from "lucide-react";
+import { X, Trash2, Download } from "lucide-react";
 import { useAvatar } from "@/store/useAvatarStore";
 import { useChatStore } from "@/store/useChatStore";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -229,12 +229,28 @@ export default function ChatWindow({
       {/* Fullscreen Image Modal */}
       {selectedImage && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4 animate-in fade-in duration-200">
-          <button
-            onClick={() => setSelectedImage(null)}
-            className="absolute top-4 right-4 text-white hover:bg-white/20 p-2 rounded-full transition-colors z-50"
-          >
-            <X className="w-8 h-8" />
-          </button>
+          <div className="absolute top-4 right-4 flex items-center gap-4 z-50">
+            <button
+              onClick={() => {
+                const a = document.createElement("a");
+                a.href = selectedImage;
+                a.download = "image";
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+              }}
+              className="text-white hover:bg-white/20 p-2 rounded-full transition-colors"
+              title="Download Image"
+            >
+              <Download className="w-6 h-6" />
+            </button>
+            <button
+              onClick={() => setSelectedImage(null)}
+              className="text-white hover:bg-white/20 p-2 rounded-full transition-colors"
+            >
+              <X className="w-8 h-8" />
+            </button>
+          </div>
           <img
             src={selectedImage}
             alt="Fullscreen view"

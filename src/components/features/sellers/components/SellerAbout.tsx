@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Mail, Globe, Facebook, Instagram, Linkedin, Twitter } from "lucide-react";
 
 interface SellerAboutProps {
@@ -8,14 +8,27 @@ interface SellerAboutProps {
 }
 
 export default function SellerAbout({ seller }: SellerAboutProps) {
+  const [showMore, setShowMore] = useState(false);
+  const description = seller.storeDescription || seller.bio || "This seller hasn't written a description for their store yet.";
+
   return (
     <div className="space-y-6">
       {/* About store widget */}
       <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-5">
         <h3 className="text-lg font-bold text-gray-900 border-b pb-3 border-gray-100">About Store</h3>
-        <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-line">
-          {seller.storeDescription || seller.bio || "This seller hasn't written a description for their store yet."}
-        </p>
+        <div className="relative">
+          <p className={`text-gray-600 text-sm leading-relaxed whitespace-pre-line transition-all duration-300 ${!showMore ? "line-clamp-4" : ""}`}>
+            {description}
+          </p>
+          {description.length > 200 && (
+            <button 
+              onClick={() => setShowMore(!showMore)}
+              className="mt-2 text-teal-600 hover:text-teal-700 text-sm font-semibold transition-colors"
+            >
+              {showMore ? "See Less" : "See More"}
+            </button>
+          )}
+        </div>
 
         <div className="pt-2 space-y-4">
           {seller.email && (
