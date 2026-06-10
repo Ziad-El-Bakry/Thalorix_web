@@ -128,7 +128,7 @@ const MessageBubble = React.memo(({ message, isOwn = false, onImageClick, onRepl
       return (
         <div
           className="flex items-center gap-3 p-3 bg-black/10 rounded-xl border border-black/5 min-w-[200px] mb-2 cursor-pointer hover:bg-black/15 active:bg-black/20 transition-colors"
-          onClick={() => window.open(fileUrl, '_blank')}
+          onClick={() => window.open(getDownloadUrl(fileUrl), '_blank')}
         >
           <div className="bg-red-500 p-2 rounded-lg shrink-0 shadow-sm">
             <FileText className="text-white w-5 h-5" />
@@ -151,7 +151,7 @@ const MessageBubble = React.memo(({ message, isOwn = false, onImageClick, onRepl
       return (
         <div
           className="flex items-center gap-3 p-3 bg-black/10 rounded-xl border border-black/5 min-w-[200px] mb-2 cursor-pointer hover:bg-black/15 active:bg-black/20 transition-colors"
-          onClick={() => window.open(fileUrl, '_blank')}
+          onClick={() => window.open(getDownloadUrl(fileUrl), '_blank')}
         >
           <div className="bg-amber-500 p-2 rounded-lg shrink-0 shadow-sm">
             <Archive className="text-white w-5 h-5" />

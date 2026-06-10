@@ -43,6 +43,7 @@ export default function SellerReviews({
   const [newRating, setNewRating] = useState(5);
   const [newComment, setNewComment] = useState("");
   const [validationError, setValidationError] = useState("");
+  const [showAll, setShowAll] = useState(false);
 
   const ratingDistribution = [0, 0, 0, 0, 0]; // 1-star to 5-star distribution
   reviews.forEach((r) => {
@@ -180,7 +181,7 @@ export default function SellerReviews({
       {/* Reviews Feed */}
       {reviews.length > 0 ? (
         <div className="space-y-4">
-          {reviews.map((rev) => (
+          {(showAll ? reviews : reviews.slice(0, 3)).map((rev) => (
             <motion.div
               key={rev._id || rev.id}
               initial={{ opacity: 0, y: 10 }}
@@ -226,6 +227,16 @@ export default function SellerReviews({
               </p>
             </motion.div>
           ))}
+          {reviews.length > 3 && (
+            <div className="flex justify-center mt-4 pt-2">
+              <button
+                onClick={() => setShowAll(!showAll)}
+                className="text-teal-600 hover:text-teal-700 text-sm font-bold border border-teal-100 bg-teal-50 hover:bg-teal-100 px-6 py-2.5 rounded-full transition-all active:scale-95 shadow-sm"
+              >
+                {showAll ? "See Less" : "See More Reviews"}
+              </button>
+            </div>
+          )}
         </div>
       ) : (
         <div className="bg-white py-16 text-center rounded-2xl border border-gray-100 shadow-sm p-6">
