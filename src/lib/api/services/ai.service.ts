@@ -31,8 +31,20 @@ export const aiService = {
     userId?: string
   ): Promise<AIBuilderResponse> {
     const payload = { prompt, stack, userId };
-    const { data } = await api.post(ENDPOINTS.AI.CHAT, payload);
-    return data.data || data;
+    try {
+      const { data } = await api.post(ENDPOINTS.AI.CHAT, payload);
+      if (data && data.ok === false) {
+        throw new Error(data.error || data.message || 'API Error');
+      }
+      return data.data || data;
+    } catch (err: any) {
+      if (err.response?.data?.error) {
+        throw new Error(err.response.data.error);
+      } else if (err.response?.data?.message) {
+        throw new Error(err.response.data.message);
+      }
+      throw err;
+    }
   },
 
   /**
@@ -101,8 +113,20 @@ export const aiService = {
     id: string,
     prompt: string
   ): Promise<AIBuilderResponse> {
-    const { data } = await api.patch(ENDPOINTS.AI.EDIT_PROJECT(id), { prompt });
-    return data.data || data;
+    try {
+      const { data } = await api.patch(ENDPOINTS.AI.EDIT_PROJECT(id), { prompt });
+      if (data && data.ok === false) {
+        throw new Error(data.error || data.message || 'API Error');
+      }
+      return data.data || data;
+    } catch (err: any) {
+      if (err.response?.data?.error) {
+        throw new Error(err.response.data.error);
+      } else if (err.response?.data?.message) {
+        throw new Error(err.response.data.message);
+      }
+      throw err;
+    }
   },
 
   /**
