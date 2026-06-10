@@ -46,6 +46,7 @@ interface ProfileHeaderProps {
   relationship?: any;
   setRelationship?: React.Dispatch<React.SetStateAction<any>>;
   postsCount?: number;
+  setUser?: React.Dispatch<React.SetStateAction<any>>;
 }
 
 export default function ProfileHeader({
@@ -69,7 +70,8 @@ export default function ProfileHeader({
   triggerUpload,
   relationship,
   setRelationship,
-  postsCount = 0
+  postsCount = 0,
+  setUser
 }: ProfileHeaderProps) {
   const router = useRouter();
   const [isMessageLoading, setIsMessageLoading] = useState(false);
@@ -79,11 +81,28 @@ export default function ProfileHeader({
   const handleToggleFollow = async () => {
     if (!user || !setRelationship) return;
     const oldVal = relationship?.isFollowing;
-    setRelationship((prev: any) => ({ ...prev, isFollowing: !oldVal }));
+    const isNowFollowing = !oldVal;
+    
+    // Optimistic UI updates
+    setRelationship((prev: any) => ({ ...prev, isFollowing: isNowFollowing }));
+    if (setUser) {
+      setUser((prev: any) => ({
+        ...prev,
+        followersCount: Math.max(0, (prev.followersCount || 0) + (isNowFollowing ? 1 : -1))
+      }));
+    }
+
     try {
       await usersService.toggleFollow(user.id || user._id);
     } catch (e) {
+      // Revert on failure
       setRelationship((prev: any) => ({ ...prev, isFollowing: oldVal }));
+      if (setUser) {
+        setUser((prev: any) => ({
+          ...prev,
+          followersCount: Math.max(0, (prev.followersCount || 0) + (oldVal ? 1 : -1))
+        }));
+      }
     }
   };
 

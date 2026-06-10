@@ -44,7 +44,7 @@ export default function NotFound() {
         <p className="text-gray-300/80 text-lg md:text-xl mb-10 leading-relaxed max-w-md mx-auto">
           We&apos;re working hard to bring this page to life.
           <br className="hidden sm:block" />
-          Stay tuned for something amazing!
+          Stay tuned for something Amazing!
         </p>
 
         {/* Decorative animated line */}

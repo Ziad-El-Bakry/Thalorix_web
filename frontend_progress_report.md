@@ -155,9 +155,9 @@
 
 | Feature | Completion % | Status | Notes |
 | :--- | :--- | :--- | :--- |
-| **Auth System** | 100% | Completed | Fully integrated, including password change & multi-role refresh |
-| **Posts & Feed** | 95% | Completed | Optimistic UI active, robust upload retry mechanisms |
-| **Profile System** | 85% | In Progress | Refined UI, pending portfolio data integration |
+| **Auth System** | 100% | Completed | Fully integrated, including password change, multi-role refresh, and frontend RBAC via cookies |
+| **Posts & Feed** | 95% | Completed | Optimistic UI active, fixed emoji picker UI, robust upload retry mechanisms |
+| **Profile System** | 85% | In Progress | Refined UI, added password visibility toggles, pending portfolio data integration |
 | **Messaging** | 95% | Completed | WebSocket layer fully integrated via Zustand |
 | **Marketplace** | 95% | Completed | Dynamic Upload Flow & Metadata linked to API |
 | **AI Generator** | 85% | Advanced | Linked to `aiService` for deployed projects and build queues |
@@ -171,10 +171,10 @@
 
 ### Analysis
 - **JWT Handling:** Tokens are securely passed via Axios interceptors. Refresh token logic handles seamless session renewal without exposing access tokens in URLs.
-- **Token Storage Strategy:** Tokens are stored in `localStorage`. *Recommendation: Migrate to HttpOnly secure cookies if SSR and backend CORS configurations permit, to mitigate XSS vector risks.*
+- **Token Storage Strategy:** Historically relied on `localStorage`. *Update:* Migrated `auth_token` and `user_role` to HTTP cookies (`js-cookie`) to enable fast, secure frontend route guarding.
 - **XSS Risks:** React's DOM rendering inherently escapes malicious inputs. However, user-generated content in the Community Feed and potential `dangerouslySetInnerHTML` in the AI Builder output must be stringently sanitized.
 - **Upload Validation:** The frontend enforces strict type, size, and format checks before dispatching multipart payloads to the backend for Cloudinary proxying.
-- **Route Protection:** Next.js Middleware and client-side Auth Guards protect `/dashboard/*` routes effectively against unauthenticated access.
+- **Route Protection:** Implemented a robust frontend-only RBAC (Role-Based Access Control) system. A dedicated `<RoleGuard>` intercepts paths like `/dashboard/admin/*` and `/dashboard/seller/*`, bouncing unauthorized users based on cookie validation.
 - **API Security Exposure:** All endpoints are centralized in environment variables; Axios intercepts globally attach the `Bearer` token.
 
 **Security Score:** 85/100  
@@ -205,7 +205,9 @@ The `thalorix-web` frontend is structurally sound and demonstrates a highly poli
 
 ### Biggest Achievements
 - **Comprehensive API Integration:** Major domains including Stripe Checkout for Payments, real-time WebSockets for Messaging, and `aiService` connectivity for the AI Code Gen are all actively linked and functional.
+- **Frontend-Only RBAC & Secure Routing:** Engineered a robust frontend Role-Based Access Control system utilizing cookies and a dedicated `<RoleGuard>`, ensuring users cannot navigate to unauthorized dashboard sections.
 - **Dynamic Marketplace Integration:** Successfully bridged the complex Template Upload UI with backend logic, enabling dynamic extraction of file metadata and real-time upload progress.
+- **UI & UX Refinements:** Resolved UI overlapping issues in the Community Emoji picker and introduced intuitive password visibility toggles across both User and Seller settings panels.
 - **Role-Based Auth Resiliency:** Resolved critical session timeout loops by implementing intelligent, role-aware JWT refresh token handling across the application.
 
 ### Biggest Risks

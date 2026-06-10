@@ -5,6 +5,7 @@ import { uploadService } from "@/lib/api/services/upload.service";
 import { chatService } from "@/lib/api/services/chat.service";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Conversation, Message } from "@/types/message";
+import { useNotificationStore } from "@/store/useNotificationStore";
 
 interface ChatStore {
   conversations: Conversation[];
@@ -77,6 +78,17 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     const socket = socketService.connect();
     if (!socket) return;
 
+    // Remove any existing event listeners to prevent duplicate listener registrations
+    socket.off("connect");
+    socket.off("disconnect");
+    socket.off("receive_message");
+    socket.off("message_sent");
+    socket.off("user_typing");
+    socket.off("user_stopped_typing");
+    socket.off("message_deleted");
+    socket.off("online_users");
+    socket.off("user_status");
+
     // Load offline queue from localStorage
     try {
       const storedQueue = localStorage.getItem("chat_offline_queue");
@@ -84,6 +96,24 @@ export const useChatStore = create<ChatStore>((set, get) => ({
         set({ offlineQueue: JSON.parse(storedQueue) });
       }
     } catch (e) {}
+
+    socket.on("connect", () => {
+      set({ socketConnected: true });
+      // Refetch conversations and current active chat on reconnect
+      get().loadConversations();
+      if (get().activeConversationId) {
+        get().loadMessages(get().activeConversationId as string, 1);
+      }
+      // Flush offline queue
+      const queue = get().offlineQueue;
+      if (queue.length > 0) {
+        queue.forEach(msg => {
+          socket.emit("send_message", { receiverId: msg.receiverId, content: msg.content });
+        });
+        set({ offlineQueue: [] });
+        localStorage.removeItem("chat_offline_queue");
+      }
+    });
 
     socket.on("connect", () => {
       set({ socketConnected: true });
@@ -112,14 +142,17 @@ export const useChatStore = create<ChatStore>((set, get) => ({
       const convId = payload.conversation;
 
       set((state) => {
-        // Add message to messages list
         const convMessages = state.messages[convId] || [];
+        const cleanText = (t: string | undefined) => (t || "").trim();
         
         // Remove any optimistic message with same text that is still 'sending'
-        const filteredMsgs = convMessages.filter(m => !(m.status === "sending" && m.text === msg.text));
+        const filteredMsgs = convMessages.filter(m => !(m.status === "sending" && cleanText(m.text) === cleanText(msg.text)));
         
         // Deduplication
-        if (filteredMsgs.some(m => m.id === msg.id)) return state;
+        if (filteredMsgs.some(m => m.id === msg.id)) {
+          console.log("DEDUPLICATED receive_message (already exists):", msg.id);
+          return state;
+        }
 
         const updatedMessages = {
           ...state.messages,
@@ -145,6 +178,20 @@ export const useChatStore = create<ChatStore>((set, get) => ({
           get().loadConversations();
         }
 
+        // Trigger notification if incoming message and not currently viewing the conversation
+        const currentUserId = useAuthStore.getState().currentUserId;
+        const isIncoming = msg.sender?.id !== currentUserId && (msg.sender as any)?._id !== currentUserId;
+        
+        if (isIncoming && state.activeConversationId !== convId) {
+          useNotificationStore.getState().setHasUnreadMessages(true);
+          useNotificationStore.getState().addNotification({
+            type: "message",
+            title: msg.sender?.name || "New Message",
+            desc: msg.text || "Sent an attachment",
+            senderId: msg.sender?.id || (msg.sender as any)?._id
+          });
+        }
+
         // If chat is active, mark read automatically
         if (state.activeConversationId === convId) {
           socket.emit("mark_read", { conversationId: convId });
@@ -161,16 +208,17 @@ export const useChatStore = create<ChatStore>((set, get) => ({
       
       set((state) => {
         const convMessages = state.messages[convId] || [];
+        const cleanText = (t: string | undefined) => (t || "").trim();
         
         // If the message is already added by receive_message, just remove the optimistic one
         const alreadyExists = convMessages.some(m => m.id === msg.id);
         
         let updatedMsgs;
         if (alreadyExists) {
-          updatedMsgs = convMessages.filter(m => !(m.status === "sending" && m.text === msg.text));
+          updatedMsgs = convMessages.filter(m => !(m.status === "sending" && cleanText(m.text) === cleanText(msg.text)));
         } else {
           updatedMsgs = convMessages.map(m => 
-            m.status === "sending" && m.text === msg.text ? { ...m, id: msg.id, status: "sent" as const } : m
+            m.status === "sending" && cleanText(m.text) === cleanText(msg.text) ? { ...m, id: msg.id, status: "sent" as const } : m
           );
         }
 
@@ -268,6 +316,12 @@ export const useChatStore = create<ChatStore>((set, get) => ({
       const onlineUserIds = get().onlineUserIds;
       const parsed = data.map((c: any) => mapBackendConversation(c, currentUserId, onlineUserIds));
       set({ conversations: parsed });
+
+      // Sync unread messages dot
+      const hasUnread = parsed.some((c: any) => c.unreadCount > 0);
+      if (hasUnread) {
+        useNotificationStore.getState().setHasUnreadMessages(true);
+      }
     } catch (e) {
       console.error("Failed to load conversations", e);
     }

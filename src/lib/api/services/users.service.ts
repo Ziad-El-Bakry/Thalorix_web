@@ -11,6 +11,7 @@ export interface UpdateProfileDto {
   username?: string;
   bio?: string;
   avatarUrl?: string; // Real URL string
+  coverUrl?: string; // Real cover URL string
   expertise?: { name: string; percent: number }[];
   socialLinks?: { facebook: string; instagram: string };
 }
@@ -120,6 +121,10 @@ export const usersService = {
         payload.logo = dto.avatarUrl;
       }
     }
+    if (dto.coverUrl !== undefined) {
+      payload.cover = dto.coverUrl;
+      payload.coverUrl = dto.coverUrl;
+    }
     if (dto.expertise) payload.expertise = dto.expertise;
     if (dto.socialLinks) payload.socialLinks = dto.socialLinks;
 
@@ -132,7 +137,8 @@ export const usersService = {
 
     if (storedUser && (storedUser.id === id || storedUser.id === (userObj as any)._id)) {
       const avatarUrl = (userObj as any).avatarUrl || userObj.avatar || (userObj as any).logo || dto.avatarUrl || "/images/avatar.png";
-      const updatedUser = { ...storedUser, ...userObj, id: (userObj as any)._id || id, avatar: avatarUrl, avatarUrl };
+      const coverUrl = (userObj as any).coverUrl || userObj.cover || dto.coverUrl || "/images/profile-cover.png";
+      const updatedUser = { ...storedUser, ...userObj, id: (userObj as any)._id || id, avatar: avatarUrl, avatarUrl, cover: coverUrl, coverUrl };
       localStorage.setItem('user', JSON.stringify(updatedUser));
     }
 
@@ -140,6 +146,7 @@ export const usersService = {
       ...userObj,
       id: userObj.id || userObj._id,
       avatar: userObj.avatar || userObj.avatarUrl || userObj.logo,
+      cover: userObj.cover || userObj.coverUrl,
     };
   },
 
@@ -164,6 +171,14 @@ export const usersService = {
   async uploadAvatar(file: File): Promise<{ avatarUrl: string }> {
     const response = await uploadService.uploadFile(file, 'avatars');
     return { avatarUrl: response.url };
+  },
+
+  /**
+   * Upload cover
+   */
+  async uploadCover(file: File): Promise<{ coverUrl: string }> {
+    const response = await uploadService.uploadFile(file, 'covers');
+    return { coverUrl: response.url };
   },
 
   /**
