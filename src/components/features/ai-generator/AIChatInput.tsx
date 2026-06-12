@@ -95,6 +95,7 @@ export function AIChatInput({
         onChange={handleFileChange}
         accept="image/*,application/pdf"
         className="hidden"
+        title="Upload file"
       />
 
       <div
