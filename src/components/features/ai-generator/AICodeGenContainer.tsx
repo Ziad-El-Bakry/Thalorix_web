@@ -5,6 +5,16 @@ import { AIPromptEmptyState } from './AIPromptEmptyState';
 import { AIChatInterface } from './AIChatInterface';
 import { ChatHistorySidebar } from './ChatHistorySidebar';
 import { AIMessage, AIModel, AIProject, DeployedProject, ProjectFile } from '@/types/ai';
+
+// Locally-persisted conversation snapshot
+interface SavedConversation {
+  id: string;
+  title: string;
+  messages: AIMessage[];
+  model: AIModel;
+  projectId?: string; // linked deployed project id, if any
+  createdAt: string;
+}
 import UserHeader from '@/components/ui/UserHeader';
 import { authService } from '@/lib/api/services/auth.service';
 import { aiService } from '@/lib/api/services/ai.service';
@@ -59,6 +69,10 @@ export function AICodeGenContainer() {
 
   // Sidebar Open State
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  // Saved Conversations (local history)
+  const [savedConversations, setSavedConversations] = useState<SavedConversation[]>([]);
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
 
   // Polling Reference
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -200,6 +214,11 @@ export function AICodeGenContainer() {
     setIsGenerating(true);
     setSelectedModel(model);
     setCredits(prev => Math.max(0, prev - 1));
+
+    // Assign a conversation ID if this is a brand-new chat
+    if (!activeConversationId) {
+      setActiveConversationId(`conv_${Date.now()}`);
+    }
 
     // Formulate User Message
     const userMessage: AIMessage = {
@@ -494,25 +513,132 @@ export function AICodeGenContainer() {
     window.URL.revokeObjectURL(url);
   };
 
+  // Helper: derive a title from the first user message
+  const deriveChatTitle = (messages: AIMessage[]): string => {
+    const firstUserMsg = messages.find(m => m.role === 'user');
+    if (firstUserMsg) {
+      const text = firstUserMsg.content.trim();
+      return text.length > 50 ? text.slice(0, 50) + '…' : text;
+    }
+    return 'Untitled Chat';
+  };
+
+  // Helper: persist saved conversations to localStorage
+  const persistConversations = (convs: SavedConversation[]) => {
+    try {
+      localStorage.setItem('ai_saved_conversations', JSON.stringify(convs));
+    } catch (e) {
+      console.warn('Failed to persist conversations:', e);
+    }
+  };
+
   const handleNewChat = useCallback(() => {
+    // Stop any ongoing generation / polling
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current);
+      pollIntervalRef.current = null;
+    }
+    setIsGenerating(false);
+    setBuildLogs([]);
+
+    // Save the current conversation if it has messages
+    setCurrentMessages(prevMessages => {
+      if (prevMessages.length > 0) {
+        const convId = activeConversationId || `conv_${Date.now()}`;
+        const newSaved: SavedConversation = {
+          id: convId,
+          title: deriveChatTitle(prevMessages),
+          messages: prevMessages.filter(m => m.id !== 'loading-spinner'),
+          model: selectedModel,
+          projectId: activeProject?._id || undefined,
+          createdAt: new Date().toISOString(),
+        };
+
+        setSavedConversations(prev => {
+          // Update existing or prepend new
+          const exists = prev.findIndex(c => c.id === convId);
+          let updated: SavedConversation[];
+          if (exists > -1) {
+            updated = [...prev];
+            updated[exists] = newSaved;
+          } else {
+            updated = [newSaved, ...prev];
+          }
+          persistConversations(updated);
+          return updated;
+        });
+      }
+      return []; // clear messages
+    });
+
+    // Reset chat state
     setActiveProject(null);
-    setCurrentMessages([]);
+    setActiveConversationId(null);
     setUploadedFile(null);
     localStorage.removeItem('activeProjectId');
-  }, []);
+  }, [activeConversationId, selectedModel, activeProject]);
 
   const handleDeleteProject = useCallback((id: string) => {
-    // Delete local reference
+    // Check if it's a saved conversation
+    setSavedConversations(prev => {
+      const updated = prev.filter(c => c.id !== id);
+      persistConversations(updated);
+      return updated;
+    });
+
+    // Also remove from deployed projects
     setDeployedProjects(prev => prev.filter(p => p.projectId !== id));
-    if (activeProject?._id === id) {
-      handleNewChat();
+
+    if (activeProject?._id === id || activeConversationId === id) {
+      // Stop generation and clear state without re-saving
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+        pollIntervalRef.current = null;
+      }
+      setIsGenerating(false);
+      setBuildLogs([]);
+      setActiveProject(null);
+      setActiveConversationId(null);
+      setCurrentMessages([]);
+      setUploadedFile(null);
+      localStorage.removeItem('activeProjectId');
     }
-  }, [activeProject, handleNewChat]);
+  }, [activeProject, activeConversationId]);
 
   // View toggler UI helpers
   const handleSelectConversation = useCallback((id: string) => {
+    // Check if it's a locally saved conversation first
+    const saved = savedConversations.find(c => c.id === id);
+    if (saved) {
+      // Stop any ongoing generation
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+        pollIntervalRef.current = null;
+      }
+      setIsGenerating(false);
+      setBuildLogs([]);
+
+      setActiveConversationId(saved.id);
+      setCurrentMessages(saved.messages.map(m => ({
+        ...m,
+        timestamp: new Date(m.timestamp),
+      })));
+      setSelectedModel(saved.model);
+      setUploadedFile(null);
+
+      // If the saved conversation had a linked project, load it
+      if (saved.projectId) {
+        handleLoadProject(saved.projectId);
+      } else {
+        setActiveProject(null);
+        localStorage.removeItem('activeProjectId');
+      }
+      return;
+    }
+
+    // Otherwise it's a deployed project — load from API
     handleLoadProject(id);
-  }, []);
+  }, [savedConversations]);
 
   // Load User Info & Deployed Projects on Mount
   useEffect(() => {
@@ -526,6 +652,16 @@ export function AICodeGenContainer() {
 
     checkServiceHealth();
     fetchDeployedProjects();
+
+    // Load saved conversations from localStorage
+    try {
+      const stored = localStorage.getItem('ai_saved_conversations');
+      if (stored) {
+        setSavedConversations(JSON.parse(stored));
+      }
+    } catch (e) {
+      console.warn('Failed to load saved conversations:', e);
+    }
 
     const storedProjectId = localStorage.getItem('activeProjectId');
     if (storedProjectId) {
@@ -728,13 +864,25 @@ export function AICodeGenContainer() {
         <div className="flex flex-1 relative gap-0 md:gap-5 pb-6">
           {/* History Sidebar */}
           <ChatHistorySidebar
-            conversations={deployedProjects.map(p => ({
-              id: p.projectId,
-              title: p.projectName || 'Unnamed Project',
-              preview: p.aiModelId,
-              date: 'Deployed'
-            }))}
-            activeId={activeProject?._id || null}
+            conversations={[
+              // Saved local conversations first
+              ...savedConversations.map(c => ({
+                id: c.id,
+                title: c.title,
+                preview: c.model,
+                date: new Date(c.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+              })),
+              // Then deployed projects (exclude any that are already in saved conversations)
+              ...deployedProjects
+                .filter(p => !savedConversations.some(c => c.projectId === p.projectId))
+                .map(p => ({
+                  id: p.projectId,
+                  title: p.projectName || 'Unnamed Project',
+                  preview: p.aiModelId,
+                  date: 'Deployed',
+                })),
+            ]}
+            activeId={activeConversationId || activeProject?._id || null}
             onSelect={handleSelectConversation}
             onNewChat={handleNewChat}
             onDelete={handleDeleteProject}
