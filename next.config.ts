@@ -15,7 +15,7 @@ const nextConfig: NextConfig = {
       beforeFiles: [
         {
           source: '/api/:path*',
-          destination: 'https://pleny-task.onrender.com/api/:path*',
+          destination: 'http://localhost:5000/api/:path*',
         },
       ],
     };

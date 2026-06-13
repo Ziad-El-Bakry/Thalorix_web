@@ -324,6 +324,26 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
     );
   }
 
+  if (!user) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] text-center p-6 bg-white rounded-2xl border border-gray-100 shadow-sm max-w-md mx-auto mt-12">
+        <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-4">
+          <X size={32} />
+        </div>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">المستخدم غير موجود</h2>
+        <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+          عذراً، يبدو أن هذا الحساب غير موجود في النظام أو قد تم حذفه مؤخراً.
+        </p>
+        <button
+          onClick={() => router.push("/dashboard/community")}
+          className="px-6 py-2.5 bg-[#103B40] text-white rounded-lg text-sm font-semibold hover:bg-[#0c2e32] transition-colors shadow-sm"
+        >
+          العودة إلى مجتمع ثالوريكس
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full max-w-7xl mx-auto relative">
       {/* ─── Image Preview Modal ─── */}
