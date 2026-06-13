@@ -27,7 +27,7 @@
   - Multi-role Login, Registration, and OTP Verification flows.
   - Robust token refresh interceptors across all roles.
   - Change Password and Update Profile functionalities.
-- **Technical Notes:** Axios interceptors seamlessly handle 401 Unauthorized errors by refreshing the access token silently.
+- **Technical Notes:** Axios interceptors seamlessly handle 401 Unauthorized errors by refreshing the access token silently. Interceptors strictly differentiate between 4xx Auth errors (which trigger logout) and 5xx/Network errors (which preserve the session).
 - **Priority:** Low (Completed)
 
 ### Community Feed / Posts System
@@ -37,6 +37,7 @@
   - Optimistic UI for post creation, likes, and comments.
   - Background retry mechanism for failed uploads.
   - Rich media rendering for feeds.
+  - Full Emoji Picker integration without reaction-bar hijacking.
 - **Technical Notes:** Relies heavily on Zustand for local state mutations prior to API resolution. `PostCard.tsx` has grown large and is a candidate for component splitting.
 - **Priority:** Low (Completed)
 
@@ -67,6 +68,7 @@
   - Multi-Select Bulk Delete modes for messages and conversations.
   - Auto-focus and smart replies UI.
   - **Real-Time WebSockets:** Fully integrated via `socket.io-client`, mapped into the Zustand `useChatStore.ts` for real-time delivery (`sendMessage`, `typing` events, `delete_message`).
+  - **Global Notifications:** Global unread tracking synchronized with the chat state, complete with deduplication algorithms to prevent notification spam from the same user.
 - **Priority:** Low (Completed)
 
 ### Marketplace / Templates System
@@ -207,8 +209,9 @@ The `thalorix-web` frontend is structurally sound and demonstrates a highly poli
 - **Comprehensive API Integration:** Major domains including Stripe Checkout for Payments, real-time WebSockets for Messaging, and `aiService` connectivity for the AI Code Gen are all actively linked and functional.
 - **Frontend-Only RBAC & Secure Routing:** Engineered a robust frontend Role-Based Access Control system utilizing cookies and a dedicated `<RoleGuard>`, ensuring users cannot navigate to unauthorized dashboard sections.
 - **Dynamic Marketplace Integration:** Successfully bridged the complex Template Upload UI with backend logic, enabling dynamic extraction of file metadata and real-time upload progress.
-- **UI & UX Refinements:** Resolved UI overlapping issues in the Community Emoji picker and introduced intuitive password visibility toggles across both User and Seller settings panels.
-- **Role-Based Auth Resiliency:** Resolved critical session timeout loops by implementing intelligent, role-aware JWT refresh token handling across the application.
+- **UI & UX Refinements:** Resolved UI overlapping issues in the Community Emoji picker (forcing full grid view instead of default reactions) and introduced intuitive password visibility toggles across both User and Seller settings panels.
+- **Role-Based Auth Resiliency:** Resolved critical session timeout loops by implementing intelligent, role-aware JWT refresh token handling across the application. The system now perfectly isolates Network Errors from actual Auth Errors, preventing unwarranted logouts during server downtime.
+- **Real-Time Consistency:** Fixed chat notification spam by implementing a local state deduplication algorithm that updates existing unread messages instead of stacking new notifications.
 
 ### Biggest Risks
 - **Testing Void:** The near-total lack of automated E2E and Unit testing creates a high risk of regressions as the team pushes rapidly toward Production.
