@@ -35,7 +35,7 @@ export default function TemplateCard({ id, title, price, imageSrc, category, sel
           <img 
             src={imageSrc} 
             alt={title} 
-            className="w-full h-auto min-h-[160px] max-h-[240px] object-cover transition-transform duration-500 group-hover:scale-[1.03]" 
+            className="w-full aspect-video object-cover transition-transform duration-500 group-hover:scale-[1.03]" 
           />
         ) : (
           <div className="w-full aspect-video flex flex-col justify-center items-center text-gray-400 dark:text-gray-500 bg-[#E2E3EA] dark:bg-gray-800 rounded-xl">
