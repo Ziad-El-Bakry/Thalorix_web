@@ -29,12 +29,16 @@ export default function TemplateCard({ id, title, price, imageSrc, category, sel
   const hasValidImage = isValidImage(imageSrc);
 
   return (
-    <motion.div variants={itemVariants} className="bg-white dark:bg-gray-900 rounded-[20px] overflow-hidden p-4 shadow-xl dark:shadow-gray-900/40 hover:shadow-2xl dark:hover:shadow-gray-900/60 transition-shadow duration-300 flex flex-col h-full border border-transparent dark:border-gray-800">
-      <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden mb-4 bg-gray-100 dark:bg-gray-800">
+    <motion.div variants={itemVariants} className="bg-white dark:bg-gray-900 rounded-[20px] overflow-hidden p-4 shadow-xl dark:shadow-gray-900/40 hover:shadow-2xl dark:hover:shadow-gray-900/60 transition-shadow duration-300 flex flex-col h-full border border-transparent dark:border-gray-800 group">
+      <div className="relative w-full overflow-hidden mb-4 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
         {hasValidImage ? (
-          <Image src={imageSrc as string} alt={title} fill className="object-cover" />
+          <img 
+            src={imageSrc} 
+            alt={title} 
+            className="w-full h-auto min-h-[160px] max-h-[240px] object-cover transition-transform duration-500 group-hover:scale-[1.03]" 
+          />
         ) : (
-          <div className="w-full h-full flex flex-col justify-center items-center text-gray-400 dark:text-gray-500 bg-[#E2E3EA] dark:bg-gray-800">
+          <div className="w-full aspect-video flex flex-col justify-center items-center text-gray-400 dark:text-gray-500 bg-[#E2E3EA] dark:bg-gray-800 rounded-xl">
             <span className="text-sm font-medium">No Cover</span>
           </div>
         )}
