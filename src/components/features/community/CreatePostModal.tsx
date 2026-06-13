@@ -204,7 +204,7 @@ export default function CreatePostModal({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.97 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
-            className="relative w-full max-w-[570px] bg-white rounded-xl shadow-2xl overflow-visible  flex-col max-h-[75vh]"
+            className="relative w-full max-w-[570px] bg-white rounded-xl shadow-2xl flex flex-col max-h-[85vh]"
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}

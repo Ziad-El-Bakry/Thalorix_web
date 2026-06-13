@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ThumbsUp, MessageCircle, Share2, MoreHorizontal, Send, Check, Link2, Smile } from "lucide-react";
+import { ThumbsUp, MessageCircle, Share2, MoreHorizontal, Send, Check, Link2, Smile, X, Maximize2 } from "lucide-react";
 import EmojiPicker, { Theme } from "emoji-picker-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAvatar } from "@/store/useAvatarStore";
@@ -57,6 +57,8 @@ export default function PostCard({ post }: { post: PostData }) {
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [commentsAnimatedOpen, setCommentsAnimatedOpen] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
   const [comments, setComments] = useState<CommentData[]>([]);
   const [showMore, setShowMore] = useState(false);
   const [isShared, setIsShared] = useState(false);
@@ -81,7 +83,21 @@ export default function PostCard({ post }: { post: PostData }) {
   const [editCommentText, setEditCommentText] = useState("");
 
   const CONTENT_LIMIT = 200;
-  const isLongContent = post.content.length > CONTENT_LIMIT;
+  const LINE_LIMIT = 4;
+  const lines = post.content ? post.content.split('\n') : [];
+  const isLongContent = (post.content && post.content.length > CONTENT_LIMIT) || lines.length > LINE_LIMIT;
+
+  const getTruncatedContent = () => {
+    if (!isLongContent || showMore) return post.content;
+    let truncated = post.content;
+    if (lines.length > LINE_LIMIT) {
+      truncated = lines.slice(0, LINE_LIMIT).join('\n');
+    }
+    if (truncated.length > CONTENT_LIMIT) {
+      truncated = truncated.slice(0, CONTENT_LIMIT);
+    }
+    return truncated + "...";
+  };
 
   const handleLike = () => {
     if (currentUserId) {
@@ -92,6 +108,10 @@ export default function PostCard({ post }: { post: PostData }) {
   const handleShowComments = async () => {
     const newShow = !showComments;
     setShowComments(newShow);
+    if (!newShow) {
+      setShowEmojiPicker(false);
+      setCommentsAnimatedOpen(false);
+    }
     if (newShow && comments.length === 0 && commentCount > 0) {
       setCommentsLoading(true);
       try {
@@ -251,14 +271,12 @@ export default function PostCard({ post }: { post: PostData }) {
         ) : (
           <>
             <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
-              {isLongContent && !showMore
-                ? post.content.slice(0, CONTENT_LIMIT) + "..."
-                : post.content}
+              {getTruncatedContent()}
             </p>
             {isLongContent && (
               <button
                 onClick={() => setShowMore(!showMore)}
-                className="text-gray-500 hover:text-teal-600 text-xs font-medium mt-1 transition-colors"
+                className="text-teal-600 hover:text-teal-700 text-xs font-semibold mt-1 transition-colors"
               >
                 {showMore ? "Show less" : "See more"}
               </button>
@@ -283,7 +301,7 @@ export default function PostCard({ post }: { post: PostData }) {
 
       {/* Media (Image or Video) */}
       {(post.image || post.localMediaBlob) && (
-        <div className="border-t border-b border-gray-100 bg-black flex justify-center relative">
+        <div className="border-t border-b border-gray-100 bg-black flex justify-center relative group/media overflow-hidden">
           {(post.image && (post.image.match(/\.(mp4|webm|ogg|mov)$/i) || post.image.includes('/video/upload/'))) || 
            (post.localMediaType && post.localMediaType.startsWith('video/')) ? (
             <video
@@ -295,8 +313,21 @@ export default function PostCard({ post }: { post: PostData }) {
             <img
               src={post.image || post.localMediaBlob}
               alt="Post media"
-              className={`w-full max-h-[400px] object-cover ${post.isUploading ? 'opacity-40' : ''}`}
+              onClick={() => !post.isUploading && setShowPreview(true)}
+              className={`w-full max-h-[400px] object-cover cursor-zoom-in hover:opacity-95 transition-opacity ${post.isUploading ? 'opacity-40' : ''}`}
             />
+          )}
+
+          {/* Floating Expand/Preview Button */}
+          {!post.isUploading && (
+            <button
+              type="button"
+              onClick={() => setShowPreview(true)}
+              className="absolute top-3 right-3 p-2 bg-black/60 hover:bg-teal-600/90 text-white rounded-full transition-all duration-200 backdrop-blur-sm shadow-md hover:scale-105 active:scale-95 opacity-0 group-hover/media:opacity-100 focus:opacity-100 z-10 cursor-pointer"
+              title="Preview media"
+            >
+              <Maximize2 size={14} />
+            </button>
           )}
 
           {post.isUploading && (
@@ -401,7 +432,13 @@ export default function PostCard({ post }: { post: PostData }) {
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.25 }}
-            className="overflow-hidden"
+            onAnimationStart={() => {
+              if (!showComments) setCommentsAnimatedOpen(false);
+            }}
+            onAnimationComplete={() => {
+              if (showComments) setCommentsAnimatedOpen(true);
+            }}
+            className={commentsAnimatedOpen ? "overflow-visible" : "overflow-hidden"}
           >
             <div className="h-px bg-gray-100 mx-4" />
             <div className="px-4 py-3 space-y-3">
@@ -596,6 +633,51 @@ export default function PostCard({ post }: { post: PostData }) {
                 </div>
               </div>
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Media Preview Modal */}
+      <AnimatePresence>
+        {showPreview && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowPreview(false)}
+            className="fixed inset-0 bg-black/90 backdrop-blur-md z-[999] flex items-center justify-center p-4 cursor-zoom-out"
+          >
+            <button
+              type="button"
+              onClick={() => setShowPreview(false)}
+              className="absolute top-4 right-4 text-white hover:text-teal-400 p-2 bg-white/10 hover:bg-white/20 rounded-full transition-all z-[1000] cursor-pointer"
+            >
+              <X size={20} />
+            </button>
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative max-w-[95vw] max-h-[90vh] flex items-center justify-center cursor-default"
+            >
+              {((post.image && (post.image.match(/\.(mp4|webm|ogg|mov)$/i) || post.image.includes('/video/upload/'))) || 
+               (post.localMediaType && post.localMediaType.startsWith('video/'))) ? (
+                <video
+                  src={post.image || post.localMediaBlob}
+                  controls
+                  autoPlay
+                  className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+                />
+              ) : (
+                <img
+                  src={post.image || post.localMediaBlob}
+                  alt="Full preview"
+                  className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl select-none"
+                />
+              )}
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
