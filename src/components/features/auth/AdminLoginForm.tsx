@@ -112,6 +112,14 @@ export function AdminLoginForm() {
                             )}
                         </button>
                     </div>
+                    <div className="flex justify-end">
+                        <Link
+                            href="/forget-password?role=admin"
+                            className="text-xs text-[#103B40] hover:underline"
+                        >
+                            Forget Password?
+                        </Link>
+                    </div>
                 </motion.div>
 
                 {/* Remember me */}

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { authService } from "@/lib/api/services/auth.service";
 
@@ -11,6 +11,8 @@ export default function ForgetPasswordForm() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const role = searchParams?.get("role") || "";
 
     const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (e) => {
         e.preventDefault();
@@ -18,7 +20,7 @@ export default function ForgetPasswordForm() {
         setLoading(true);
         try {
             await authService.forgotPassword(email);
-            router.push(`/verify-otp?email=${encodeURIComponent(email)}&type=reset`);
+            router.push(`/verify-otp?email=${encodeURIComponent(email)}&type=reset${role ? `&role=${role}` : ""}`);
         } catch (err: any) {
             setError(err?.response?.data?.message || err?.message || "Failed to process request");
         } finally {
@@ -93,7 +95,7 @@ export default function ForgetPasswordForm() {
                 <motion.p variants={itemVariants} className="text-center text-sm text-gray-500 mt-6">
                     Remember your password?{" "}
                     <Link
-                        href="/login"
+                        href={role === "admin" ? "/admin/login" : "/login"}
                         className="text-[#103B40] font-medium hover:underline"
                     >
                         Login

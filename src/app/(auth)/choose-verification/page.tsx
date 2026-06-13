@@ -14,6 +14,7 @@ function ChooseVerificationInner() {
     const email = searchParams?.get("email") || "";
     const phone = searchParams?.get("phone") || "";
     const name = searchParams?.get("name") || "";
+    const role = searchParams?.get("role") || "";
 
     const [loading, setLoading] = useState<"email" | "sms" | null>(null);
     const [error, setError] = useState("");
@@ -40,10 +41,11 @@ function ChooseVerificationInner() {
             // and the /otp/send endpoint returns 404. 
             // So we bypass the explicit send request and just navigate to the verification page.
 
+            const roleParam = role ? `&role=${role}` : "";
             if (method === "email") {
-                router.push(`/verify-email?method=email&email=${encodeURIComponent(email)}`);
+                router.push(`/verify-email?method=email&email=${encodeURIComponent(email)}${roleParam}`);
             } else {
-                router.push(`/verify-email?method=sms&phone=${encodeURIComponent(phone)}&email=${encodeURIComponent(email)}`);
+                router.push(`/verify-email?method=sms&phone=${encodeURIComponent(phone)}&email=${encodeURIComponent(email)}${roleParam}`);
             }
         } catch (err: any) {
             setError(err?.response?.data?.message || "Failed to proceed to verification. Please try again.");
