@@ -37,6 +37,8 @@ export interface PostData {
   localMediaBlob?: string;
   localMediaFile?: any;
   localMediaType?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 // individual comment

@@ -11,10 +11,9 @@ export interface Template {
   format?: string;
   dimensions?: string;
   license?: string;
-  license?: string;
   ratings?: number;
   reviewsCount?: number;
-  // ضيف بقية الحقول اللي الباك إند بيرجعها هنا
+ 
 }
 
 export interface TemplateReview {

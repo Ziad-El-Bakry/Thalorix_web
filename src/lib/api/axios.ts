@@ -176,24 +176,30 @@ api.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return api(originalRequest);
         
-      } catch (refreshError) {
+      } catch (refreshError: any) {
         console.warn('❌ Token refresh failed:', refreshError);
         
-        // Clear storage and redirect
-        const storedUser = localStorage.getItem('user');
-        let isAdmin = false;
-        if (storedUser) {
-          try {
-            const userObj = JSON.parse(storedUser);
-            isAdmin = userObj.role === 'admin';
-          } catch {}
-        }
+        // Only log out if it's a clear auth failure (4xx) 
+        // If it's a network error or server error (5xx), we should NOT log the user out.
+        const isAuthError = refreshError.response?.status >= 400 && refreshError.response?.status < 500;
         
-        localStorage.clear();
-        
-        // Only redirect if we're in browser
-        if (typeof window !== 'undefined') {
-          window.location.href = isAdmin ? '/admin/login' : '/login';
+        if (isAuthError) {
+          // Clear storage and redirect
+          const storedUser = localStorage.getItem('user');
+          let isAdmin = false;
+          if (storedUser) {
+            try {
+              const userObj = JSON.parse(storedUser);
+              isAdmin = userObj.role === 'admin';
+            } catch {}
+          }
+          
+          localStorage.clear();
+          
+          // Only redirect if we're in browser
+          if (typeof window !== 'undefined') {
+            window.location.href = isAdmin ? '/admin/login' : '/login';
+          }
         }
         
         return Promise.reject(refreshError);

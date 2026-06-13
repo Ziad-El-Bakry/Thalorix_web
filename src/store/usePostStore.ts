@@ -59,7 +59,44 @@ const mapBackendPost = (post: any): PostData => {
     comments: post.commentsCount || 0,
     shares: 0,
     liked: post.liked || false,
+    createdAt: post.createdAt,
+    updatedAt: post.updatedAt,
   };
+};
+
+const getAgeInHours = (post: PostData): number => {
+  const referenceTime = post.updatedAt ? new Date(post.updatedAt) : (post.createdAt ? new Date(post.createdAt) : new Date());
+  const now = new Date();
+  const diffMs = now.getTime() - referenceTime.getTime();
+  const diffHours = Math.max(0, diffMs / (1000 * 60 * 60));
+  return diffHours;
+};
+
+export const calculatePostScore = (post: PostData): number => {
+  const likes = post.likes || 0;
+  const comments = post.comments || 0;
+  const shares = post.shares || 0;
+  const ageInHours = getAgeInHours(post);
+  
+  return (likes * 1 + comments * 3 + shares * 5) / Math.pow((ageInHours + 2), 1.5);
+};
+
+export const sortPostsByRelevance = (posts: PostData[]): PostData[] => {
+  const postsCopy = [...posts];
+  
+  return postsCopy.sort((a, b) => {
+    const scoreA = calculatePostScore(a);
+    const scoreB = calculatePostScore(b);
+    
+    if (Math.abs(scoreA - scoreB) > 0.0001) {
+      return scoreB - scoreA; // Descending by score
+    }
+    
+    // Default to chronological sorting (newest first)
+    const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+    return dateB - dateA;
+  });
 };
 
 export const usePostStore = create<PostStore>((set: any, get: any) => ({
@@ -84,7 +121,8 @@ export const usePostStore = create<PostStore>((set: any, get: any) => ({
         return post;
       });
       
-      set({ posts: mappedPosts, isLoading: false });
+      const sortedPosts = sortPostsByRelevance(mappedPosts);
+      set({ posts: sortedPosts, isLoading: false });
     } catch (error) {
       console.error("Failed to fetch feed:", error);
       set({ isLoading: false });
