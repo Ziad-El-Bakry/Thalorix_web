@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { ChevronDown, Sparkles, Coins, Paperclip, Loader2, FileCheck, ArrowRight } from 'lucide-react';
+import { ChevronDown, Sparkles, Coins, Paperclip, Loader2, FileCheck } from 'lucide-react';
 import { AIModel } from '@/types/ai';
 import {
   DropdownMenu,
@@ -80,7 +80,7 @@ export function AIChatInput({
         placeholder={
           isExpanded
             ? 'Example: Create a React application with responsive navbar and dashboard...'
-            : 'Ask anything ...'
+            : 'Type a new prompt or continue the conversation...'
         }
         className={`w-full bg-transparent text-[#103B40] placeholder:text-gray-400 resize-none outline-none text-sm ${
           isExpanded ? 'flex-1 min-h-[70px]' : 'h-[24px]'
@@ -95,7 +95,6 @@ export function AIChatInput({
         onChange={handleFileChange}
         accept="image/*,application/pdf"
         className="hidden"
-        title="Upload file"
       />
 
       <div
@@ -176,10 +175,10 @@ export function AIChatInput({
           <button
             onClick={handleGenerate}
             disabled={!prompt.trim() || isGenerating || credits === 0 || isUploadingFile}
-            className="flex items-center justify-center bg-[#103B40] hover:bg-teal-800 disabled:opacity-40 disabled:cursor-not-allowed text-white p-2 rounded-xl transition-colors shadow-sm cursor-pointer"
-            title="Generate Code"
+            className="flex items-center gap-2 bg-[#103B40] hover:bg-teal-800 disabled:opacity-40 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium transition-colors text-xs shadow-sm cursor-pointer"
           >
-            <ArrowRight className="w-4 h-4" />
+            <Sparkles className="w-3.5 h-3.5" />
+            Generate Code
           </button>
         </div>
       </div>
