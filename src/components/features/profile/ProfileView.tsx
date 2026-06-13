@@ -184,9 +184,10 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
   const handleLogoutConfirm = async () => {
     setIsLoggingOut(true);
     try {
+      const isAdmin = user?.role === "admin";
       await authService.logout();
       setIsLogoutModalOpen(false);
-      router.push("/login");
+      router.push(isAdmin ? "/admin/login" : "/login");
     } finally {
       setIsLoggingOut(false);
     }
@@ -196,10 +197,11 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
     if (!user?.id) return;
     setIsDeleting(true);
     try {
+      const isAdmin = user?.role === "admin";
       await usersService.deleteUser(user.id);
       await authService.logout();
       setIsDeleteModalOpen(false);
-      router.push("/login");
+      router.push(isAdmin ? "/admin/login" : "/login");
     } catch (error) {
       console.error("Failed to delete account:", error);
       fireToast("Failed to delete account");
