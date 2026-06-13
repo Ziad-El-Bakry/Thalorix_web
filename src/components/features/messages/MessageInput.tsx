@@ -164,6 +164,7 @@ export default function MessageInput({ value, onChange, onSend, replyingTo, onCa
             theme={Theme.LIGHT}
             onEmojiClick={(emojiData) => handleInputChange(value + emojiData.emoji)}
             lazyLoadEmojis={true}
+            reactionsDefaultOpen={false}
           />
         </div>
       )}

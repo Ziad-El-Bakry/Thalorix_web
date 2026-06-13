@@ -552,6 +552,7 @@ export default function PostCard({ post }: { post: PostData }) {
                       lazyLoadEmojis={true}
                       width={280}
                       height={350}
+                      reactionsDefaultOpen={false}
                     />
                   </div>
                 )}

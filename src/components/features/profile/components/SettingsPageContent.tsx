@@ -129,16 +129,18 @@ export default function SettingsPageContent() {
   };
 
   const handleLogoutConfirm = async () => {
+    const isAdmin = user?.role === "admin";
     await authService.logout();
-    router.push("/login");
+    router.push(isAdmin ? "/admin/login" : "/login");
   };
 
   const handleDeleteConfirm = async () => {
     if (user?.id) {
       try {
+        const isAdmin = user?.role === "admin";
         await usersService.deleteUser(user.id);
         await authService.logout();
-        router.push("/login");
+        router.push(isAdmin ? "/admin/login" : "/login");
       } catch (error) {
         fireToast("Failed to delete account");
       }

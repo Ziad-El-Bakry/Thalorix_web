@@ -180,11 +180,20 @@ api.interceptors.response.use(
         console.warn('❌ Token refresh failed:', refreshError);
         
         // Clear storage and redirect
+        const storedUser = localStorage.getItem('user');
+        let isAdmin = false;
+        if (storedUser) {
+          try {
+            const userObj = JSON.parse(storedUser);
+            isAdmin = userObj.role === 'admin';
+          } catch {}
+        }
+        
         localStorage.clear();
         
         // Only redirect if we're in browser
         if (typeof window !== 'undefined') {
-          window.location.href = '/login';
+          window.location.href = isAdmin ? '/admin/login' : '/login';
         }
         
         return Promise.reject(refreshError);
