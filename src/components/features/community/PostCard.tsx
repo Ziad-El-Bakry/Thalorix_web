@@ -159,7 +159,7 @@ export default function PostCard({ post }: { post: PostData }) {
           className="flex flex-1 items-center gap-3 group"
         >
           <Image
-            src={post.author.avatar}
+            src={isPostOwner ? (globalAvatar || "/images/avatar.png") : (post.author.avatar || "/images/avatar.png")}
             alt={post.author.name}
             width={44}
             height={44}
@@ -413,7 +413,7 @@ export default function PostCard({ post }: { post: PostData }) {
                   <div key={comment.id} className="flex gap-2 group">
                     <Link href={commentProfileHref} className="shrink-0 hover:opacity-85 transition-opacity">
                       <Image
-                        src={comment.avatar}
+                        src={commentIsOwner ? (globalAvatar || "/images/avatar.png") : (comment.avatar || "/images/avatar.png")}
                         alt={comment.author}
                         width={32}
                         height={32}

@@ -22,16 +22,39 @@ interface UserHeaderProps {
 export default function UserHeader({ name, avatar, badge, badgeIcon, compact = false }: UserHeaderProps) {
   const { avatar: globalAvatar } = useAvatar();
   const [user, setUser] = useState<User | null>(null);
+  const [avatarSrc, setAvatarSrc] = useState("/images/avatar.png");
 
   useEffect(() => {
-    const storedUser = authService.getStoredUser();
-    if (storedUser) {
-      setUser(storedUser as User);
-    }
+    const handleProfileSync = () => {
+      const storedUser = authService.getStoredUser();
+      if (storedUser) {
+        setUser(storedUser as User);
+      }
+    };
+    
+    handleProfileSync(); // Run initially
+    
+    window.addEventListener("thalorix_profile_sync", handleProfileSync);
+    window.addEventListener("thalorix_avatar_sync", handleProfileSync);
+    return () => {
+      window.removeEventListener("thalorix_profile_sync", handleProfileSync);
+      window.removeEventListener("thalorix_avatar_sync", handleProfileSync);
+    };
   }, []);
 
-  // Use prop avatar first, then global avatar from store
-  const avatarSrc = avatar || user?.avatar || user?.avatarUrl || user?.logo || globalAvatar || "/images/avatar.png";
+  useEffect(() => {
+    const baseAvatar = avatar || user?.avatar || user?.avatarUrl || user?.logo;
+    if (globalAvatar && globalAvatar !== "/images/avatar.png") {
+      setAvatarSrc(globalAvatar);
+    } else if (globalAvatar === "") {
+      setAvatarSrc("/images/avatar.png");
+    } else if (baseAvatar) {
+      setAvatarSrc(baseAvatar);
+    } else {
+      setAvatarSrc("/images/avatar.png");
+    }
+  }, [avatar, globalAvatar, user]);
+
   const pathname = usePathname();
   const isMessagesPage = pathname?.includes("/messages");
 

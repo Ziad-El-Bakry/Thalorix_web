@@ -21,23 +21,46 @@ interface PostStore {
   retryPost: (tempId: string) => Promise<void>;
 }
 
-const mapBackendPost = (post: any): PostData => ({
-  id: post._id,
-  author: {
-    id: post.userId?._id || post.userId?.id,
-    name: post.userId?.name || "Unknown User",
-    avatar: post.userId?.avatarUrl || post.userId?.avatar || post.userId?.logo || "/images/avatar.png",
-    title: post.userId?.role ? post.userId.role.charAt(0).toUpperCase() + post.userId.role.slice(1) : "User",
-  },
-  content: post.content,
-  image: post.image,
-  link: post.link,
-  timestamp: dayjs(post.createdAt).fromNow(),
-  likes: post.likesCount || 0,
-  comments: post.commentsCount || 0,
-  shares: 0,
-  liked: post.liked || false,
-});
+const mapBackendPost = (post: any): PostData => {
+  let userObj = post.userId;
+  if (typeof userObj === 'string' && typeof window !== "undefined") {
+    try {
+      const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+      const currentUserId = storedUser.id || storedUser._id;
+      if (userObj === currentUserId) {
+        const reactiveAvatar = localStorage.getItem('thalorix_user_avatar');
+        userObj = {
+          _id: currentUserId,
+          id: currentUserId,
+          name: storedUser.name || storedUser.username || "User",
+          avatar: reactiveAvatar || storedUser.avatar || storedUser.avatarUrl || storedUser.logo || "/images/avatar.png",
+          avatarUrl: reactiveAvatar || storedUser.avatarUrl || storedUser.avatar || storedUser.logo || "/images/avatar.png",
+          role: storedUser.role || "user",
+        };
+      }
+    } catch (e) {
+      console.warn("Error parsing stored user in mapBackendPost:", e);
+    }
+  }
+
+  return {
+    id: post._id,
+    author: {
+      id: userObj?._id || userObj?.id || (typeof userObj === 'string' ? userObj : undefined),
+      name: userObj?.name || "Unknown User",
+      avatar: userObj?.avatarUrl || userObj?.avatar || userObj?.logo || "/images/avatar.png",
+      title: userObj?.role ? userObj.role.charAt(0).toUpperCase() + userObj.role.slice(1) : "User",
+    },
+    content: post.content,
+    image: post.image,
+    link: post.link,
+    timestamp: dayjs(post.createdAt).fromNow(),
+    likes: post.likesCount || 0,
+    comments: post.commentsCount || 0,
+    shares: 0,
+    liked: post.liked || false,
+  };
+};
 
 export const usePostStore = create<PostStore>((set: any, get: any) => ({
   posts: [],

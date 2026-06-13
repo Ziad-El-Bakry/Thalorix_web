@@ -229,6 +229,9 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
             const updatedUser = { ...user, avatar: avatarUrl };
             setUser(updatedUser);
             localStorage.setItem("user", JSON.stringify(updatedUser));
+            if (typeof window !== "undefined") {
+              window.dispatchEvent(new CustomEvent("thalorix_profile_sync", { detail: updatedUser }));
+            }
           }
         }
         fireToast("Profile photo updated!");
@@ -252,6 +255,9 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
         const updatedUser = { ...user, avatar: "" };
         setUser(updatedUser);
         localStorage.setItem("user", JSON.stringify(updatedUser));
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("thalorix_profile_sync", { detail: updatedUser }));
+        }
         fireToast("Profile photo reset to default!");
       } catch (error) {
         console.error("Failed to reset avatar:", error);
@@ -278,6 +284,9 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
             const updatedUser = { ...user, cover: coverUrl };
             setUser(updatedUser);
             localStorage.setItem("user", JSON.stringify(updatedUser));
+            if (typeof window !== "undefined") {
+              window.dispatchEvent(new CustomEvent("thalorix_profile_sync", { detail: updatedUser }));
+            }
           }
         }
         fireToast("Cover photo updated!");

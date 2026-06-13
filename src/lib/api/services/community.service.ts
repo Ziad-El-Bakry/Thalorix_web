@@ -4,6 +4,24 @@ import { ENDPOINTS } from '../endpoints';
 const userFetchPromises = new Map<string, Promise<any>>();
 
 async function fetchUserSafe(uid: string) {
+  if (typeof window !== "undefined") {
+    try {
+      const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+      const currentUserId = storedUser.id || storedUser._id;
+      if (uid === currentUserId) {
+        const reactiveAvatar = localStorage.getItem('thalorix_user_avatar');
+        return {
+          _id: currentUserId,
+          id: currentUserId,
+          name: storedUser.name || storedUser.username || "User",
+          avatar: reactiveAvatar || storedUser.avatar || storedUser.avatarUrl || storedUser.logo || "/images/avatar.png",
+          avatarUrl: reactiveAvatar || storedUser.avatarUrl || storedUser.avatar || storedUser.logo || "/images/avatar.png",
+          role: storedUser.role || "user",
+        };
+      }
+    } catch {}
+  }
+
   if (userFetchPromises.has(uid)) {
     return userFetchPromises.get(uid);
   }

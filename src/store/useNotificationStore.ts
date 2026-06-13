@@ -120,14 +120,37 @@ export const useNotificationStore = create<NotificationStore>((set, get) => {
       };
 
       set((state) => {
-        // Prevent duplicate friend requests or message notifications if they already exist as unread
-        if (
-          (newNotif.type === "friend_request" || newNotif.type === "message") &&
-          state.notifications.some(
+        // For friend_request or message, if there's already an unread notification from the same sender,
+        // we should update it (e.g. update the text and time) and bring it to the top.
+        if (newNotif.type === "friend_request" || newNotif.type === "message") {
+          const existingIndex = state.notifications.findIndex(
             (n) => n.type === newNotif.type && n.senderId === newNotif.senderId && !n.isRead
-          )
-        ) {
-          return state;
+          );
+
+          if (existingIndex > -1) {
+            const updatedNotifications = [...state.notifications];
+            const existingNotif = updatedNotifications[existingIndex];
+            
+            // Remove the existing one
+            updatedNotifications.splice(existingIndex, 1);
+            
+            // Add the updated one to the top
+            const mergedNotif = {
+              ...existingNotif,
+              title: newNotif.title,
+              desc: newNotif.desc,
+              time: newNotif.time,
+              isRead: false,
+            };
+            
+            updatedNotifications.unshift(mergedNotif);
+            
+            persist(userId, updatedNotifications, state.hasUnreadMessages);
+            return {
+              notifications: updatedNotifications,
+              hasUnreadNotifications: true,
+            };
+          }
         }
 
         const updated = [newNotif, ...state.notifications];

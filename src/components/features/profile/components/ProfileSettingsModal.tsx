@@ -116,6 +116,9 @@ export default function ProfileSettingsModal({
                         const newUser = { ...user, ...updatedData };
                         setUser(newUser);
                         localStorage.setItem("user", JSON.stringify(newUser));
+                        if (typeof window !== "undefined") {
+                          window.dispatchEvent(new CustomEvent("thalorix_profile_sync", { detail: newUser }));
+                        }
                         fireToast("Profile updated successfully!");
                       }}
                       expertise={expertiseData}

@@ -174,15 +174,34 @@ export default function Sidebar() {
   const { avatar } = useAvatar();
 
   useEffect(() => {
-    const user = authService.getStoredUser();
-    if (user) {
-      setUserRole(user.role || "user");
-      setUserName(user.name || user.username || "User");
-      if (user.avatar) setUserAvatar(user.avatar);
-      else if (user.avatarUrl) setUserAvatar(user.avatarUrl);
-      else if (user.logo) setUserAvatar(user.logo);
-    }
+    const handleProfileSync = () => {
+      const user = authService.getStoredUser();
+      if (user) {
+        setUserRole(user.role || "user");
+        setUserName(user.name || user.username || "User");
+        if (user.avatar) setUserAvatar(user.avatar);
+        else if (user.avatarUrl) setUserAvatar(user.avatarUrl);
+        else if (user.logo) setUserAvatar(user.logo);
+      }
+    };
+
+    handleProfileSync(); // Run initially
+
+    window.addEventListener("thalorix_profile_sync", handleProfileSync);
+    window.addEventListener("thalorix_avatar_sync", handleProfileSync);
+    return () => {
+      window.removeEventListener("thalorix_profile_sync", handleProfileSync);
+      window.removeEventListener("thalorix_avatar_sync", handleProfileSync);
+    };
   }, []);
+
+  useEffect(() => {
+    if (avatar && avatar !== "/images/avatar.png") {
+      setUserAvatar(avatar);
+    } else if (avatar === "") {
+      setUserAvatar("/images/avatar.png");
+    }
+  }, [avatar]);
 
   const isSeller = userRole === "seller";
   const isAdmin = userRole === "admin";
@@ -341,7 +360,7 @@ export default function Sidebar() {
         >
           <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-white/10">
             <Image
-              src={avatar !== "/images/avatar.png" ? avatar : (userAvatar || "/images/avatar.png")}
+              src={userAvatar}
               alt={userName}
               width={36}
               height={36}
