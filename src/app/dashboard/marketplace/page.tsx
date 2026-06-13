@@ -17,10 +17,13 @@ import {
 import { useState, useEffect } from "react";
 import { authService } from "@/lib/api/services/auth.service";
 import { templatesService } from "@/lib/api/services/templates.service";
+import { categoriesService } from "@/lib/api/services/categories.service";
 import { Template } from "@/types";
 
 export default function MarketplacePage() {
   const [templates, setTemplates] = useState<Template[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState("User");
   const [isSeller, setIsSeller] = useState(false);
@@ -35,21 +38,33 @@ export default function MarketplacePage() {
       }
     }
 
-    const fetchTemplates = async () => {
+    const fetchData = async () => {
       try {
-        const data = await templatesService.getAll();
-        const sortedData = data.sort((a: any, b: any) => {
+        const [templatesData, categoriesData] = await Promise.all([
+          templatesService.getAll(),
+          categoriesService.getAll()
+        ]);
+        
+        const sortedData = templatesData.sort((a: any, b: any) => {
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         });
         setTemplates(sortedData);
+        setCategories(categoriesData || []);
       } catch (err) {
-        console.error("Failed to load templates", err);
+        console.error("Failed to load marketplace data", err);
       } finally {
         setLoading(false);
       }
     };
-    fetchTemplates();
+    fetchData();
   }, []);
+
+  const filteredTemplates = selectedCategory 
+    ? templates.filter((t: any) => {
+        const cId = t.categoryId?._id || t.categoryId?.id || t.categoryId;
+        return cId === selectedCategory;
+      })
+    : templates;
 
   return (
     <div className="-m-4 md:-m-6 lg:-m-10 p-4 md:p-6 lg:p-10 bg-[#E2E3EA] dark:bg-gray-950 min-h-[calc(100vh-60px)]">
@@ -69,6 +84,33 @@ export default function MarketplacePage() {
             <h2 className="text-[#103B40] dark:text-[#43B0B5] font-bold text-2xl">All Templates</h2>
           </div>
           <div className="flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-2 bg-white dark:bg-gray-900 text-[#123E41] dark:text-gray-200 px-4 py-3.5 rounded-xl transition-colors font-medium text-sm shadow-sm border border-teal-50 dark:border-gray-700 hover:bg-teal-50 dark:hover:bg-gray-800">
+                  <Filter size={18} />
+                  <span className="hidden sm:inline">
+                    {selectedCategory ? categories.find(c => (c.id || c._id) === selectedCategory)?.name || 'Filter' : 'Filter'}
+                  </span>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48 z-[100]">
+                <DropdownMenuLabel>Filter by Category</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setSelectedCategory(null)} className={selectedCategory === null ? 'bg-teal-50 dark:bg-gray-800 font-semibold' : ''}>
+                  All Categories
+                </DropdownMenuItem>
+                {categories.map((cat: any) => (
+                  <DropdownMenuItem 
+                    key={cat.id || cat._id} 
+                    onClick={() => setSelectedCategory(cat.id || cat._id)}
+                    className={selectedCategory === (cat.id || cat._id) ? 'bg-teal-50 dark:bg-gray-800 font-semibold text-teal-700 dark:text-teal-400' : ''}
+                  >
+                    {cat.name}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             <Link
               href="/dashboard/marketplace/history"
               className="flex items-center gap-2 bg-white dark:bg-gray-900 text-[#123E41] dark:text-gray-200 px-4 py-3.5 rounded-xl transition-colors font-medium text-sm shadow-sm border border-teal-50 dark:border-gray-700 hover:bg-teal-50 dark:hover:bg-gray-800"
@@ -105,7 +147,7 @@ export default function MarketplacePage() {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#123E41]"></div>
           </div>
         ) : (
-          <TemplateList templates={templates} />
+          <TemplateList templates={filteredTemplates} />
         )}
       </div>
     </div>
