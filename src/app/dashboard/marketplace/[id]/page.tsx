@@ -78,7 +78,7 @@ export default function MarketplaceDetails() {
           className="lg:col-span-2 space-y-8"
         >
           <TemplateInfo template={template} />
-          <ReviewList />
+          <ReviewList templateId={id} />
         </motion.div>
 
         {/* Right Column - Purchase Card */}

@@ -11,7 +11,28 @@ export interface Template {
   format?: string;
   dimensions?: string;
   license?: string;
+  license?: string;
+  ratings?: number;
+  reviewsCount?: number;
   // ضيف بقية الحقول اللي الباك إند بيرجعها هنا
+}
+
+export interface TemplateReview {
+  _id: string;
+  id?: string;
+  userId: {
+    _id?: string;
+    id?: string;
+    name?: string;
+    username?: string;
+    avatarUrl?: string;
+    avatar?: string;
+    logo?: string;
+  };
+  templateId: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
 }
 
 export interface Category {
