@@ -123,7 +123,7 @@ export default function MobileNavbar() {
         }`}
       >
         {/* Top Bar */}
-        <div className="flex items-center justify-between bg-[#103B40] text-white px-4 py-4 relative z-50 shadow-md">
+        <div className="flex items-center justify-between bg-[var(--sidebar)] text-white px-4 py-4 relative z-50 shadow-md">
           <Link
             href="/dashboard"
             className="flex items-center gap-3 cursor-pointer active:scale-95 transition-transform"
@@ -190,7 +190,7 @@ export default function MobileNavbar() {
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="bg-[#103B40] border-t border-white/5 overflow-hidden absolute w-full z-40 shadow-xl"
+              className="bg-[var(--sidebar)] border-t border-white/5 overflow-hidden absolute w-full z-40 shadow-xl"
             >
               <nav className="flex flex-col px-4 py-3 space-y-1 text-white max-h-[75vh] overflow-y-auto sidebar-scrollbar pr-1">
                 {/* User Info */}
@@ -224,11 +224,11 @@ export default function MobileNavbar() {
                         whileTap={{ scale: 0.98 }}
                         className={`flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                           active
-                            ? "bg-white/10 text-white border-l-[3px] border-[#43B0B5]"
+                            ? "bg-white/10 text-white border-l-[3px] border-[var(--sidebar-active)]"
                             : "text-white/70 hover:bg-white/5 border-l-[3px] border-transparent"
                         }`}
                       >
-                        <Icon size={20} className={active ? "text-[#43B0B5]" : "text-white/50"} />
+                        <Icon size={20} className={active ? "text-[var(--sidebar-active)]" : "text-white/50"} />
                         {item.label}
                         {item.label === "Messages" && hasUnreadMessages && (
                           <span className="ml-auto w-2 h-2 bg-red-500 rounded-full shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
@@ -251,11 +251,11 @@ export default function MobileNavbar() {
                             whileTap={{ scale: 0.98 }}
                             className={`flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                               active
-                                ? "bg-white/10 text-white border-l-[3px] border-[#43B0B5]"
+                                ? "bg-white/10 text-white border-l-[3px] border-[var(--sidebar-active)]"
                                 : "text-white/70 hover:bg-white/5 border-l-[3px] border-transparent"
                             }`}
                           >
-                            <Icon size={20} className={active ? "text-[#43B0B5]" : "text-white/50"} />
+                            <Icon size={20} className={active ? "text-[var(--sidebar-active)]" : "text-white/50"} />
                             {item.label}
                           </motion.div>
                         </Link>
@@ -273,11 +273,11 @@ export default function MobileNavbar() {
                         whileTap={{ scale: 0.98 }}
                         className={`flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                           pathname?.startsWith("/dashboard/admin")
-                            ? "bg-white/10 text-white border-l-[3px] border-[#43B0B5]"
+                            ? "bg-white/10 text-white border-l-[3px] border-[var(--sidebar-active)]"
                             : "text-white/70 hover:bg-white/5 border-l-[3px] border-transparent"
                         }`}
                       >
-                        <Shield size={20} className={pathname?.startsWith("/dashboard/admin") ? "text-[#43B0B5]" : "text-white/50"} />
+                        <Shield size={20} className={pathname?.startsWith("/dashboard/admin") ? "text-[var(--sidebar-active)]" : "text-white/50"} />
                         Admin Panel
                       </motion.div>
                     </Link>
@@ -292,11 +292,11 @@ export default function MobileNavbar() {
                     whileTap={{ scale: 0.98 }}
                     className={`flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                       isRouteActive(pathname, profileHref, "Profile")
-                        ? "bg-white/10 text-white border-l-[3px] border-[#43B0B5]"
+                        ? "bg-white/10 text-white border-l-[3px] border-[var(--sidebar-active)]"
                         : "text-white/70 hover:bg-white/5 border-l-[3px] border-transparent"
                     }`}
                   >
-                    <User size={20} className={isRouteActive(pathname, profileHref, "Profile") ? "text-[#43B0B5]" : "text-white/50"} />
+                    <User size={20} className={isRouteActive(pathname, profileHref, "Profile") ? "text-[var(--sidebar-active)]" : "text-white/50"} />
                     Profile
                   </motion.div>
                 </Link>
@@ -305,11 +305,11 @@ export default function MobileNavbar() {
                     whileTap={{ scale: 0.98 }}
                     className={`flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                       pathname === "/dashboard/settings"
-                        ? "bg-white/10 text-white border-l-[3px] border-[#43B0B5]"
+                        ? "bg-white/10 text-white border-l-[3px] border-[var(--sidebar-active)]"
                         : "text-white/70 hover:bg-white/5 border-l-[3px] border-transparent"
                     }`}
                   >
-                    <Settings size={20} className={pathname === "/dashboard/settings" ? "text-[#43B0B5]" : "text-white/50"} />
+                    <Settings size={20} className={pathname === "/dashboard/settings" ? "text-[var(--sidebar-active)]" : "text-white/50"} />
                     Settings
                   </motion.div>
                 </Link>

@@ -98,104 +98,111 @@ export default function Notifications({ alignClass = "-right-[90px] md:right-0 w
               initial={{ opacity: 0, y: 10, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.95 }}
-              className={`absolute ${alignClass} top-12 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 z-[100] overflow-hidden`}
+              className={`absolute ${alignClass} top-12 mt-2 bg-white dark:bg-card rounded-xl shadow-xl border border-gray-100 dark:border-border z-[100] overflow-hidden`}
             >
-              <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                <h3 className="font-semibold text-[#103B40]">Notifications</h3>
+              <div className="p-4 border-b border-gray-100 dark:border-border flex justify-between items-center bg-gray-50 dark:bg-card/50">
+                <h3 className="font-semibold text-[#103B40] dark:text-foreground">Notifications</h3>
                 {hasUnread && (
-                  <span className="bg-[#103B40] text-white text-[10px] px-2 py-0.5 rounded-full font-bold">New</span>
+                  <span className="bg-[#103B40] dark:bg-primary text-white text-[10px] px-2 py-0.5 rounded-full font-bold">New</span>
                 )}
               </div>
               <div className="max-h-[300px] overflow-y-auto sidebar-scrollbar">
                 {store.notifications.length > 0 ? (
-                  store.notifications.map((notif) => (
-                    <div
-                      key={notif.id}
-                      className={`p-4 border-b border-gray-50 hover:bg-gray-50/80 transition-colors flex gap-3 cursor-pointer group relative ${!notif.isRead ? "bg-teal-50/10" : ""
-                        }`}
-                    >
-                      <div className="mt-1 flex-shrink-0">
-                        {getNotificationIcon(notif.type)}
-                      </div>
-                      <div className="flex-1 min-w-0 pr-6">
-                        <p className={`text-sm text-gray-800 ${!notif.isRead ? "font-semibold" : "font-medium"}`}>
-                          {notif.title}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1 leading-normal break-words">
-                          {notif.desc}
-                        </p>
-
-                        {notif.type === "friend_request" && notif.actionTaken === null && (
-                          <div className="flex gap-2 mt-2.5">
-                            <button
-                              disabled={actionLoadingId !== null}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (notif.senderId) handleAcceptFriend(notif.id, notif.senderId);
-                              }}
-                              className="px-3.5 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-[11px] font-bold shadow-sm transition-all disabled:opacity-50 cursor-pointer"
-                            >
-                              {actionLoadingId === notif.id ? "Accepting..." : "Accept"}
-                            </button>
-                            <button
-                              disabled={actionLoadingId !== null}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (notif.senderId) handleRejectFriend(notif.id, notif.senderId);
-                              }}
-                              className="px-3.5 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-[11px] font-bold transition-all disabled:opacity-50 cursor-pointer"
-                            >
-                              Decline
-                            </button>
-                          </div>
-                        )}
-
-                        {notif.type === "friend_request" && notif.actionTaken === "accepted" && (
-                          <motion.p
-                            initial={{ opacity: 0, x: -5 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            className="text-xs font-bold text-emerald-600 mt-2 flex items-center gap-1"
-                          >
-                            <CheckCircle size={14} /> Request Accepted!
-                          </motion.p>
-                        )}
-
-                        {notif.type === "friend_request" && notif.actionTaken === "rejected" && (
-                          <motion.p
-                            initial={{ opacity: 0, x: -5 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            className="text-xs font-bold text-red-600 mt-2 flex items-center gap-1"
-                          >
-                            <XCircle size={14} /> Request Declined
-                          </motion.p>
-                        )}
-
-                        <p className="text-[10px] text-gray-400 mt-2">
-                          {formatters.relativeTime(notif.time)}
-                        </p>
-                      </div>
-
-                      {/* Delete notification button */}
-                      <button
-                        onClick={(e) => handleDeleteNotif(e, notif.id)}
-                        className="absolute right-3 top-3 opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 rounded transition-all hover:bg-red-50 cursor-pointer"
-                        title="Delete notification"
+                  <AnimatePresence initial={false}>
+                    {store.notifications.map((notif) => (
+                      <motion.div
+                        layout
+                        initial={{ opacity: 0, height: 0, y: -10 }}
+                        animate={{ opacity: 1, height: "auto", y: 0 }}
+                        exit={{ opacity: 0, height: 0, y: -10 }}
+                        transition={{ duration: 0.25, ease: "easeOut" }}
+                        key={notif.id}
+                        className={`p-4 border-b border-gray-50 dark:border-border hover:bg-gray-50/80 dark:hover:bg-card-hover transition-colors flex gap-3 cursor-pointer group relative overflow-hidden ${!notif.isRead ? "bg-teal-50/10 dark:bg-primary/5" : ""
+                          }`}
                       >
-                        <Trash2 size={13} />
-                      </button>
-                    </div>
-                  ))
+                        <div className="mt-1 flex-shrink-0">
+                          {getNotificationIcon(notif.type)}
+                        </div>
+                        <div className="flex-1 min-w-0 pr-6">
+                          <p className={`text-sm text-gray-800 dark:text-gray-200 ${!notif.isRead ? "font-semibold" : "font-medium"}`}>
+                            {notif.title}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-normal break-words">
+                            {notif.desc}
+                          </p>
+
+                          {notif.type === "friend_request" && notif.actionTaken === null && (
+                            <div className="flex gap-2 mt-2.5">
+                              <button
+                                disabled={actionLoadingId !== null}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (notif.senderId) handleAcceptFriend(notif.id, notif.senderId);
+                                }}
+                                className="px-3.5 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-[11px] font-bold shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+                              >
+                                {actionLoadingId === notif.id ? "Accepting..." : "Accept"}
+                              </button>
+                              <button
+                                disabled={actionLoadingId !== null}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (notif.senderId) handleRejectFriend(notif.id, notif.senderId);
+                                }}
+                                className="px-3.5 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:text-gray-300 rounded-lg text-[11px] font-bold transition-all disabled:opacity-50 cursor-pointer"
+                              >
+                                Decline
+                              </button>
+                            </div>
+                          )}
+
+                          {notif.type === "friend_request" && notif.actionTaken === "accepted" && (
+                            <motion.p
+                              initial={{ opacity: 0, x: -5 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              className="text-xs font-bold text-emerald-600 mt-2 flex items-center gap-1"
+                            >
+                              <CheckCircle size={14} /> Request Accepted!
+                            </motion.p>
+                          )}
+
+                          {notif.type === "friend_request" && notif.actionTaken === "rejected" && (
+                            <motion.p
+                              initial={{ opacity: 0, x: -5 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              className="text-xs font-bold text-red-600 mt-2 flex items-center gap-1"
+                            >
+                              <XCircle size={14} /> Request Declined
+                            </motion.p>
+                          )}
+
+                          <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-2">
+                            {formatters.relativeTime(notif.time)}
+                          </p>
+                        </div>
+
+                        {/* Delete notification button */}
+                        <button
+                          onClick={(e) => handleDeleteNotif(e, notif.id)}
+                          className="absolute right-3 top-3 opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 rounded transition-all hover:bg-red-50 dark:hover:bg-red-950/20 cursor-pointer"
+                          title="Delete notification"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
                 ) : (
                   <div className="p-6 text-center text-gray-400 text-sm">
                     No new notifications
                   </div>
                 )}
               </div>
-              <div className="p-3 text-center border-t border-gray-100 bg-gray-50">
+              <div className="p-3 text-center border-t border-gray-100 dark:border-border bg-gray-50 dark:bg-card/50">
                 <Link
                   href="/dashboard/notifications"
                   onClick={() => setIsOpen(false)}
-                  className="text-xs font-semibold text-[#103B40] hover:underline block w-full py-0.5"
+                  className="text-xs font-semibold text-[#103B40] dark:text-[#43B0B5] hover:underline block w-full py-0.5"
                 >
                   View all
                 </Link>

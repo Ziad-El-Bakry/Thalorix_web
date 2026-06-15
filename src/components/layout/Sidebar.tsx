@@ -100,10 +100,10 @@ function NavLink({
           style={{
             backgroundColor: isActive ? "rgba(255,255,255,0.12)" : "transparent",
             color: isActive ? "#ffffff" : "rgba(255,255,255,0.65)",
-            borderLeft: isActive ? "3px solid #43B0B5" : "3px solid transparent",
+            borderLeft: isActive ? "3px solid var(--sidebar-active)" : "3px solid transparent",
           }}
         >
-          <Icon size={18} className={isActive ? "text-[#43B0B5]" : ""} />
+          <Icon size={18} className={isActive ? "text-[var(--sidebar-active)]" : ""} />
           <span className="flex-1">{item.label}</span>
           {item.label === "Messages" && hasUnread && (
             <span className="w-2 h-2 bg-red-500 rounded-full shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
@@ -234,7 +234,7 @@ export default function Sidebar() {
       animate={{ x: 0, opacity: 1 }}
       transition={{ duration: 0.4 }}
       className="fixed left-0 top-0 h-screen w-64 text-white hidden lg:flex flex-col z-50"
-      style={{ backgroundColor: "#103B40" }}
+      style={{ backgroundColor: "var(--sidebar)" }}
     >
       {/* Logo */}
       <Link href="/dashboard" className="block cursor-pointer group">

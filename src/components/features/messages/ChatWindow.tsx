@@ -10,6 +10,8 @@ import { useAvatar } from "@/store/useAvatarStore";
 import { useChatStore } from "@/store/useChatStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import ConnectionStatusBanner from "./ConnectionStatusBanner";
+import { motion, AnimatePresence } from "framer-motion";
+import { backdropTransition, scaleIn } from "@/lib/utils/animations";
 
 export default function ChatWindow({
   conversation,
@@ -127,7 +129,14 @@ export default function ChatWindow({
   }
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-[#f0f2f5] dark:bg-gray-950 relative">
+    <motion.div
+      key={conversation.id}
+      initial={{ opacity: 0, x: 12 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -12 }}
+      transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+      className="flex-1 flex flex-col h-full bg-[#f0f2f5] dark:bg-gray-950 relative"
+    >
       <ConnectionStatusBanner />
       {selectedMessages.length > 0 ? (
         <div className="flex items-center justify-between px-4 py-2 border-b bg-teal-800 h-[56px] min-h-[56px] sticky top-0 z-10 shadow-lg shadow-black/20">
@@ -227,37 +236,46 @@ export default function ChatWindow({
       />
 
       {/* Fullscreen Image Modal */}
-      {selectedImage && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4 animate-in fade-in duration-200">
-          <div className="absolute top-4 right-4 flex items-center gap-4 z-50">
-            <button
-              onClick={() => {
-                const a = document.createElement("a");
-                a.href = selectedImage;
-                a.download = "image";
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-              }}
-              className="text-white hover:bg-white/20 p-2 rounded-full transition-colors"
-              title="Download Image"
-            >
-              <Download className="w-6 h-6" />
-            </button>
-            <button
-              onClick={() => setSelectedImage(null)}
-              className="text-white hover:bg-white/20 p-2 rounded-full transition-colors"
-            >
-              <X className="w-8 h-8" />
-            </button>
-          </div>
-          <img
-            src={selectedImage}
-            alt="Fullscreen view"
-            className="max-w-full max-h-full object-contain rounded-md"
-          />
-        </div>
-      )}
-    </div>
+      <AnimatePresence>
+        {selectedImage && (
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            variants={backdropTransition}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4"
+          >
+            <div className="absolute top-4 right-4 flex items-center gap-4 z-50">
+              <button
+                onClick={() => {
+                  const a = document.createElement("a");
+                  a.href = selectedImage;
+                  a.download = "image";
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                }}
+                className="text-white hover:bg-white/20 p-2 rounded-full transition-colors cursor-pointer"
+                title="Download Image"
+              >
+                <Download className="w-6 h-6" />
+              </button>
+              <button
+                onClick={() => setSelectedImage(null)}
+                className="text-white hover:bg-white/20 p-2 rounded-full transition-colors cursor-pointer"
+              >
+                <X className="w-8 h-8" />
+              </button>
+            </div>
+            <motion.img
+              variants={scaleIn}
+              src={selectedImage}
+              alt="Fullscreen view"
+              className="max-w-full max-h-full object-contain rounded-md"
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }

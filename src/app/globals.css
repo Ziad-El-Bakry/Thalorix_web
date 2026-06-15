@@ -11,7 +11,8 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
+  --primary: #103B40;
+  --primary-hover: #144a50;
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
@@ -29,14 +30,16 @@
   --chart-4: oklch(0.488 0.243 264.376);
   --chart-5: oklch(0.424 0.199 265.638);
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar: #103B40;
+  --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.205 0 0);
   --sidebar-primary-foreground: oklch(0.985 0 0);
   --sidebar-accent: oklch(0.97 0 0);
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  --sidebar-active: #43B0B5;
+  --card-hover: #f9fafb;
 }
 
 @keyframes border-draw {
@@ -55,37 +58,61 @@ input::-webkit-credentials-auto-fill-button {
 }
 
 .dark {
-  --background: oklch(0.15 0.015 255); /* Premium deep bluish-black */
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.18 0.015 255); /* Slightly lighter than background */
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --background: #0B1215;
+  --foreground: #F5F7FA;
+  --card: #162126;
+  --card-foreground: #F5F7FA;
+  --popover: #162126;
+  --popover-foreground: #F5F7FA;
+  --primary: #0A7A7A;
+  --primary-hover: #0D9494;
+  --primary-foreground: #F5F7FA;
+  --secondary: #1E343A;
+  --secondary-foreground: #A0AEB8;
+  --muted: #1E343A;
+  --muted-foreground: #A0AEB8;
+  --accent: #1E343A;
+  --accent-foreground: #F5F7FA;
+  --destructive: #EF4444;
+  --border: #2A3B40;
+  --input: #2A3B40;
+  --ring: #0A7A7A;
   --chart-1: oklch(0.809 0.105 251.813);
   --chart-2: oklch(0.623 0.214 259.815);
   --chart-3: oklch(0.546 0.245 262.881);
   --chart-4: oklch(0.488 0.243 264.376);
   --chart-5: oklch(0.424 0.199 265.638);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar: #0E2A2F;
+  --sidebar-foreground: #F5F7FA;
+  --sidebar-primary: #0A7A7A;
+  --sidebar-primary-foreground: #F5F7FA;
+  --sidebar-accent: #1E343A;
+  --sidebar-accent-foreground: #F5F7FA;
+  --sidebar-border: #2A3B40;
+  --sidebar-ring: #0A7A7A;
+  --sidebar-active: #0A7A7A;
+  --card-hover: #1E343A;
+
+  /* Tailwind V4 variable overrides inside .dark to target standard colors */
+  --color-gray-950: #0B1215;
+  --color-gray-900: #162126;
+  --color-gray-800: #1E343A;
+  --color-gray-700: #2A3B40;
+
+  --color-slate-950: #0B1215;
+  --color-slate-900: #162126;
+  --color-slate-800: #1E343A;
+  --color-slate-700: #2A3B40;
+
+  --color-zinc-950: #0B1215;
+  --color-zinc-900: #162126;
+  --color-zinc-800: #1E343A;
+  --color-zinc-700: #2A3B40;
+
+  --color-gray-400: #A0AEB8;
+  --color-gray-500: #A0AEB8;
+  --color-slate-400: #A0AEB8;
+  --color-slate-500: #A0AEB8;
 }
 
 /* Premium Animated LED ambient glow effect for dark mode backgrounds */
@@ -107,6 +134,9 @@ input::-webkit-credentials-auto-fill-button {
 }
 
 @theme inline {
+  --color-sidebar-active: var(--sidebar-active);
+  --color-card-hover: var(--card-hover);
+  --color-primary-hover: var(--primary-hover);
   --font-sans: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);

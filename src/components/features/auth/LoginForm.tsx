@@ -60,14 +60,14 @@ export function LoginForm() {
             variants={containerVariants}
             className="space-y-6"
         >
-            <motion.h2 variants={itemVariants} className="text-2xl font-semibold text-[#103B40]">
+            <motion.h2 variants={itemVariants} className="text-2xl font-semibold text-[#103B40] dark:text-foreground">
                 Login to your Account
             </motion.h2>
 
             <form onSubmit={handleSubmit} className="space-y-5">
                 {/* Email */}
                 <motion.div variants={itemVariants} className="space-y-1.5">
-                    <label className="block text-xs font-semibold text-gray-700 tracking-wide">
+                    <label className="block text-xs font-semibold text-gray-700 dark:text-muted-foreground tracking-wide">
                         Email
                     </label>
                     <input
@@ -78,13 +78,13 @@ export function LoginForm() {
                         required
                         pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"
                         title="Enter a valid email address (e.g. user@example.com)"
-                        className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-300 transition"
+                        className="w-full border border-gray-300 dark:border-border rounded-lg px-4 py-2.5 text-sm bg-transparent dark:bg-card text-gray-900 dark:text-foreground placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-300 dark:focus:ring-primary/30 transition"
                     />
                 </motion.div>
 
                 {/* Password */}
                 <motion.div variants={itemVariants} className="space-y-1.5">
-                    <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                    <label className="block text-xs font-semibold text-gray-700 dark:text-muted-foreground uppercase tracking-wide">
                         Password
                     </label>
                     <div className="relative">
@@ -96,7 +96,7 @@ export function LoginForm() {
                             required
                             pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*.\-_~+=]).{8,}"
                             title="Must be 8+ characters with uppercase, lowercase, number, and special character"
-                            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 pr-10 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-300 transition"
+                            className="w-full border border-gray-300 dark:border-border rounded-lg px-4 py-2.5 pr-10 text-sm bg-transparent dark:bg-card text-gray-900 dark:text-foreground placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-300 dark:focus:ring-primary/30 transition"
                         />
                         <button
                             type="button"
@@ -119,7 +119,7 @@ export function LoginForm() {
                     <div className="flex justify-end">
                         <Link
                             href="/forget-password"
-                            className="text-xs text-[#103B40] hover:underline"
+                            className="text-xs text-[#103B40] dark:text-[#43B0B5] hover:underline"
                         >
                             Forget Password?
                         </Link>
@@ -134,7 +134,7 @@ export function LoginForm() {
                         onChange={(e) => setRemember(e.target.checked)}
                         className="w-4 h-4 rounded border-gray-300 accent-[#103B40]"
                     />
-                    <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                    <span className="text-xs font-semibold text-gray-600 dark:text-muted-foreground uppercase tracking-wide">
                         Remember me
                     </span>
                 </motion.label>
@@ -149,7 +149,7 @@ export function LoginForm() {
                     variants={itemVariants}
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-[#103B40] hover:bg-[#0c2f33] disabled:opacity-70 disabled:cursor-not-allowed text-white font-bold text-sm tracking-wider py-3 rounded-lg transition-colors cursor-pointer"
+                    className="w-full bg-[#103B40] hover:bg-[#0c2f33] dark:bg-primary dark:hover:bg-primary-hover disabled:opacity-70 disabled:cursor-not-allowed text-white font-bold text-sm tracking-wider py-3 rounded-lg transition-colors cursor-pointer"
                 >
                     {loading ? "SIGNING IN..." : "SIGN IN"}
                 </motion.button>
@@ -182,11 +182,11 @@ export function LoginForm() {
                 </motion.button>
 
                 {/* Sign Up */}
-                <motion.p variants={itemVariants} className="text-center text-sm text-gray-500">
+                <motion.p variants={itemVariants} className="text-center text-sm text-gray-500 dark:text-muted-foreground">
                     Don&apos;t have an account?{" "}
                     <Link
                         href="/register"
-                        className="text-[#1a6b5a] font-medium hover:underline"
+                        className="text-[#1a6b5a] dark:text-[#43B0B5] font-medium hover:underline"
                     >
                         Sign Up
                     </Link>

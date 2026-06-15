@@ -29,7 +29,12 @@ export default function TemplateCard({ id, title, price, imageSrc, category, sel
   const hasValidImage = isValidImage(imageSrc);
 
   return (
-    <motion.div variants={itemVariants} className="bg-white dark:bg-gray-900 rounded-[20px] overflow-hidden p-4 shadow-xl dark:shadow-gray-900/40 hover:shadow-2xl dark:hover:shadow-gray-900/60 transition-shadow duration-300 flex flex-col h-full border border-transparent dark:border-gray-800 group">
+    <motion.div
+      variants={itemVariants}
+      whileHover={{ y: -5, boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.08)" }}
+      transition={{ type: "spring", stiffness: 300, damping: 22 }}
+      className="bg-white dark:bg-card rounded-[20px] overflow-hidden p-4 shadow-xl dark:shadow-black/20 border border-transparent dark:border-border transition-colors duration-300 flex flex-col h-full group"
+    >
       <div className="relative w-full overflow-hidden mb-4 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
         {hasValidImage ? (
           <img 

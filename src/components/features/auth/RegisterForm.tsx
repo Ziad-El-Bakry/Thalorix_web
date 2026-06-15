@@ -91,27 +91,27 @@ export default function RegisterForm() {
             variants={containerVariants}
             className="space-y-6"
         >
-            <motion.h2 variants={itemVariants} className="text-2xl font-semibold text-[#103B40] text-center">
+            <motion.h2 variants={itemVariants} className="text-2xl font-semibold text-[#103B40] dark:text-foreground text-center">
                 Sign Up
             </motion.h2>
 
             {/* Modern Sliding Underline Tab Swapper */}
             <motion.div 
                 variants={itemVariants} 
-                className="flex border-b border-[#D3E0E2] w-full mb-6 relative"
+                className="flex border-b border-[#D3E0E2] dark:border-border w-full mb-6 relative"
             >
                 <button
                     type="button"
                     onClick={() => setRole("user")}
                     className={`flex-1 py-3 text-sm font-semibold transition-all duration-200 relative cursor-pointer ${
-                        role === "user" ? "text-[#103B40] scale-[1.03]" : "text-gray-400 hover:text-[#103B40]/70"
+                        role === "user" ? "text-[#103B40] dark:text-foreground scale-[1.03]" : "text-gray-400 hover:text-[#103B40]/70 dark:hover:text-foreground/75"
                     }`}
                 >
                     User
                     {role === "user" && (
                         <motion.div
                             layoutId="activeTabUnderline"
-                            className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#103B40] rounded-full shadow-[0_1px_8px_rgba(16,59,64,0.4)]"
+                            className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#103B40] dark:bg-primary rounded-full shadow-[0_1px_8px_rgba(16,59,64,0.4)]"
                             transition={{ type: "spring", stiffness: 300, damping: 25 }}
                         />
                     )}
@@ -120,14 +120,14 @@ export default function RegisterForm() {
                     type="button"
                     onClick={() => setRole("seller")}
                     className={`flex-1 py-3 text-sm font-semibold transition-all duration-200 relative cursor-pointer ${
-                        role === "seller" ? "text-[#103B40] scale-[1.03]" : "text-gray-400 hover:text-[#103B40]/70"
+                        role === "seller" ? "text-[#103B40] dark:text-foreground scale-[1.03]" : "text-gray-400 hover:text-[#103B40]/70 dark:hover:text-foreground/75"
                     }`}
                 >
                     Seller
                     {role === "seller" && (
                         <motion.div
                             layoutId="activeTabUnderline"
-                            className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#103B40] rounded-full shadow-[0_1px_8px_rgba(16,59,64,0.4)]"
+                            className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#103B40] dark:bg-primary rounded-full shadow-[0_1px_8px_rgba(16,59,64,0.4)]"
                             transition={{ type: "spring", stiffness: 300, damping: 25 }}
                         />
                     )}
@@ -137,7 +137,7 @@ export default function RegisterForm() {
             <form onSubmit={handleSubmit} className="space-y-5">
                 {/* Username */}
                 <motion.div variants={itemVariants} className="space-y-1.5">
-                    <label className="block text-xs font-semibold text-gray-700 tracking-wide">
+                    <label className="block text-xs font-semibold text-gray-700 dark:text-muted-foreground tracking-wide">
                         Full Name
                     </label>
                     <input
@@ -148,13 +148,13 @@ export default function RegisterForm() {
                         required
                         pattern="^[a-zA-Z\s\u0600-\u06FF]+$"
                         title="Name must contain only letters (Arabic or English) without numbers or symbols"
-                        className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-300 transition"
+                        className="w-full border border-gray-300 dark:border-border rounded-lg px-4 py-2.5 text-sm bg-transparent dark:bg-card text-gray-900 dark:text-foreground placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-300 dark:focus:ring-primary/30 transition"
                     />
                 </motion.div>
 
                 {/* Email */}
                 <motion.div variants={itemVariants} className="space-y-1.5">
-                    <label className="block text-xs font-semibold text-gray-700 tracking-wide">
+                    <label className="block text-xs font-semibold text-gray-700 dark:text-muted-foreground tracking-wide">
                         Email
                     </label>
                     <input
@@ -165,13 +165,13 @@ export default function RegisterForm() {
                         required
                         pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"
                         title="Enter a valid email address (e.g. user@example.com)"
-                        className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-300 transition"
+                        className="w-full border border-gray-300 dark:border-border rounded-lg px-4 py-2.5 text-sm bg-transparent dark:bg-card text-gray-900 dark:text-foreground placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-300 dark:focus:ring-primary/30 transition"
                     />
                 </motion.div>
 
                 {/* Phone */}
                 <motion.div variants={itemVariants} className="space-y-1.5">
-                    <label className="block text-xs font-semibold text-gray-700 tracking-wide">
+                    <label className="block text-xs font-semibold text-gray-700 dark:text-muted-foreground tracking-wide">
                         Phone Number
                     </label>
                     <input
@@ -180,7 +180,7 @@ export default function RegisterForm() {
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                         required
-                        className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-300 transition"
+                        className="w-full border border-gray-300 dark:border-border rounded-lg px-4 py-2.5 text-sm bg-transparent dark:bg-card text-gray-900 dark:text-foreground placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-300 dark:focus:ring-primary/30 transition"
                     />
                 </motion.div>
 
@@ -197,7 +197,7 @@ export default function RegisterForm() {
                         >
                             {/* Store Name */}
                             <div className="space-y-1.5">
-                                <label className="block text-xs font-semibold text-gray-700 tracking-wide">
+                                <label className="block text-xs font-semibold text-gray-700 dark:text-muted-foreground tracking-wide">
                                     Store Name
                                 </label>
                                 <input
@@ -206,26 +206,26 @@ export default function RegisterForm() {
                                     value={storeName}
                                     onChange={(e) => setStoreName(e.target.value)}
                                     required={role === "seller"}
-                                    className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-300 transition"
+                                    className="w-full border border-gray-300 dark:border-border rounded-lg px-4 py-2.5 text-sm bg-transparent dark:bg-card text-gray-900 dark:text-foreground placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-300 dark:focus:ring-primary/30 transition"
                                 />
                             </div>
 
                             {/* Store Description */}
                             <div className="space-y-1.5">
-                                <label className="block text-xs font-semibold text-gray-700 tracking-wide">
+                                <label className="block text-xs font-semibold text-gray-700 dark:text-muted-foreground tracking-wide">
                                     Store Description
                                 </label>
                                 <textarea
                                     placeholder="Describe your business and products..."
                                     value={storeDescription}
                                     onChange={(e) => setStoreDescription(e.target.value)}
-                                    className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-300 transition min-h-[80px] resize-y"
+                                    className="w-full border border-gray-300 dark:border-border rounded-lg px-4 py-2.5 text-sm bg-transparent dark:bg-card text-gray-900 dark:text-foreground placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-300 dark:focus:ring-primary/30 transition min-h-[80px] resize-y"
                                 />
                             </div>
 
                             {/* Store Address */}
                             <div className="space-y-1.5">
-                                <label className="block text-xs font-semibold text-gray-700 tracking-wide">
+                                <label className="block text-xs font-semibold text-gray-700 dark:text-muted-foreground tracking-wide">
                                     Store Address
                                 </label>
                                 <input
@@ -233,7 +233,7 @@ export default function RegisterForm() {
                                     placeholder="e.g. 123 Nile St, Cairo, Egypt"
                                     value={address}
                                     onChange={(e) => setAddress(e.target.value)}
-                                    className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-300 transition"
+                                    className="w-full border border-gray-300 dark:border-border rounded-lg px-4 py-2.5 text-sm bg-transparent dark:bg-card text-gray-900 dark:text-foreground placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-300 dark:focus:ring-primary/30 transition"
                                 />
                             </div>
                         </motion.div>
@@ -242,7 +242,7 @@ export default function RegisterForm() {
 
                 {/* Password */}
                 <motion.div variants={itemVariants} className="space-y-1.5">
-                    <label className="block text-xs font-semibold text-gray-700 tracking-wide">
+                    <label className="block text-xs font-semibold text-gray-700 dark:text-muted-foreground tracking-wide">
                         Password
                     </label>
                     <div className="relative">
@@ -254,7 +254,7 @@ export default function RegisterForm() {
                             required
                             pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*.\-_~+=]).{8,}"
                             title="Must be 8+ characters with uppercase, lowercase, number, and special character"
-                            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 pr-10 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-300 transition"
+                            className="w-full border border-gray-300 dark:border-border rounded-lg px-4 py-2.5 pr-10 text-sm bg-transparent dark:bg-card text-gray-900 dark:text-foreground placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-300 dark:focus:ring-primary/30 transition"
                         />
                         <button
                             type="button"
@@ -278,7 +278,7 @@ export default function RegisterForm() {
 
                 {/* Confirm Password */}
                 <motion.div variants={itemVariants} className="space-y-1.5">
-                    <label className="block text-xs font-semibold text-gray-700 tracking-wide">
+                    <label className="block text-xs font-semibold text-gray-700 dark:text-muted-foreground tracking-wide">
                         Confirm Password
                     </label>
                     <div className="relative">
@@ -290,7 +290,7 @@ export default function RegisterForm() {
                             required
                             pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*.\-_~+=]).{8,}"
                             title="Must match password: 8+ characters with uppercase, lowercase, number, and special character"
-                            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 pr-10 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-300 transition"
+                            className="w-full border border-gray-300 dark:border-border rounded-lg px-4 py-2.5 pr-10 text-sm bg-transparent dark:bg-card text-gray-900 dark:text-foreground placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-300 dark:focus:ring-primary/30 transition"
                         />
                         <button
                             type="button"
@@ -313,13 +313,13 @@ export default function RegisterForm() {
                 </motion.div>
 
                 {/* Terms */}
-                <motion.p variants={itemVariants} className="text-xs text-gray-600">
+                <motion.p variants={itemVariants} className="text-xs text-gray-600 dark:text-muted-foreground">
                     By continuing, you agree to our{" "}
-                    <Link href="/terms" className="text-[#103B40] font-medium underline">
+                    <Link href="/terms" className="text-[#103B40] dark:text-[#43B0B5] font-medium underline">
                         Terms
                     </Link>{" "}
                     and{" "}
-                    <Link href="/privacy" className="text-[#103B40] font-medium underline">
+                    <Link href="/privacy" className="text-[#103B40] dark:text-[#43B0B5] font-medium underline">
                         Privacy Policy
                     </Link>
                     .
@@ -335,17 +335,17 @@ export default function RegisterForm() {
                     variants={itemVariants}
                     type="submit"
                     disabled={loading}
-                    className={`w-full bg-[#103B40] hover:bg-[#0c2f33] disabled:opacity-70 disabled:cursor-not-allowed text-white font-bold text-sm tracking-wider py-3 rounded-lg transition-colors cursor-pointer ${loading ? 'animate-pulse' : ''}`}
+                    className={`w-full bg-[#103B40] hover:bg-[#0c2f33] dark:bg-primary dark:hover:bg-primary-hover disabled:opacity-70 disabled:cursor-not-allowed text-white font-bold text-sm tracking-wider py-3 rounded-lg transition-colors cursor-pointer ${loading ? 'animate-pulse' : ''}`}
                 >
                     {loading ? "REGISTERING..." : "REGISTER"}
                 </motion.button>
 
                 {/* Sign In link */}
-                <motion.p variants={itemVariants} className="text-center text-sm text-gray-500">
+                <motion.p variants={itemVariants} className="text-center text-sm text-gray-500 dark:text-muted-foreground">
                     Already have an account?{" "}
                     <Link
                         href="/login"
-                        className="text-[#103B40] font-medium hover:underline"
+                        className="text-[#103B40] dark:text-[#43B0B5] font-medium hover:underline"
                     >
                         Sign In
                     </Link>
