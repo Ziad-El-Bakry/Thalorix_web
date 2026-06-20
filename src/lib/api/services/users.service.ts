@@ -280,32 +280,52 @@ export const usersService = {
    * Get Friends
    */
   async getFriends(userId: string, params?: any): Promise<any> {
-    const { data } = await api.get(ENDPOINTS.USERS.FRIENDS(userId), { params });
-    return data;
+    try {
+      const { data } = await api.get(ENDPOINTS.USERS.FRIENDS(userId), { params });
+      return data;
+    } catch (error: any) {
+      if (error.response?.status === 404) return [];
+      throw error;
+    }
   },
 
   /**
    * Get Followers
    */
   async getFollowers(userId: string, params?: any): Promise<any> {
-    const { data } = await api.get(ENDPOINTS.USERS.FOLLOWERS(userId), { params });
-    return data;
+    try {
+      const { data } = await api.get(ENDPOINTS.USERS.FOLLOWERS(userId), { params });
+      return data;
+    } catch (error: any) {
+      if (error.response?.status === 404) return [];
+      throw error;
+    }
   },
 
   /**
    * Get Following
    */
   async getFollowing(userId: string, params?: any): Promise<any> {
-    const { data } = await api.get(ENDPOINTS.USERS.FOLLOWING(userId), { params });
-    return data;
+    try {
+      const { data } = await api.get(ENDPOINTS.USERS.FOLLOWING(userId), { params });
+      return data;
+    } catch (error: any) {
+      if (error.response?.status === 404) return [];
+      throw error;
+    }
   },
 
   /**
    * Get Mutual Friends
    */
   async getMutualFriends(userId: string): Promise<any> {
-    const { data } = await api.get(ENDPOINTS.USERS.MUTUAL_FRIENDS(userId));
-    return data;
+    try {
+      const { data } = await api.get(ENDPOINTS.USERS.MUTUAL_FRIENDS(userId));
+      return data;
+    } catch (error: any) {
+      if (error.response?.status === 404) return [];
+      throw error;
+    }
   },
 
   /**

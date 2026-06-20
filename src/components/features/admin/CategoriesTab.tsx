@@ -13,9 +13,11 @@ import {
   Loader2,
   AlertCircle,
   Tag,
+  Layers,
 } from "lucide-react";
 import { categoriesService } from "@/lib/api/services/categories.service";
-import { Category } from "@/types";
+import { templatesService } from "@/lib/api/services/templates.service";
+import { Category, Template } from "@/types";
 
 interface CategoryFormData {
   name: string;
@@ -24,6 +26,7 @@ interface CategoryFormData {
 
 export default function CategoriesTab() {
   const [categories, setCategories] = useState<Category[]>([]);
+  const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -39,13 +42,20 @@ export default function CategoriesTab() {
   // Delete confirmation
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // ─── Fetch categories ───
+  // ─── Fetch categories and templates ───
   const fetchCategories = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await categoriesService.getAll();
-      setCategories(Array.isArray(data) ? data : []);
+      const [categoriesData, templatesData] = await Promise.all([
+        categoriesService.getAll(),
+        templatesService.getAll().catch((err) => {
+          console.error("Failed to fetch templates:", err);
+          return [];
+        }),
+      ]);
+      setCategories(Array.isArray(categoriesData) ? categoriesData : []);
+      setTemplates(Array.isArray(templatesData) ? templatesData : []);
     } catch (err: any) {
       console.error("Failed to fetch categories:", err);
       setError(err?.response?.data?.message || "Failed to load categories");
@@ -57,6 +67,21 @@ export default function CategoriesTab() {
   useEffect(() => {
     fetchCategories();
   }, [fetchCategories]);
+
+  // Helper to count templates belonging to a category
+  const getTemplateCountForCategory = useCallback(
+    (catId?: string) => {
+      if (!catId) return 0;
+      return templates.filter((t) => {
+        const templateCatId =
+          typeof t.categoryId === "object" && t.categoryId
+            ? t.categoryId._id || t.categoryId.id
+            : t.categoryId;
+        return templateCatId === catId;
+      }).length;
+    },
+    [templates]
+  );
 
   // ─── Filtered list ───
   const filteredCategories = useMemo(() => {
@@ -233,6 +258,9 @@ export default function CategoriesTab() {
                 <th className="text-left px-5 py-3 text-xs font-bold text-gray-400 uppercase tracking-wider">
                   Category
                 </th>
+                <th className="text-left px-5 py-3 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                  Products
+                </th>
                 <th className="text-left px-5 py-3 text-xs font-bold text-gray-400 uppercase tracking-wider hidden md:table-cell">
                   Created
                 </th>
@@ -267,6 +295,26 @@ export default function CategoriesTab() {
                             {category.name}
                           </span>
                         </div>
+                      </td>
+                      {/* Products/Templates Count */}
+                      <td className="px-5 py-4">
+                        {(() => {
+                          const count = getTemplateCountForCategory(catId);
+                          return (
+                            <span
+                              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
+                                count > 0
+                                  ? "bg-[#103B40]/5 text-[#103B40] border-[#103B40]/10 shadow-sm"
+                                  : "bg-gray-50 text-gray-400 border-gray-100/80"
+                              }`}
+                            >
+                              <Layers size={13} className={count > 0 ? "text-[#103B40]" : "text-gray-400"} />
+                              <span>
+                                {count} {count === 1 ? "template" : "templates"}
+                              </span>
+                            </span>
+                          );
+                        })()}
                       </td>
                       {/* Created */}
                       <td className="px-5 py-4 hidden md:table-cell">
