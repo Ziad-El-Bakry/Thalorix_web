@@ -166,10 +166,19 @@ api.interceptors.response.use(
         console.log('✅ Token refreshed successfully');
 
         const newToken = data.access_token || data.accessToken;
+        const newRefresh = data.refresh_token || data.refreshToken;
         
-        // Save new token
+        // Save new token and sync cookie
         if (newToken) {
             localStorage.setItem('access_token', newToken);
+            import('js-cookie').then((Cookies) => {
+              Cookies.default.set('auth_token', newToken, { expires: 1 });
+            });
+        }
+
+        // Save new refresh token
+        if (newRefresh) {
+            localStorage.setItem('refresh_token', newRefresh);
         }
         
         // Retry original request

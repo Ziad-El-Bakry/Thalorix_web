@@ -136,5 +136,9 @@ export const communityService = {
   toggleLike: async (postId: string, userId: string) => {
     const { data } = await api.post(ENDPOINTS.COMMUNITY.TOGGLE_LIKE(postId), { userId });
     return data;
+  },
+  getLikes: async (postId: string) => {
+    const { data } = await api.get(ENDPOINTS.COMMUNITY.GET_LIKES(postId));
+    return data;
   }
 };

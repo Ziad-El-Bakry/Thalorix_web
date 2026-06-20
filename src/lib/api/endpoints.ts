@@ -108,6 +108,7 @@ export const ENDPOINTS = {
     UPDATE_COMMENT: (id: string) => `/community/comment/${id}`,
     DELETE_COMMENT: (id: string) => `/community/comment/${id}`,
     TOGGLE_LIKE: (id: string) => `/community/post/${id}/like`,
+    GET_LIKES: (id: string) => `/community/post/${id}/likes`,
   },
 
   // ============================================

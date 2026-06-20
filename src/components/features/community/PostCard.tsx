@@ -82,6 +82,63 @@ export default function PostCard({ post }: { post: PostData }) {
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editCommentText, setEditCommentText] = useState("");
 
+  // Interactors Modal State
+  const [isInteractorsModalOpen, setIsInteractorsModalOpen] = useState(false);
+  const [interactorsTab, setInteractorsTab] = useState<"likes" | "comments">("likes");
+  const [interactorsLoading, setInteractorsLoading] = useState(false);
+  const [likedUsers, setLikedUsers] = useState<any[]>([]);
+
+  const openInteractorsModal = async (tab: "likes" | "comments") => {
+    setInteractorsTab(tab);
+    setIsInteractorsModalOpen(true);
+    setInteractorsLoading(true);
+    try {
+      if (tab === "likes") {
+        const data = await communityService.getLikes(post.id);
+        setLikedUsers(data);
+      } else {
+        const data = await communityService.getComments(post.id);
+        setComments(data.map((c: any) => ({
+          id: c._id,
+          author: c.userId?.name || c.userId?.username || "User",
+          authorId: c.userId?._id || c.userId?.id,
+          avatar: c.userId?.avatarUrl || c.userId?.avatar || c.userId?.logo || "/images/avatar.png",
+          text: c.content,
+          time: dayjs(c.createdAt).fromNow(),
+        })));
+      }
+    } catch (error) {
+      console.error("Failed to load interactors:", error);
+    } finally {
+      setInteractorsLoading(false);
+    }
+  };
+
+  const handleTabChange = async (tab: "likes" | "comments") => {
+    setInteractorsTab(tab);
+    setInteractorsLoading(true);
+    try {
+      if (tab === "likes") {
+        const data = await communityService.getLikes(post.id);
+        setLikedUsers(data);
+      } else {
+        const data = await communityService.getComments(post.id);
+        setComments(data.map((c: any) => ({
+          id: c._id,
+          author: c.userId?.name || c.userId?.username || "User",
+          authorId: c.userId?._id || c.userId?.id,
+          avatar: c.userId?.avatarUrl || c.userId?.avatar || c.userId?.logo || "/images/avatar.png",
+          text: c.content,
+          time: dayjs(c.createdAt).fromNow(),
+        })));
+      }
+    } catch (error) {
+      console.error("Failed to load interactors:", error);
+    } finally {
+      setInteractorsLoading(false);
+    }
+  };
+
   const CONTENT_LIMIT = 200;
   const LINE_LIMIT = 4;
   const lines = post.content ? post.content.split('\n') : [];
@@ -367,16 +424,19 @@ export default function PostCard({ post }: { post: PostData }) {
 
       {/* Stats row */}
       <div className="flex items-center justify-between px-4 py-2 text-xs text-gray-500">
-        <div className="flex items-center gap-1">
+        <button 
+          onClick={() => openInteractorsModal("likes")}
+          className="flex items-center gap-1 hover:text-teal-600 hover:underline transition-colors cursor-pointer"
+        >
           <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-teal-500 text-white text-[10px]">
             👍
           </span>
-          <span>{post.likes}</span>
-        </div>
+          <span className="font-semibold">{post.likes}</span>
+        </button>
         <div className="flex items-center gap-3">
           <button
-            onClick={handleShowComments}
-            className="hover:text-teal-600 hover:underline transition-colors cursor-pointer"
+            onClick={() => openInteractorsModal("comments")}
+            className="hover:text-teal-600 hover:underline transition-colors cursor-pointer font-semibold"
           >
             {commentCount} comments
           </button>
@@ -679,6 +739,190 @@ export default function PostCard({ post }: { post: PostData }) {
               )}
             </motion.div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Interactors Modal (Bubble Window) */}
+      <AnimatePresence>
+        {isInteractorsModalOpen && (
+          <div 
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[999] flex items-center justify-center p-4 cursor-pointer"
+            onClick={() => setIsInteractorsModalOpen(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ type: "spring", duration: 0.3 }}
+              className="bg-white rounded-3xl w-full max-w-md shadow-2xl border border-gray-100 overflow-hidden flex flex-col max-h-[80vh] cursor-default text-left"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+                <div>
+                  <h3 className="text-base font-bold text-gray-900">Post Interactors</h3>
+                  <p className="text-xs text-gray-400 mt-0.5">Users who reacted or commented on this post</p>
+                </div>
+                <button
+                  onClick={() => setIsInteractorsModalOpen(false)}
+                  className="p-1.5 rounded-xl text-gray-400 hover:bg-gray-100 transition-colors"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Tabs */}
+              <div className="flex border-b border-gray-100 px-4 bg-gray-50/50">
+                <button
+                  onClick={() => handleTabChange("likes")}
+                  className={`flex-1 py-3.5 text-xs font-bold transition-all relative ${
+                    interactorsTab === "likes" ? "text-teal-600" : "text-gray-400 hover:text-gray-600"
+                  }`}
+                >
+                  <span className="flex items-center justify-center gap-1.5">
+                    👍 Likes
+                    <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-extrabold ${
+                      interactorsTab === "likes" ? "bg-teal-50 text-teal-600" : "bg-gray-200/60 text-gray-500"
+                    }`}>
+                      {post.likes}
+                    </span>
+                  </span>
+                  {interactorsTab === "likes" && (
+                    <motion.div 
+                      layoutId="activeTabUnderline" 
+                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-teal-600" 
+                    />
+                  )}
+                </button>
+                <button
+                  onClick={() => handleTabChange("comments")}
+                  className={`flex-1 py-3.5 text-xs font-bold transition-all relative ${
+                    interactorsTab === "comments" ? "text-teal-600" : "text-gray-400 hover:text-gray-600"
+                  }`}
+                >
+                  <span className="flex items-center justify-center gap-1.5">
+                    💬 Comments
+                    <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-extrabold ${
+                      interactorsTab === "comments" ? "bg-teal-50 text-teal-600" : "bg-gray-200/60 text-gray-500"
+                    }`}>
+                      {commentCount}
+                    </span>
+                  </span>
+                  {interactorsTab === "comments" && (
+                    <motion.div 
+                      layoutId="activeTabUnderline" 
+                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-teal-600" 
+                    />
+                  )}
+                </button>
+              </div>
+
+              {/* Modal Body */}
+              <div className="flex-1 overflow-y-auto p-4 min-h-[250px] max-h-[50vh]">
+                {interactorsLoading ? (
+                  <div className="flex flex-col items-center justify-center py-16 gap-3">
+                    <div className="w-8 h-8 border-3 border-teal-600 border-t-transparent rounded-full animate-spin" />
+                    <p className="text-xs text-gray-500 font-medium">Fetching interactors...</p>
+                  </div>
+                ) : interactorsTab === "likes" ? (
+                  likedUsers.length === 0 ? (
+                    <div className="text-center py-16">
+                      <p className="text-gray-400 text-sm">No likes yet on this post.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {likedUsers.map((like) => {
+                        const isLikeOwner = currentUserId && like.user?.id === currentUserId;
+                        const likeProfileHref = like.user?.id 
+                          ? (isLikeOwner ? myProfilePath : `/dashboard/profile/${like.user.id}`)
+                          : "#";
+
+                        return (
+                          <div key={like.id} className="flex items-center justify-between">
+                            <Link 
+                              href={likeProfileHref} 
+                              onClick={() => setIsInteractorsModalOpen(false)}
+                              className="flex items-center gap-3 hover:opacity-85 transition-opacity"
+                            >
+                              <Image
+                                src={like.user?.avatar || "/images/avatar.png"}
+                                alt={like.user?.name}
+                                width={36}
+                                height={36}
+                                className="w-9 h-9 rounded-full object-cover shadow-sm"
+                              />
+                              <div>
+                                <span className="text-sm font-semibold text-gray-900 block leading-tight">
+                                  {like.user?.name}
+                                </span>
+                                <span className="text-[10px] text-gray-400">
+                                  {like.user?.role ? like.user.role.charAt(0).toUpperCase() + like.user.role.slice(1) : "Member"}
+                                </span>
+                              </div>
+                            </Link>
+                            
+                            <span className="text-xs bg-teal-50 text-teal-600 px-2 py-0.5 rounded-full font-bold border border-teal-100">
+                              👍 Liked
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )
+                ) : (
+                  comments.length === 0 ? (
+                    <div className="text-center py-16">
+                      <p className="text-gray-400 text-sm">No comments yet on this post.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {comments.map((comment) => {
+                        const isCommentOwner = currentUserId && comment.authorId === currentUserId;
+                        const commentProfileHref = comment.authorId 
+                          ? (isCommentOwner ? myProfilePath : `/dashboard/profile/${comment.authorId}`)
+                          : "#";
+
+                        return (
+                          <div key={comment.id} className="flex gap-3">
+                            <Link 
+                              href={commentProfileHref} 
+                              onClick={() => setIsInteractorsModalOpen(false)}
+                              className="shrink-0 hover:opacity-85 transition-opacity"
+                            >
+                              <Image
+                                src={comment.avatar}
+                                alt={comment.author}
+                                width={32}
+                                height={32}
+                                className="w-8 h-8 rounded-full object-cover"
+                              />
+                            </Link>
+                            <div className="flex-1 bg-gray-50 rounded-2xl px-3.5 py-2 text-left">
+                              <div className="flex items-center justify-between">
+                                <Link 
+                                  href={commentProfileHref} 
+                                  onClick={() => setIsInteractorsModalOpen(false)}
+                                  className="hover:text-teal-700 hover:underline transition-colors"
+                                >
+                                  <span className="text-xs font-bold text-gray-800">
+                                    {comment.author}
+                                  </span>
+                                </Link>
+                                <span className="text-[9px] text-gray-400">{comment.time}</span>
+                              </div>
+                              <p className="text-xs text-gray-600 mt-1 whitespace-pre-wrap">
+                                {comment.text}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )
+                )}
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </motion.div>

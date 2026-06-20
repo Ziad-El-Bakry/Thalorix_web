@@ -138,7 +138,7 @@ export default function MobileNavbar() {
               priority
             />
             <motion.h1
-              className="text-xl font-semibold tracking-widest hidden sm:flex"
+              className="text-xl font-semibold tracking-widest flex"
               initial="hidden"
               animate="visible"
               variants={{
