@@ -1,1 +1,0 @@
-export default function TemplateList(){ return <div>Template List</div>}

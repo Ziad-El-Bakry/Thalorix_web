@@ -1,127 +1,205 @@
-import Link from 'next/link';
-import Image from 'next/image';
+"use client";
+import { motion } from "framer-motion";
+import Link from "next/link";
+import Image from "next/image";
 
 export default function Page() {
-    return (
-        <div style={{ backgroundColor: '#e2e3ea', minHeight: '100vh' }} className="flex flex-col lg:flex-row">
-            {/* Left Sidebar */}
+  return (
+    <div className="flex flex-col lg:flex-row min-h-screen bg-[#e2e3ea] overflow-x-hidden overflow-y-auto">
+      {/* Sidebar Section */}
+      <motion.aside
+        initial={{ x: -100, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="flex flex-col items-center justify-center px-4 py-12 w-full lg:max-w-103 lg:min-h-screen bg-[#103B40] shadow-2xl z-20"
+      >
+        <Link
+          href="/"
+          className="group relative flex flex-col items-center justify-center w-full"
+        >
+          <div className="relative flex items-center justify-center w-70 h-70 md:w-87.5 md:h-87.5 lg:w-95 lg:h-87.5">
+            {/* Animated Aura */}
             <div
-                className="hidden lg:flex flex-col items-center justify-center gap-8 px-6 py-8"
-                style={{ width: '100%', maxWidth: '417px', minHeight: '100vh', backgroundColor: '#103B40' }}
+              className="absolute inset-0 opacity-0 group-hover:opacity-40 transition-opacity duration-1000 blur-[30px] md:blur-[50px]"
+              style={{
+                background:
+                  "conic-gradient(from 0deg, #22D3EE, transparent, #22D3EE, transparent, #22D3EE)",
+              }}
             >
-                    {/* Logo - Clickable */}
-                    <Link href="/" className="group flex flex-col items-center gap-2">
-                        <div className="relative">
-                            {/* <div className="absolute inset-0 bg-cyan-400/20 blur-xl rounded-full group-hover:bg-cyan-400/40 transition-all duration-500"></div> */}
-                            
-                            <Image
-                                src="/logoS.png"
-                                alt="Thalorix Logo"
-                                width={361}
-                                height={346}
-                                className="relative z-10 drop-shadow-[0_0_15px_rgba(34,211,238,0.4)] group-hover:drop-shadow-[0_0_100px_rgba(34,211,238,0.6)] transition-all duration-650"
-                            />
-                        </div>
-                    </Link>
-                </div>
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                className="w-full h-full"
+              />
+            </div>
 
-                {/* Right Content Area */}
-                <div className="flex-1 flex flex-col" style={{ backgroundColor: '#e2e3ea', minHeight: '100vh' }}>
-                    {/* Navbar */}
-                    <div
-                        className="flex flex-col md:flex-row items-center px-4 md:px-8 py-4 gap-4 md:gap-0"
-                        style={{
-                            backgroundColor: '#e2e3ea',
-                            borderBottom: '1px solid rgba(0,0,0,0.1)',
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            width: '100%',
-                        }}
-                    >
-                        <div className="flex items-center gap-4 md:gap-12 flex-1 overflow-x-auto">
-                            <nav className="flex gap-4 md:gap-8 text-sm md:text-base whitespace-nowrap">
-                                <Link href="/" className="text-teal-700 font-medium hover:opacity-60 transition">Home</Link>
-                                <Link href="/messages" className="text-teal-700 font-medium hover:opacity-60 transition">Message</Link>
-                                <Link href="/community" className="text-teal-700 font-medium hover:opacity-60 transition">Community</Link>
-                                <Link href="/marketplace" className="text-teal-700 font-medium hover:opacity-60 transition">Marketplace</Link>
-                                <Link href="/ai-tools" className="text-teal-700 font-medium hover:opacity-60 transition">AI Tools</Link>
-                                <Link href="/profile" className="text-teal-700 font-medium hover:opacity-60 transition">Profile</Link>
-                            </nav>
-                        </div>
-                        <div className="flex items-center gap-2 md:gap-4">
-                            <Link href="/register" className="text-teal-700 font-medium hover:opacity-75 transition text-sm md:text-base">Sign up</Link>
-                            <button
-                                className="px-4 md:px-6 py-2 rounded font-medium transition hover:opacity-90 text-sm md:text-base"
-                                style={{
-                                    backgroundColor: '#103B40',
-                                    color: '#A3C9D9',
-                                }}
-                            >
-                                Login
-                            </button>
-                        </div>
-                    </div>
+            {/* SVG Neon Stroke - Responsive Version */}
+            <svg
+              viewBox="0 0 100 100"
+              preserveAspectRatio="xMidYMid meet"
+              className="absolute inset-0 w-full h-full pointer-events-none z-20 overflow-visible"
+            >
+              <filter id="neon-glow">
+                <feGaussianBlur stdDeviation="1" result="blur" />
+                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+              </filter>
 
-                    {/* Main Content */}
-                    <div className="flex-1 flex items-center justify-center px-4 md:px-8 lg:px-12 py-8 md:py-12">
-                        <div
-                            className="rounded-2xl md:rounded-3xl border-4 md:border-8 p-6 md:p-12 lg:p-16 flex flex-col items-start gap-8 lg:gap-14 transition hover:shadow-2xl w-full"
-                            style={{
-                                maxWidth: '900px',
-                                backgroundColor: '#f5f6fb',
-                                borderColor: 'rgba(255, 255, 255, 0.23)',
-                                boxShadow: '7px 14px 4px rgba(0, 0, 0, 0.25)',
-                            }}
+              <motion.circle
+                cx="50"
+                cy="50"
+                r="45"
+                stroke="#22D3EE"
+                strokeWidth="3"
+                fill="transparent"
+                strokeDasharray="10"
+                animate={{
+                  strokeDashoffset: [0, -180],
+                  opacity: [0.6, 1, 0.6],
+                }}
+                transition={{
+                  strokeDashoffset: {
+                    duration: 4,
+                    repeat: Infinity,
+                    ease: "linear",
+                  },
+                  opacity: {
+                    duration: 2,
+                    delay: 0.1,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  },
+                }}
+                className="opacity-100"
+                filter="url(#neon-glow)"
+              />
+            </svg>
+            {/* Logo Image with corrected path */}
+            <div className="relative z-30 bg-[#103B40] rounded-full p-2 border border-white/5 shadow-inner">
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                <Image
+                  src="/images/thalorix.png"
+                  alt="Thalorix Logo"
+                  width={250}
+                  height={250}
+                  priority
+                  className="relative z-40 w-[225px] md:w-[200px] lg:w-[285px] h-auto transition-all duration-700 group-hover:drop-shadow-[0_0_50px_rgba(34,211,238,0.7)]"
+                />
+              </motion.div>
+            </div>
+          </div>
+
+          <div className="mt-4 md:mt-8 flex flex-col items-center">
+            <motion.span
+              className="uppercase text-white text-xl md:text-3xl font-black tracking-[0.2em] md:tracking-[0.4em] transition-all duration-500 group-hover:text-cyan-300"
+              style={{ textShadow: "0 0 15px rgba(34,211,238,0.3)" }}
+            >
+              THALORIX
+            </motion.span>
+            <div className="h-0.5 w-0 bg-blue-400 mt-2 transition-all duration-700 group-hover:w-full opacity-50" />
+          </div>
+        </Link>
+      </motion.aside>
+
+      {/* Hero Content Section */}
+      <main className="flex-1 flex items-center justify-center px-4 md:px-12 lg:px-16 py-12 z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="relative w-full max-w-225"
+        >
+          <section
+            className="relative rounded-[25px] md:rounded-[40px] border-[5px] md:border-10 p-6 md:p-16 bg-[#f5f6fb] shadow-[10px_10px_30px_rgba(0,0,0,0.1)] transition-all duration-500 hover:shadow-[30px_30px_80px_rgba(0,0,0,0.15)]"
+            style={{ borderColor: "rgba(255,255,255,0.5)" }}
+          >
+            <div className="flex flex-col gap-6 md:gap-8">
+              <h1 className="font-black leading-[1.1] text-3xl md:text-6xl lg:text-7xl">
+                <motion.div
+                  initial="hidden"
+                  animate="visible"
+                  variants={{
+                    visible: { transition: { staggerChildren: 0.1 } },
+                  }}
+                  className="flex flex-col items-start"
+                >
+                  <div className="flex flex-wrap text-[#103B40]">
+                    {"Launch your".split("").map((char, i) =>
+                      char === " " ? (
+                        <span key={`ly-${i}`} className="w-3 md:w-5"></span>
+                      ) : (
+                        <motion.span
+                          key={`ly-${i}`}
+                          variants={{
+                            hidden: { opacity: 0, y: 10 },
+                            visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+                          }}
+                          className="inline-block"
                         >
-                            {/* Hero Content */}
-                            <div className="flex flex-col gap-6 md:gap-8">
-                                <div>
-                                    <h1
-                                        className="font-bold leading-tight text-3xl md:text-5xl lg:text-6xl"
-                                        style={{
-                                            color: '#103B40',
-                                            textShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)',
-                                        }}
-                                    >
-                                        Launch your<br />
-                                        Startup Now!
-                                    </h1>
-                                </div>
-
-                                <p
-                                    className="font-medium text-lg md:text-2xl"
-                                    style={{
-                                        color: '#346C73',
-                                        lineHeight: '1.2',
-                                    }}
-                                >
-                                    Code, preview, manage. Everything in one flow.
-                                </p>
-
-                                {/* CTA Buttons */}
-                                <div className="flex flex-col sm:flex-row items-center gap-4 md:gap-8 pt-2 md:pt-4 w-full">
-                                    <button
-                                        className="px-6 md:px-12 py-2 md:py-3 rounded font-medium text-sm md:text-lg transition transform hover:opacity-90 hover:scale-105 active:scale-95 w-full sm:w-auto"
-                                        style={{
-                                            backgroundColor: '#103B40',
-                                            color: '#A3C9D9',
-                                            boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)',
-                                        }}
-                                    >
-                                        Try it now for free
-                                    </button>
-                                    <a
-                                        href="#learn"
-                                        className="font-medium text-sm md:text-lg hover:opacity-75 transition"
-                                        style={{ color: '#346C73' }}
-                                    >
-                                        Learn more
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-        </div>
-    );
+                          {char}
+                        </motion.span>
+                      )
+                    )}
+                  </div>
+                  <div className="flex flex-wrap mt-1 pb-2">
+                    {"Startup Now!".split("").map((char, i) =>
+                      char === " " ? (
+                        <span key={`sn-${i}`} className="w-3 md:w-5"></span>
+                      ) : (
+                        <motion.span
+                          key={`sn-${i}`}
+                          variants={{
+                            hidden: { opacity: 0, scale: 0.8 },
+                            visible: { opacity: 1, scale: 1, transition: { duration: 0.5 } },
+                          }}
+                          animate={{
+                            color: ["#0f766e", "#0891b2", "#10b981", "#0f766e"],
+                          }}
+                          transition={{
+                            duration: 3,
+                            repeat: Infinity,
+                            repeatType: "mirror",
+                            ease: "linear",
+                            delay: i * 0.15,
+                          }}
+                          className="inline-block font-black hover:scale-110 transition-transform"
+                        >
+                          {char}
+                        </motion.span>
+                      )
+                    )}
+                  </div>
+                </motion.div>
+              </h1>
+              <p className="font-medium text-base md:text-2xl text-[#346C73]">
+                Code, preview, manage. Everything in one flow   
+              </p>
+              <div className="flex flex-col sm:flex-row items-center gap-4 md:gap-6 pt-4">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="w-full sm:w-auto cursor-pointer px-6 md:px-16 py-4 md:py-4 rounded-[20px] md:rounded-[35px] text-xl md:text-2xl font-black transition-all shadow-xl bg-[#103B40] text-[#A3C9D9] hover:bg-[#144a50]"
+                >
+                  <Link
+                    href="/login"
+                    className="text-[#A3C9D9] font-bold text-base md:text-2xl hover:underline py-2"
+                  >
+                    Login
+                  </Link>
+                </motion.button>
+                <Link
+                  href="/register"
+                  className="text-teal-700 font-bold text-base md:text-lg hover:underline py-2"
+                >
+                  Sign up
+                </Link>
+              </div>
+            </div>
+          </section>
+        </motion.div>
+      </main>
+    </div>
+  );
 }

@@ -1,1 +1,202 @@
-export default function ChatList(){ return <div>Chat List</div>}
+"use client";
+
+import React, { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { Conversation, User } from "../../../types/message";
+import ChatListItem from "./ChatListItem";
+import { MessageSquarePlus, MoreVertical, Search, X, Trash2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useChatStore } from "@/store/useChatStore";
+
+// The UI now uses real conversations passed from page.tsx via useChatStore
+
+export default function ChatList({
+  conversations,
+  selectedId,
+  onSelect,
+}: {
+  conversations: Conversation[];
+  selectedId: string | null;
+  onSelect: (id: string) => void;
+}) {
+  const router = useRouter();
+  const [search, setSearch] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedConversations, setSelectedConversations] = useState<string[]>([]);
+  const listRef = React.useRef<HTMLDivElement>(null);
+  const { deleteConversation } = useChatStore();
+
+  React.useEffect(() => {
+    if (selectedId && listRef.current) {
+      const el = listRef.current.querySelector(`[data-id="${selectedId}"]`) as HTMLElement | null;
+      if (el) el.scrollIntoView({ block: "nearest" });
+    }
+  }, [selectedId]);
+
+  const filtered = useMemo(() =>
+    search.trim()
+      ? conversations.filter((c) =>
+          c.participants[0]?.name.toLowerCase().includes(search.toLowerCase())
+        )
+      : conversations,
+    [search, conversations]
+  );
+
+  return (
+    <div
+      ref={listRef}
+      className="w-full h-full overflow-hidden bg-white dark:bg-gray-900 flex flex-col"
+    >
+      {/* Header */}
+      {isSelectionMode ? (
+        <div className="px-4 py-3 flex justify-between items-center bg-teal-800 sticky top-0 z-10 shadow-lg shadow-black/20">
+          <div className="flex items-center gap-3 text-white">
+            <button onClick={() => { setIsSelectionMode(false); setSelectedConversations([]); }} className="hover:bg-white/15 p-1 rounded-full">
+              <X className="w-5 h-5" />
+            </button>
+            <span className="font-semibold text-sm">{selectedConversations.length} Selected</span>
+          </div>
+          <button 
+            onClick={() => {
+              if (selectedConversations.length > 0 && confirm(`Delete ${selectedConversations.length} conversations?`)) {
+                 selectedConversations.forEach(receiverId => deleteConversation(receiverId));
+                 setIsSelectionMode(false);
+                 setSelectedConversations([]);
+              }
+            }}
+            className="text-white hover:bg-white/20 p-2 rounded-full transition-colors"
+          >
+            <Trash2 className="w-4.5 h-4.5" />
+          </button>
+        </div>
+      ) : (
+        <div className="px-4 py-3 flex justify-between items-center bg-[#103B40] sticky top-0 z-10 shadow-lg shadow-black/20">
+          <span className="font-semibold text-white text-base">Messages</span>
+          <div className="flex gap-1 items-center text-white relative">
+            <button 
+              onClick={() => setIsSelectionMode(true)} 
+              className="text-xs font-semibold px-2 py-1 mr-1 rounded bg-white/10 hover:bg-white/20 transition-colors"
+            >
+              Select
+            </button>
+            <button onClick={() => setIsModalOpen(true)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/15 transition-colors">
+              <MessageSquarePlus className="w-4.5 h-4.5" />
+            </button>
+            <button 
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/15 transition-colors"
+            >
+              <MoreVertical className="w-4.5 h-4.5" />
+            </button>
+
+            <AnimatePresence>
+              {isMenuOpen && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                  className="absolute top-10 right-0 bg-white dark:bg-gray-900 rounded-lg shadow-xl border border-gray-100 dark:border-gray-800 py-1 w-48 z-50"
+                >
+                  <button
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      if (!selectedId) {
+                        alert("Please select a conversation to delete first.");
+                        return;
+                      }
+                      const selectedConv = conversations.find(c => c.id === selectedId);
+                      if (selectedConv && confirm("Are you sure you want to delete this conversation?")) {
+                        deleteConversation(selectedConv.participants[0].id);
+                      }
+                    }}
+                    className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-2 transition-colors ${selectedId ? 'text-red-600 hover:bg-red-50' : 'text-gray-300 cursor-not-allowed'}`}
+                    disabled={!selectedId}
+                  >
+                    <Trash2 className="w-4 h-4" /> Delete Conversation
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+      )}
+
+      {/* Search */}
+      <div className="px-3 py-2 bg-[#f0f2f5] dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800">
+        <div className="relative flex items-center">
+          <Search className="absolute left-3 w-4 h-4 text-gray-400 pointer-events-none" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search conversations..."
+            className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full py-2 pl-9 pr-4 text-sm text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-400/40 focus:border-teal-400 transition-all"
+          />
+        </div>
+      </div>
+
+      {/* List */}
+      <div className="flex-1 overflow-y-auto">
+        {filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-40 text-gray-400 text-sm">
+            <Search className="w-8 h-8 mb-2 opacity-30" />
+            No conversations found
+          </div>
+        ) : (
+          filtered.map((conv) => {
+            const receiverId = conv.participants[0]?.id;
+            return (
+              <div key={conv.id} className="relative group">
+                <ChatListItem
+                  conversation={conv}
+                  selected={conv.id === selectedId}
+                  onClick={() => {
+                    if (isSelectionMode) {
+                      setSelectedConversations(prev => 
+                        prev.includes(receiverId) ? prev.filter(id => id !== receiverId) : [...prev, receiverId]
+                      );
+                    } else {
+                      onSelect(conv.id);
+                    }
+                  }}
+                  data-id={conv.id}
+                  selectionMode={isSelectionMode}
+                  isItemSelected={selectedConversations.includes(receiverId)}
+                />
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* New Chat Modal */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+            onClick={() => setIsModalOpen(false)}
+          >
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white dark:bg-gray-900 rounded-xl shadow-xl w-full max-w-sm overflow-hidden flex flex-col border border-transparent dark:border-gray-800"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex justify-between items-center p-4 border-b border-gray-100 dark:border-gray-800">
+                <h3 className="font-bold text-gray-800 dark:text-white">New Message</h3>
+                <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                Search users functionality coming soon
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}

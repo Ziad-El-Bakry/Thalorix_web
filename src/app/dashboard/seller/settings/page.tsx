@@ -1,0 +1,12 @@
+"use client";
+
+import { Suspense } from "react";
+import SellerEditProfile from "@/components/features/sellers/SellerEditProfile";
+
+export default function SellerSettingsPage() {
+  return (
+    <Suspense fallback={<div className="h-[200px] w-full animate-spin border-t-2 border-teal-600 rounded-full w-10 h-10 mx-auto mt-20" />}>
+      <SellerEditProfile />
+    </Suspense>
+  );
+}

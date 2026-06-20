@@ -1,0 +1,174 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import Image from "next/image";
+import { Video, ImageIcon, FileText } from "lucide-react";
+import { motion } from "framer-motion";
+import CreatePostModal from "./CreatePostModal";
+import { useAvatar } from "@/store/useAvatarStore";
+import { usePostStore } from "@/store/usePostStore";
+import { PostData } from "@/components/features/community/PostCard";
+import { authService } from "@/lib/api/services/auth.service";
+import { uploadService } from "@/lib/api/services/upload.service";
+import { communityService } from "@/lib/api/services/community.service";
+
+interface CreatePostBarProps {
+  userName?: string;
+  userAvatar?: string;
+}
+
+export default function CreatePostBar({ userName = "User", userAvatar }: CreatePostBarProps) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [initialTab, setInitialTab] = useState<"text" | "video" | "photo" | "article">("text");
+  const { avatar: globalAvatar } = useAvatar();
+
+  const avatarSrc = userAvatar || globalAvatar || "/images/avatar.png";
+
+  const searchParams = useSearchParams();
+
+  const openModal = (tab: "text" | "video" | "photo" | "article") => {
+    setInitialTab(tab);
+    setIsModalOpen(true);
+  };
+
+  useEffect(() => {
+    if (searchParams && searchParams.get("post") === "new") {
+      setIsModalOpen(true);
+    }
+  }, [searchParams]);
+
+  const { addOptimisticPost, updatePostUploadStatus, finalizePost } = usePostStore();
+
+  const handlePost = async (postData: {
+    content: string;
+    media?: File[];
+    visibility: string;
+    link?: string;
+  }) => {
+    let imageUrl: string | undefined = undefined;
+    let localMediaBlob: string | undefined = undefined;
+
+    if (postData.media && postData.media.length > 0) {
+      localMediaBlob = URL.createObjectURL(postData.media[0]);
+    }
+
+    const tempId = `temp_${Date.now()}`;
+    const currentUser = authService.getStoredUser() as any;
+    
+    // Add optimistic post
+    addOptimisticPost({
+      id: tempId,
+      content: postData.content,
+      localMediaBlob,
+      localMediaFile: postData.media?.[0],
+      localMediaType: postData.media?.[0]?.type,
+      isUploading: !!localMediaBlob,
+      uploadProgress: localMediaBlob ? 0 : undefined,
+      link: postData.link,
+      author: {
+        name: currentUser?.name || currentUser?.username || userName,
+        avatar: avatarSrc,
+        title: currentUser?.role ? currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1) : "Member",
+      }
+    });
+
+    try {
+      if (postData.media && postData.media.length > 0) {
+        const uploadRes = await uploadService.uploadFile(postData.media[0], "posts", (progressEvent) => {
+          if (progressEvent.total) {
+            const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            updatePostUploadStatus(tempId, { uploadProgress: progress });
+          }
+        });
+        imageUrl = uploadRes.url;
+      }
+        
+      const newPost = await communityService.createPost(postData.content, imageUrl, postData.link);
+      finalizePost(tempId, newPost);
+      if (localMediaBlob) {
+        URL.revokeObjectURL(localMediaBlob);
+      }
+    } catch (error: any) {
+      console.error("Failed to post:", error);
+      updatePostUploadStatus(tempId, { 
+        isUploading: false, 
+        uploadError: error.message || "Failed to post. Please try again." 
+      });
+    }
+  };
+
+  return (
+    <>
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35 }}
+        className="bg-white rounded-xl shadow-sm border border-gray-100 px-5 pt-5 pb-3"
+      >
+        {/* Top row: Avatar + Input */}
+        <div className="flex items-center gap-4">
+          <Image
+            src={avatarSrc}
+            alt={userName}
+            width={56}
+            height={56}
+            className="w-12 h-12 rounded-full object-cover flex-shrink-0 shadow-sm"
+          />
+          <button
+            onClick={() => openModal("text")}
+            className="flex-1 text-left px-5 py-3 rounded-full border border-gray-400 text-gray-500 text-[15px] font-medium hover:bg-gray-100 hover:border-gray-500 transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-teal-500/30"
+          >
+            Start a post
+          </button>
+        </div>
+
+        {/* Divider */}
+        <div className="h-px bg-gray-200/70 my-3" />
+
+        {/* Action buttons row */}
+        <div className="flex items-center justify-between gap-1 sm:gap-2">
+          <motion.button
+            whileHover={{ backgroundColor: "rgba(0,0,0,0.04)" }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => openModal("video")}
+            className="flex flex-1 justify-center items-center gap-1.5 px-2 py-3 rounded-lg text-xs font-semibold text-gray-600 transition-colors duration-200 cursor-pointer"
+          >
+            <Video size={20} className="text-red-500" strokeWidth={2.2} />
+            <span className="hidden sm:inline">Video</span>
+          </motion.button>
+
+          <motion.button
+            whileHover={{ backgroundColor: "rgba(0,0,0,0.04)" }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => openModal("photo")}
+            className="flex flex-1 justify-center items-center gap-1.5 px-2 py-3 rounded-lg text-xs font-semibold text-gray-600 transition-colors duration-200 cursor-pointer"
+          >
+            <ImageIcon size={20} className="text-blue-500" strokeWidth={2.2} />
+            <span className="hidden sm:inline">Photo</span>
+          </motion.button>
+
+          <motion.button
+            whileHover={{ backgroundColor: "rgba(0,0,0,0.04)" }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => openModal("article")}
+            className="flex flex-1 justify-center items-center gap-1.5 px-2 py-3 rounded-lg text-xs font-semibold text-gray-600 transition-colors duration-200 cursor-pointer"
+          >
+            <FileText size={20} className="text-orange-500" strokeWidth={2.2} />
+            <span className="hidden sm:inline">Write article</span>
+          </motion.button>
+        </div>
+      </motion.div>
+
+      {/* Modal */}
+      <CreatePostModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        initialTab={initialTab}
+        userName={userName}
+        userAvatar={avatarSrc}
+        onPost={handlePost}
+      />
+    </>
+  );
+}
