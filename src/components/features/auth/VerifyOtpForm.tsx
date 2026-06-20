@@ -18,6 +18,7 @@ export function VerifyOtpForm() {
     // Create an array of refs
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
     const type = searchParams?.get("type") || "";
+    const role = searchParams?.get("role") || "";
 
     const verifyOtp = async () => {
         const code = otp.join("");
@@ -33,9 +34,13 @@ export function VerifyOtpForm() {
         try {
             await authService.verifyOtp({ email, otp: code });
             if (type === "reset") {
-                router.push(`/reset-password?token=${code}&email=${encodeURIComponent(email)}`);
+                router.push(`/reset-password?token=${code}&email=${encodeURIComponent(email)}${role ? `&role=${role}` : ""}`);
             } else {
-                router.push("/dashboard"); // Redirect on success
+                if (role === "admin") {
+                    router.push("/admin/login?verified=true");
+                } else {
+                    router.push("/dashboard"); // Redirect on success
+                }
             }
         } catch (err: any) {
             setError(err?.response?.data?.message || err?.message || "Failed to verify OTP");

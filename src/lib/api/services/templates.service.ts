@@ -1,7 +1,7 @@
 // src/lib/api/services/templates.service.ts
 import axiosInstance from '../axios';
 import { ENDPOINTS } from '../endpoints';
-import { Template, Category } from '../../../types'; // بنسحبهم جاهزين من هنا ومنكررش تعريفهم تحت
+import { Template, TemplateReview, Category } from '../../../types'; // بنسحبهم جاهزين من هنا ومنكررش تعريفهم تحت
 
 export interface CreateTemplatePayload {
   title: string;
@@ -60,8 +60,26 @@ export const templatesService = {
     return response.data;
   },
 
-  // حذف Template
+  // تحديث حالة القالب (active, suspended)
+  updateStatus: async (id: string, status: 'active' | 'suspended'): Promise<any> => {
+    const response = await axiosInstance.patch(`${ENDPOINTS.TEMPLATES.UPDATE(id)}/status`, { status });
+    return response.data;
+  },
+
+  // حذف القالب
   delete: async (id: string): Promise<void> => {
     await axiosInstance.delete(ENDPOINTS.TEMPLATES.DELETE(id));
+  },
+
+  // جلب التقييمات
+  getReviews: async (id: string): Promise<TemplateReview[]> => {
+    const response = await axiosInstance.get(`${ENDPOINTS.TEMPLATES.GET_BY_ID(id)}/reviews`);
+    return response.data;
+  },
+
+  // إضافة تقييم
+  addReview: async (id: string, rating: number, comment: string): Promise<TemplateReview> => {
+    const response = await axiosInstance.post(`${ENDPOINTS.TEMPLATES.GET_BY_ID(id)}/reviews`, { rating, comment });
+    return response.data;
   },
 };

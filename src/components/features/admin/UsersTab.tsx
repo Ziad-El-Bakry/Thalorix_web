@@ -55,7 +55,13 @@ export default function UsersTab() {
         limit,
         search: debouncedSearch,
       });
-      setUsers(data.users || []);
+      const fetchedUsers = data.users || [];
+      const sortedUsers = fetchedUsers.sort((a: any, b: any) => {
+        const dateA = new Date(a.createdAt || a.updatedAt || 0).getTime();
+        const dateB = new Date(b.createdAt || b.updatedAt || 0).getTime();
+        return dateB - dateA;
+      });
+      setUsers(sortedUsers);
       setTotal(data.total || 0);
     } catch (err) {
       console.error("Error fetching users:", err);
@@ -116,7 +122,11 @@ export default function UsersTab() {
         await usersService.updateUser(userId, { role: targetRole as "user" | "admin" | "seller" });
         showToast(`Successfully changed role of ${targetUser.name} to ${targetRole}`);
       } else if (type === "block") {
-        await usersService.updateUser(userId, { isBlocked: targetBlockState });
+        if (targetBlockState) {
+          await usersService.adminBlockUser(userId);
+        } else {
+          await usersService.adminUnblockUser(userId);
+        }
         showToast(
           targetBlockState
             ? `User ${targetUser.name} has been blocked successfully`

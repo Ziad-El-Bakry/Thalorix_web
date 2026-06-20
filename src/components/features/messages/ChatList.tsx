@@ -47,7 +47,7 @@ export default function ChatList({
   return (
     <div
       ref={listRef}
-      className="w-full h-full overflow-hidden bg-white flex flex-col"
+      className="w-full h-full overflow-hidden bg-white dark:bg-gray-900 flex flex-col"
     >
       {/* Header */}
       {isSelectionMode ? (
@@ -97,7 +97,7 @@ export default function ChatList({
                   initial={{ opacity: 0, scale: 0.95, y: -10 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                  className="absolute top-10 right-0 bg-white rounded-lg shadow-xl border border-gray-100 py-1 w-48 z-50"
+                  className="absolute top-10 right-0 bg-white dark:bg-gray-900 rounded-lg shadow-xl border border-gray-100 dark:border-gray-800 py-1 w-48 z-50"
                 >
                   <button
                     onClick={() => {
@@ -124,7 +124,7 @@ export default function ChatList({
       )}
 
       {/* Search */}
-      <div className="px-3 py-2 bg-[#f0f2f5] border-b border-gray-100">
+      <div className="px-3 py-2 bg-[#f0f2f5] dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800">
         <div className="relative flex items-center">
           <Search className="absolute left-3 w-4 h-4 text-gray-400 pointer-events-none" />
           <input
@@ -132,7 +132,7 @@ export default function ChatList({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search conversations..."
-            className="w-full bg-white border border-gray-200 rounded-full py-2 pl-9 pr-4 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-400/40 focus:border-teal-400 transition-all"
+            className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full py-2 pl-9 pr-4 text-sm text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-400/40 focus:border-teal-400 transition-all"
           />
         </div>
       </div>
@@ -181,16 +181,16 @@ export default function ChatList({
           >
             <motion.div 
               initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden flex flex-col"
+              className="bg-white dark:bg-gray-900 rounded-xl shadow-xl w-full max-w-sm overflow-hidden flex flex-col border border-transparent dark:border-gray-800"
               onClick={e => e.stopPropagation()}
             >
-              <div className="flex justify-between items-center p-4 border-b border-gray-100">
-                <h3 className="font-bold text-gray-800">New Message</h3>
-                <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+              <div className="flex justify-between items-center p-4 border-b border-gray-100 dark:border-gray-800">
+                <h3 className="font-bold text-gray-800 dark:text-white">New Message</h3>
+                <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
                   <X size={20} />
                 </button>
               </div>
-              <div className="p-4 text-center text-sm text-gray-500">
+              <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">
                 Search users functionality coming soon
               </div>
             </motion.div>

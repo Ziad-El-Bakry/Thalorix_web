@@ -4,7 +4,7 @@ import { Zap, CheckCircle2, ArrowRight } from "lucide-react";
 
 export default function PremiumCard() {
   return (
-    <div className="bg-[#103B40] rounded-2xl p-6 shadow-lg flex flex-col h-full text-white relative overflow-hidden">
+    <div className="bg-[#103B40] rounded-2xl p-6 shadow-lg flex flex-col h-full text-white relative overflow-hidden border border-transparent dark:border-gray-700/30">
       {/* Decorative background elements */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-10 -mt-10 blur-2xl"></div>
       <div className="absolute bottom-0 right-0 w-24 h-24 bg-[#43B0B5]/20 rounded-full blur-xl"></div>

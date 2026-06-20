@@ -1,6 +1,6 @@
 import api from '../axios';
 import { ENDPOINTS } from '../endpoints';
-import { AIProject, DeployedProject } from '@/types/ai';
+import { AIProject, DeployedProject, AIBuilderResponse } from '@/types/ai';
 
 export const aiService = {
   /**
@@ -29,9 +29,42 @@ export const aiService = {
     prompt: string,
     stack?: string,
     userId?: string
-  ): Promise<{ projectId: string; sessionId: string; jobId: string | null; status: string }> {
+  ): Promise<AIBuilderResponse> {
     const payload = { prompt, stack, userId };
-    const { data } = await api.post(ENDPOINTS.AI.CHAT, payload);
+    try {
+      const { data } = await api.post(ENDPOINTS.AI.CHAT, payload);
+      if (data && data.ok === false) {
+        throw new Error(data.error || data.message || 'API Error');
+      }
+      return data.data || data;
+    } catch (err: any) {
+      if (err.response?.data?.error) {
+        throw new Error(err.response.data.error);
+      } else if (err.response?.data?.message) {
+        throw new Error(err.response.data.message);
+      }
+      throw err;
+    }
+  },
+
+  /**
+   * Send chat messages to the AI Builder (conforms to handover task v2 contract)
+   */
+  async sendMessage(payload: {
+    message: string;
+    session_id?: string;
+    output_preference?: string;
+    stack?: string;
+    userId?: string;
+  }): Promise<any> {
+    const requestPayload = {
+      prompt: payload.message,
+      stack: payload.stack,
+      userId: payload.userId,
+      session_id: payload.session_id,
+      output_preference: payload.output_preference,
+    };
+    const { data } = await api.post(ENDPOINTS.AI.CHAT, requestPayload);
     return data.data || data;
   },
 
@@ -79,9 +112,21 @@ export const aiService = {
   async editProject(
     id: string,
     prompt: string
-  ): Promise<{ projectId: string; jobId: string | null; status: string }> {
-    const { data } = await api.patch(ENDPOINTS.AI.EDIT_PROJECT(id), { prompt });
-    return data.data || data;
+  ): Promise<AIBuilderResponse> {
+    try {
+      const { data } = await api.patch(ENDPOINTS.AI.EDIT_PROJECT(id), { prompt });
+      if (data && data.ok === false) {
+        throw new Error(data.error || data.message || 'API Error');
+      }
+      return data.data || data;
+    } catch (err: any) {
+      if (err.response?.data?.error) {
+        throw new Error(err.response.data.error);
+      } else if (err.response?.data?.message) {
+        throw new Error(err.response.data.message);
+      }
+      throw err;
+    }
   },
 
   /**
@@ -122,17 +167,21 @@ export const aiService = {
    * Download built frontend package (dist.zip)
    */
   async downloadDistZip(sessionId: string, projectName: string): Promise<Blob> {
-    const response = await api.get(ENDPOINTS.AI.DIST_ZIP(sessionId, projectName), {
+    const url = ENDPOINTS.AI.DIST_ZIP(sessionId, projectName);
+    console.log('[Frontend Download] DIST_ZIP ->', { sessionId, projectName, finalUrl: url });
+    const response = await api.get(url, {
       responseType: 'blob',
     });
     return response.data;
   },
 
   /**
-   * Download full project source code (source.zip)
+   * Download source code package (source.zip)
    */
   async downloadSourceZip(sessionId: string, projectName: string): Promise<Blob> {
-    const response = await api.get(ENDPOINTS.AI.SOURCE_ZIP(sessionId, projectName), {
+    const url = ENDPOINTS.AI.SOURCE_ZIP(sessionId, projectName);
+    console.log('[Frontend Download] SOURCE_ZIP ->', { sessionId, projectName, finalUrl: url });
+    const response = await api.get(url, {
       responseType: 'blob',
     });
     return response.data;

@@ -1,11 +1,11 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { LayoutGrid, ShoppingBag, Users, Store, TrendingUp } from "lucide-react";
+import { LayoutGrid, ShoppingBag, Users, Store, TrendingUp, FolderTree } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export type AdminTabId = "overview" | "users" | "sellers" | "products" | "reports";
+export type AdminTabId = "overview" | "users" | "sellers" | "categories" | "products" | "reports";
 
 interface Tab {
   id: AdminTabId;
@@ -22,6 +22,7 @@ export default function AdminTabs() {
     { id: "users", label: "Users", icon: Users, href: "/dashboard/admin/users" },
     { id: "sellers", label: "Sellers", icon: Store, href: "/dashboard/admin/sellers" },
     { id: "products", label: "Products", icon: ShoppingBag, href: "/dashboard/admin/content" },
+    { id: "categories", label: "Categories", icon: FolderTree, href: "/dashboard/admin/categories" },
     { id: "reports", label: "Reports", icon: TrendingUp, href: "/dashboard/admin/reports" },
   ];
 

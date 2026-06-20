@@ -21,23 +21,83 @@ interface PostStore {
   retryPost: (tempId: string) => Promise<void>;
 }
 
-const mapBackendPost = (post: any): PostData => ({
-  id: post._id,
-  author: {
-    id: post.userId?._id || post.userId?.id,
-    name: post.userId?.name || "Unknown User",
-    avatar: post.userId?.avatarUrl || post.userId?.avatar || post.userId?.logo || "/images/avatar.png",
-    title: post.userId?.role ? post.userId.role.charAt(0).toUpperCase() + post.userId.role.slice(1) : "User",
-  },
-  content: post.content,
-  image: post.image,
-  link: post.link,
-  timestamp: dayjs(post.createdAt).fromNow(),
-  likes: post.likesCount || 0,
-  comments: post.commentsCount || 0,
-  shares: 0,
-  liked: post.liked || false,
-});
+const mapBackendPost = (post: any): PostData => {
+  let userObj = post.userId;
+  if (typeof userObj === 'string' && typeof window !== "undefined") {
+    try {
+      const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+      const currentUserId = storedUser.id || storedUser._id;
+      if (userObj === currentUserId) {
+        const reactiveAvatar = localStorage.getItem('thalorix_user_avatar');
+        userObj = {
+          _id: currentUserId,
+          id: currentUserId,
+          name: storedUser.name || storedUser.username || "User",
+          avatar: reactiveAvatar || storedUser.avatar || storedUser.avatarUrl || storedUser.logo || "/images/avatar.png",
+          avatarUrl: reactiveAvatar || storedUser.avatarUrl || storedUser.avatar || storedUser.logo || "/images/avatar.png",
+          role: storedUser.role || "user",
+        };
+      }
+    } catch (e) {
+      console.warn("Error parsing stored user in mapBackendPost:", e);
+    }
+  }
+
+  return {
+    id: post._id,
+    author: {
+      id: userObj?._id || userObj?.id || (typeof userObj === 'string' ? userObj : undefined),
+      name: userObj?.name || "Unknown User",
+      avatar: userObj?.avatarUrl || userObj?.avatar || userObj?.logo || "/images/avatar.png",
+      title: userObj?.role ? userObj.role.charAt(0).toUpperCase() + userObj.role.slice(1) : "User",
+    },
+    content: post.content,
+    image: post.image,
+    link: post.link,
+    timestamp: dayjs(post.createdAt).fromNow(),
+    likes: post.likesCount || 0,
+    comments: post.commentsCount || 0,
+    shares: 0,
+    liked: post.liked || false,
+    createdAt: post.createdAt,
+    updatedAt: post.updatedAt,
+  };
+};
+
+const getAgeInHours = (post: PostData): number => {
+  const referenceTime = post.updatedAt ? new Date(post.updatedAt) : (post.createdAt ? new Date(post.createdAt) : new Date());
+  const now = new Date();
+  const diffMs = now.getTime() - referenceTime.getTime();
+  const diffHours = Math.max(0, diffMs / (1000 * 60 * 60));
+  return diffHours;
+};
+
+export const calculatePostScore = (post: PostData): number => {
+  const likes = post.likes || 0;
+  const comments = post.comments || 0;
+  const shares = post.shares || 0;
+  const ageInHours = getAgeInHours(post);
+  
+  return (likes * 1 + comments * 3 + shares * 5) / Math.pow((ageInHours + 2), 1.5);
+};
+
+export const sortPostsByRelevance = (posts: PostData[]): PostData[] => {
+  const postsCopy = [...posts];
+  
+  return postsCopy.sort((a, b) => {
+    const scoreA = calculatePostScore(a);
+    const scoreB = calculatePostScore(b);
+    
+    if (Math.abs(scoreA - scoreB) > 0.0001) {
+      return scoreB - scoreA; // Descending by score
+    }
+    
+    // Default to chronological sorting (newest first)
+    const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+    return dateB - dateA;
+  });
+};
 
 export const usePostStore = create<PostStore>((set: any, get: any) => ({
   posts: [],
@@ -45,23 +105,32 @@ export const usePostStore = create<PostStore>((set: any, get: any) => ({
   fetchFeed: async (userId?: string) => {
     set({ isLoading: true });
     try {
-      const data = await communityService.getFeed(userId);
       const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
       const currentUserId = currentUser?.id || currentUser?._id || 'guest';
+      const data = await communityService.getFeed(userId || (currentUserId !== 'guest' ? currentUserId : undefined));
       const savedLikes = JSON.parse(localStorage.getItem(`liked_posts_${currentUserId}`) || '[]');
       
       const mappedPosts = data.map((backendPost: any) => {
         const post = mapBackendPost(backendPost);
-        // Apply local likes since backend isn't tracking it
-        if (savedLikes.includes(post.id)) {
-          post.liked = true;
-          // Increment display count because backend doesn't know about this like
-          post.likes += 1;
+        // Sync local storage with database-reported liked state
+        if (post.liked) {
+          if (!savedLikes.includes(post.id)) {
+            savedLikes.push(post.id);
+          }
+        } else {
+          // If the database says not liked, trust the database
+          const idx = savedLikes.indexOf(post.id);
+          if (idx > -1) {
+            savedLikes.splice(idx, 1);
+          }
         }
         return post;
       });
       
-      set({ posts: mappedPosts, isLoading: false });
+      localStorage.setItem(`liked_posts_${currentUserId}`, JSON.stringify(savedLikes));
+      
+      const sortedPosts = sortPostsByRelevance(mappedPosts);
+      set({ posts: sortedPosts, isLoading: false });
     } catch (error) {
       console.error("Failed to fetch feed:", error);
       set({ isLoading: false });
@@ -111,7 +180,10 @@ export const usePostStore = create<PostStore>((set: any, get: any) => ({
         } : p)
       }));
       
-      // Save locally (Frontend-only approach as requested)
+      // Save in DB via service call
+      await communityService.toggleLike(postId, userId);
+      
+      // Save locally (Frontend-only approach fallback/local sync)
       const likedKey = `liked_posts_${userId}`;
       const savedLikes = JSON.parse(localStorage.getItem(likedKey) || '[]');
       const currentPosts = get().posts;

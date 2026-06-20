@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Check, Ban, Trash2, Eye, DollarSign, ShoppingBag, X } from "lucide-react";
-import { mockProducts, AdminProduct } from "./adminMockData";
+import { AdminProduct } from "./adminMockData";
+import { templatesService } from "@/lib/api/services/templates.service";
 
 type Filter = "All" | "Active" | "Suspended" | "Removed";
 
@@ -16,9 +17,53 @@ const statusColors: Record<AdminProduct["status"], { bg: string; text: string; d
 export default function ProductsTab() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<Filter>("All");
-  const [products, setProducts] = useState(mockProducts);
+  const [products, setProducts] = useState<AdminProduct[]>([]);
   const [toast, setToast] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<AdminProduct | null>(null);
+
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      try {
+        const data = await templatesService.getAll();
+        
+        // Sort from newest to oldest
+        const sortedData = data.sort((a: any, b: any) => {
+          const dateA = new Date(a.createdAt || a.updatedAt || 0).getTime();
+          const dateB = new Date(b.createdAt || b.updatedAt || 0).getTime();
+          return dateB - dateA;
+        });
+
+        const mapped = sortedData.map((t: any) => {
+          // Extract seller info from populated developerId or fallback
+          const sellerData = t.developerId || t.seller;
+          const sellerName = sellerData?.name || sellerData?.storeName || sellerData?.username || 'Unknown Seller';
+          const sellerInitials = sellerName.substring(0, 2).toUpperCase();
+          
+          // Category info
+          const categoryName = t.categoryId?.name || t.category?.name || t.category || 'Uncategorized';
+          
+          return {
+            id: t.id || t._id,
+            name: t.title || 'Untitled',
+            seller: {
+              name: sellerName,
+              initials: sellerInitials,
+              color: '#3B82F6',
+            },
+            price: t.price || 0,
+            sales: t.sales || t.salesCount || t.downloads || 0,
+            revenue: (t.sales || t.salesCount || t.downloads || 0) * (t.price || 0),
+            status: t.status === 'suspended' ? 'Suspended' : t.status === 'removed' ? 'Removed' : 'Active',
+            category: categoryName,
+          };
+        });
+        setProducts(mapped as AdminProduct[]);
+      } catch (err) {
+        console.error("Failed to fetch templates", err);
+      }
+    };
+    fetchTemplates();
+  }, []);
 
   const filters: Filter[] = ["All", "Active", "Suspended", "Removed"];
 
@@ -37,20 +82,36 @@ export default function ProductsTab() {
     setTimeout(() => setToast(null), 2500);
   };
 
-  const handleSuspend = (id: string) => {
-    setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, status: "Suspended" as const } : p)));
-    showToast("Product suspended");
+  const handleSuspend = async (id: string) => {
+    try {
+      await templatesService.updateStatus(id, 'suspended');
+      setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, status: "Suspended" as const } : p)));
+      showToast("Product suspended");
+    } catch (e) {
+      showToast("Failed to suspend product");
+    }
   };
 
-  const handleActivate = (id: string) => {
-    setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, status: "Active" as const } : p)));
-    showToast("Product activated");
+  const handleActivate = async (id: string) => {
+    try {
+      await templatesService.updateStatus(id, 'active');
+      setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, status: "Active" as const } : p)));
+      showToast("Product activated");
+    } catch (e) {
+      showToast("Failed to activate product");
+    }
   };
 
-  const handleRemove = (id: string) => {
-    if (window.confirm("Are you sure you want to remove this product?")) {
-      setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, status: "Removed" as const } : p)));
-      showToast("Product removed");
+  const handleRemove = async (id: string) => {
+    if (window.confirm("Are you sure you want to permanently delete this product?")) {
+      try {
+        await templatesService.delete(id);
+        setProducts((prev) => prev.filter((p) => p.id !== id));
+        if (selectedProduct?.id === id) setSelectedProduct(null);
+        showToast("Product permanently removed");
+      } catch (e) {
+        showToast("Failed to remove product");
+      }
     }
   };
 

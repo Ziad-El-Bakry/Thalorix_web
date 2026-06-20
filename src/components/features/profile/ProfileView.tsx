@@ -96,6 +96,9 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
             setDisplayAvatar(storedUser.avatar);
             setGlobalAvatar(storedUser.avatar);
           }
+          if (storedUser.cover) {
+            setCoverImage(storedUser.cover);
+          }
         }
 
         if (!idToFetch) {
@@ -136,6 +139,9 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
               if (isOwnProfile) {
                 setGlobalAvatar(data.avatar);
               }
+            }
+            if (data.cover) {
+              setCoverImage(data.cover);
             }
           }
         }
@@ -178,9 +184,10 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
   const handleLogoutConfirm = async () => {
     setIsLoggingOut(true);
     try {
+      const isAdmin = user?.role === "admin";
       await authService.logout();
       setIsLogoutModalOpen(false);
-      router.push("/login");
+      router.push(isAdmin ? "/admin/login" : "/login");
     } finally {
       setIsLoggingOut(false);
     }
@@ -190,10 +197,11 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
     if (!user?.id) return;
     setIsDeleting(true);
     try {
+      const isAdmin = user?.role === "admin";
       await usersService.deleteUser(user.id);
       await authService.logout();
       setIsDeleteModalOpen(false);
-      router.push("/login");
+      router.push(isAdmin ? "/admin/login" : "/login");
     } catch (error) {
       console.error("Failed to delete account:", error);
       fireToast("Failed to delete account");
@@ -223,6 +231,9 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
             const updatedUser = { ...user, avatar: avatarUrl };
             setUser(updatedUser);
             localStorage.setItem("user", JSON.stringify(updatedUser));
+            if (typeof window !== "undefined") {
+              window.dispatchEvent(new CustomEvent("thalorix_profile_sync", { detail: updatedUser }));
+            }
           }
         }
         fireToast("Profile photo updated!");
@@ -246,6 +257,9 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
         const updatedUser = { ...user, avatar: "" };
         setUser(updatedUser);
         localStorage.setItem("user", JSON.stringify(updatedUser));
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("thalorix_profile_sync", { detail: updatedUser }));
+        }
         fireToast("Profile photo reset to default!");
       } catch (error) {
         console.error("Failed to reset avatar:", error);
@@ -259,16 +273,29 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
     if (file && isOwnProfile) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        const result = reader.result as string;
-        setCoverImage(result);
-        try {
-          localStorage.setItem("thalorix_user_cover", result);
-        } catch (err) {
-          console.warn("Could not save cover to localStorage", err);
-        }
+        setCoverImage(reader.result as string);
       };
       reader.readAsDataURL(file);
-      fireToast("Cover photo updated!");
+      try {
+        const { coverUrl } = await usersService.uploadCover(file);
+        if (coverUrl) {
+          setCoverImage(coverUrl);
+          if (user?.id || user?._id) {
+            await usersService.updateProfile(user.id || user._id, { coverUrl });
+            // Update local storage user
+            const updatedUser = { ...user, cover: coverUrl };
+            setUser(updatedUser);
+            localStorage.setItem("user", JSON.stringify(updatedUser));
+            if (typeof window !== "undefined") {
+              window.dispatchEvent(new CustomEvent("thalorix_profile_sync", { detail: updatedUser }));
+            }
+          }
+        }
+        fireToast("Cover photo updated!");
+      } catch (error: any) {
+        console.error("Failed to upload cover", error);
+        fireToast("Failed to upload cover photo. Please try again.");
+      }
     }
   };
 
@@ -295,6 +322,26 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
     return (
       <div className="flex items-center justify-center h-[60vh]">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#103B40]" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] text-center p-6 bg-white rounded-2xl border border-gray-100 shadow-sm max-w-md mx-auto mt-12">
+        <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-4">
+          <X size={32} />
+        </div>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">المستخدم غير موجود</h2>
+        <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+          عذراً، يبدو أن هذا الحساب غير موجود في النظام أو قد تم حذفه مؤخراً.
+        </p>
+        <button
+          onClick={() => router.push("/dashboard/community")}
+          className="px-6 py-2.5 bg-[#103B40] text-white rounded-lg text-sm font-semibold hover:bg-[#0c2e32] transition-colors shadow-sm"
+        >
+          العودة إلى مجتمع ثالوريكس
+        </button>
       </div>
     );
   }
@@ -386,6 +433,7 @@ export default function ProfileView({ userId, isOwnProfile = false }: { userId?:
         relationship={relationship}
         setRelationship={setRelationship}
         postsCount={posts.length}
+        setUser={setUser}
       />
 
       {/* ═══════════════════════════════════════

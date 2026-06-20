@@ -5,19 +5,29 @@ import { AIPromptEmptyState } from './AIPromptEmptyState';
 import { AIChatInterface } from './AIChatInterface';
 import { ChatHistorySidebar } from './ChatHistorySidebar';
 import { AIMessage, AIModel, AIProject, DeployedProject, ProjectFile } from '@/types/ai';
+
+// Locally-persisted conversation snapshot
+interface SavedConversation {
+  id: string;
+  title: string;
+  messages: AIMessage[];
+  model: AIModel;
+  projectId?: string; // linked deployed project id, if any
+  createdAt: string;
+}
 import UserHeader from '@/components/ui/UserHeader';
 import { authService } from '@/lib/api/services/auth.service';
 import { aiService } from '@/lib/api/services/ai.service';
-import { 
-  Terminal, 
-  Sparkles, 
-  ExternalLink, 
-  Download, 
-  Folder, 
-  FileCode, 
-  CheckCircle2, 
-  XCircle, 
-  RefreshCw, 
+import {
+  Terminal,
+  Sparkles,
+  ExternalLink,
+  Download,
+  Folder,
+  FileCode,
+  CheckCircle2,
+  XCircle,
+  RefreshCw,
   AlertTriangle,
   UploadCloud,
   Layers,
@@ -31,11 +41,11 @@ import Editor from '@monaco-editor/react';
 export function AICodeGenContainer() {
   // Navigation / View Tabs
   const [activeTab, setActiveTab] = useState<'chat' | 'dashboard'>('chat');
-  
+
   // Deployed Projects State
   const [deployedProjects, setDeployedProjects] = useState<DeployedProject[]>([]);
   const [isLoadingDeployed, setIsLoadingDeployed] = useState(false);
-  
+
   // Active Project & Generation State
   const [activeProject, setActiveProject] = useState<AIProject | null>(null);
   const [activeFileIndex, setActiveFileIndex] = useState<number>(0);
@@ -43,16 +53,16 @@ export function AICodeGenContainer() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [buildLogs, setBuildLogs] = useState<string[]>([]);
   const [selectedModel, setSelectedModel] = useState<AIModel>('Thalorix-X Vision');
-  
+
   // Service Health State
   const [serviceStatus, setServiceStatus] = useState<'healthy' | 'loading' | 'offline'>('healthy');
   const [serviceMessage, setServiceMessage] = useState<string>('');
-  
+
   // User/Credits Info
   const [userName, setUserName] = useState('User');
   const [userId, setUserId] = useState<string>('');
   const [credits, setCredits] = useState(50);
-  
+
   // File Upload State
   const [uploadedFile, setUploadedFile] = useState<{ name: string; url: string; sessionId?: string } | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -60,39 +70,14 @@ export function AICodeGenContainer() {
   // Sidebar Open State
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
+  // Saved Conversations (local history)
+  const [savedConversations, setSavedConversations] = useState<SavedConversation[]>([]);
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+
   // Polling Reference
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Load User Info & Deployed Projects on Mount
-  useEffect(() => {
-    const user = authService.getStoredUser() as any;
-    if (user) {
-      setUserName((user?.name || user?.username)?.split(' ')[0] || 'User');
-      setUserId(user.id || user._id || '');
-      // Fetch credits if endpoint exists, otherwise fallback to default
-      apiGetCredits();
-    }
-    
-    checkServiceHealth();
-    fetchDeployedProjects();
 
-    const handleResize = () => {
-      if (window.innerWidth < 768) {
-        setIsSidebarOpen(false);
-      } else {
-        setIsSidebarOpen(true);
-      }
-    };
-    if (typeof window !== 'undefined' && window.innerWidth < 768) {
-      setIsSidebarOpen(false);
-    }
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
 
   const apiGetCredits = async () => {
     try {
@@ -108,7 +93,7 @@ export function AICodeGenContainer() {
   const checkServiceHealth = async () => {
     try {
       // Check ready status
-      const readyData = await aiService.getReady();
+      await aiService.getReady();
       setServiceStatus('healthy');
       setServiceMessage('AI Builder Service Online');
     } catch (err: any) {
@@ -150,7 +135,7 @@ export function AICodeGenContainer() {
       attempts++;
       try {
         const project = await aiService.getProject(projectId);
-        
+
         // Progressively add mock logs to look extremely realistic
         if (attempts === 2) {
           setBuildLogs(prev => [...prev, '📝 [AI Builder] Generation in progress. Analyzing prompt...', '⚙️ [AI Builder] Formulating tech stack config...']);
@@ -162,29 +147,52 @@ export function AICodeGenContainer() {
 
         if (project.status === 'completed') {
           if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
-          setBuildLogs(prev => [...prev, '✨ [System] Compilation completed successfully!', '🚀 [System] Project deployed and preview link generated.']);
-          
-          setActiveProject(project);
           setIsGenerating(false);
-          setUploadedFile(null); // Clear active file uploads
-          fetchDeployedProjects(); // Refresh dashboard list
-          
-          // Formulate messages
-          const successMessage: AIMessage = {
-            id: `sys-${Date.now()}`,
-            role: 'assistant',
-            content: `### 🎉 Generation Completed!\nYour project **${project.projectName}** has been successfully generated and deployed using the **${project.stack}** template stack.\n\nYou can explore the files inside the Workspace Viewer on the right, view the live preview, or download the ZIP archives. Use the chat input below to request modifications.`,
-            timestamp: new Date()
-          };
-          setCurrentMessages(prev => [...prev.filter(m => m.id !== 'loading-spinner'), successMessage]);
+          setUploadedFile(null);
+          fetchDeployedProjects();
+
+          // Check if this is a chat reply (not a real project build)
+          const chatReplyFile = project.files?.find((f: any) => f.path === '_chat_reply.md');
+          if (chatReplyFile || project.projectName === 'Chat Response') {
+            // Display AI reply as a chat message — don't load workspace
+            const replyContent = chatReplyFile?.content || 'The AI responded but no text was returned.';
+            const aiMessage: AIMessage = {
+              id: `ai-${Date.now()}`,
+              role: 'assistant',
+              content: replyContent,
+              timestamp: new Date()
+            };
+            setCurrentMessages(prev => [...prev.filter(m => m.id !== 'loading-spinner'), aiMessage]);
+          } else {
+            // Real project with files — load workspace
+            setBuildLogs(prev => [...prev, '✨ [System] Compilation completed successfully!', '🚀 [System] Project deployed and preview link generated.']);
+            setActiveProject(project);
+
+            // Add the UI Card for the completed project
+            const aiReplyFile = project.files?.find((f: any) => f.path === '_ai_reply.md' || f.path === '_chat_reply.md');
+            const cardMsg: AIMessage = {
+              id: `build-${Date.now()}`,
+              role: 'assistant',
+              content: aiReplyFile?.content || '',
+              buildCard: {
+                projectName: project.projectName || 'My Project',
+                filesCount: project.filesCount || project.files?.length,
+                previewUrl: project.previewUrl ?? undefined,
+                downloadUrl: project.downloadUrl ?? undefined,
+                distUrl: project.distUrl ?? undefined,
+              },
+              timestamp: new Date()
+            };
+            setCurrentMessages(prev => [...prev.filter(m => m.id !== 'loading-spinner'), cardMsg]);
+          }
         } else if (project.status === 'failed') {
           if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
           const errors = project.buildErrors || ['Unknown build error'];
           setBuildLogs(prev => [...prev, `❌ [System] Build failed!`, ...errors.map(e => `[Error] ${e}`)]);
-          
+
           setActiveProject(project);
           setIsGenerating(false);
-          
+
           const failureMessage: AIMessage = {
             id: `sys-${Date.now()}`,
             role: 'assistant',
@@ -206,6 +214,11 @@ export function AICodeGenContainer() {
     setIsGenerating(true);
     setSelectedModel(model);
     setCredits(prev => Math.max(0, prev - 1));
+
+    // Assign a conversation ID if this is a brand-new chat
+    if (!activeConversationId) {
+      setActiveConversationId(`conv_${Date.now()}`);
+    }
 
     // Formulate User Message
     const userMessage: AIMessage = {
@@ -229,20 +242,32 @@ export function AICodeGenContainer() {
 
     try {
       // Call Chat generation endpoint
-      // Stack is determined by the selected model name or defaults to React 18 + Vite
       const techStack = model.includes('Pro') ? 'Next.js 14 App Router' : 'React 18+ Vite';
       const result = await aiService.generateProject(prompt, techStack, userId);
-      
-      if (result && result.projectId) {
-        // Start polling the project details
-        startPollingProject(result.projectId);
+
+      if (result && result.reply_type === 'chat') {
+        setIsGenerating(false);
+        const aiMessage: AIMessage = {
+          id: `ai-${Date.now()}`,
+          role: 'assistant',
+          content: result.reply || 'No reply generated.',
+          timestamp: new Date()
+        };
+        setCurrentMessages(prev => [...prev.filter(m => m.id !== 'loading-spinner'), aiMessage]);
+        return;
+      }
+
+      const pid = (result as any).projectId || (result as any)._id;
+      if (pid) {
+        localStorage.setItem('activeProjectId', pid);
+        startPollingProject(pid);
       } else {
         throw new Error('No projectId returned from server');
       }
     } catch (err: any) {
       console.error('Generation Error:', err);
       setIsGenerating(false);
-      
+
       const errorMessage: AIMessage = {
         id: `err-${Date.now()}`,
         role: 'assistant',
@@ -281,15 +306,30 @@ export function AICodeGenContainer() {
 
     try {
       const result = await aiService.editProject(activeProject._id, prompt);
-      if (result && result.projectId) {
-        startPollingProject(result.projectId);
+
+      if (result && result.reply_type === 'chat') {
+        setIsGenerating(false);
+        const aiMessage: AIMessage = {
+          id: `ai-${Date.now()}`,
+          role: 'assistant',
+          content: result.reply || 'No reply generated.',
+          timestamp: new Date()
+        };
+        setCurrentMessages(prev => [...prev.filter(m => m.id !== 'loading-spinner'), aiMessage]);
+        return;
+      }
+
+      const pid = (result as any).projectId || (result as any)._id;
+      if (pid) {
+        localStorage.setItem('activeProjectId', pid);
+        startPollingProject(pid);
       } else {
         throw new Error('No projectId returned from edit request');
       }
     } catch (err: any) {
       console.error('Edit Error:', err);
       setIsGenerating(false);
-      
+
       const errorMessage: AIMessage = {
         id: `err-${Date.now()}`,
         role: 'assistant',
@@ -304,7 +344,8 @@ export function AICodeGenContainer() {
   const handleLoadProject = async (projectId: string) => {
     setActiveTab('chat');
     setIsGenerating(true);
-    
+    localStorage.setItem('activeProjectId', projectId);
+
     // Reset message logs
     setCurrentMessages([
       {
@@ -322,14 +363,46 @@ export function AICodeGenContainer() {
       setIsGenerating(false);
 
       // Populate messages
-      const welcomeMsg: AIMessage = {
-        id: `sys-${Date.now()}`,
-        role: 'assistant',
-        content: `### 📁 Project Workspace: **${project.projectName}**\nLoaded project using **${project.stack}** stack.\n\nYou can view the source code in the IDE workspace, open the preview URL, or type instructions below to modify the project.`,
-        timestamp: new Date()
-      };
-      setCurrentMessages([welcomeMsg]);
-      
+      const initialMessages: AIMessage[] = [
+        {
+          id: `sys-${Date.now()}`,
+          role: 'assistant',
+          content: `### 📁 Project Workspace: **${project.projectName || 'My Project'}**\nLoaded project using **${project.stack}** stack.\n\nYou can view the source code in the IDE workspace, open the preview URL, or type instructions below to modify the project.`,
+          timestamp: new Date()
+        }
+      ];
+
+      // Add original prompt if available
+      if ((project as any).prompt) {
+        initialMessages.push({
+          id: `user-${Date.now()}`,
+          role: 'user',
+          content: (project as any).prompt,
+          timestamp: new Date(project.createdAt || Date.now())
+        });
+      }
+
+      // Add AI reply / build card if completed
+      if (project.status === 'completed') {
+        const aiReplyFile = project.files?.find((f: any) => f.path === '_ai_reply.md' || f.path === '_chat_reply.md');
+        const cardMsg: AIMessage = {
+          id: `build-${Date.now()}`,
+          role: 'assistant',
+          content: aiReplyFile?.content || '',
+          buildCard: {
+            projectName: project.projectName || 'My Project',
+            filesCount: project.filesCount || project.files?.length,
+            previewUrl: project.previewUrl ?? undefined,
+            downloadUrl: project.downloadUrl ?? undefined,
+            distUrl: project.distUrl ?? undefined,
+          },
+          timestamp: new Date(project.updatedAt || Date.now())
+        };
+        initialMessages.push(cardMsg);
+      }
+
+      setCurrentMessages(initialMessages);
+
       // If it is somehow stuck in building state, resume polling
       if (project.status === 'building') {
         setIsGenerating(true);
@@ -370,26 +443,62 @@ export function AICodeGenContainer() {
   };
 
   // Trigger download of built package
-  const handleDownloadDist = async (project: { sessionId: string; projectName: string | null }) => {
+  const handleDownloadDist = async (project: { sessionId: string; projectName: string | null; distUrl?: string }) => {
+    if (project.distUrl) {
+      window.open(project.distUrl, '_blank');
+      return;
+    }
     if (!project.projectName) return;
     try {
       const blob = await aiService.downloadDistZip(project.sessionId, project.projectName);
       triggerBlobDownload(blob, `${project.projectName}-dist.zip`);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Dist zip download failed:', err);
-      alert('Could not download built files. Please check service health.');
+      let errMsg = err.message || 'Could not download built files.';
+      if (err.response?.data instanceof Blob) {
+        try {
+          const text = await err.response.data.text();
+          const json = JSON.parse(text);
+          errMsg = json.message || text;
+        } catch (e) {}
+      }
+      const errorMessage: AIMessage = {
+        id: `err-${Date.now()}`,
+        role: 'assistant',
+        content: `❌ **Download Failed**: ${errMsg}`,
+        timestamp: new Date()
+      };
+      setCurrentMessages(prev => [...prev, errorMessage]);
     }
   };
 
   // Trigger download of source code
-  const handleDownloadSource = async (project: { sessionId: string; projectName: string | null }) => {
+  const handleDownloadSource = async (project: { sessionId: string; projectName: string | null; downloadUrl?: string }) => {
+    if (project.downloadUrl) {
+      window.open(project.downloadUrl, '_blank');
+      return;
+    }
     if (!project.projectName) return;
     try {
       const blob = await aiService.downloadSourceZip(project.sessionId, project.projectName);
       triggerBlobDownload(blob, `${project.projectName}-source.zip`);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Source zip download failed:', err);
-      alert('Could not download source files. Please check service health.');
+      let errMsg = err.message || 'Could not download source files.';
+      if (err.response?.data instanceof Blob) {
+        try {
+          const text = await err.response.data.text();
+          const json = JSON.parse(text);
+          errMsg = json.message || text;
+        } catch (e) {}
+      }
+      const errorMessage: AIMessage = {
+        id: `err-${Date.now()}`,
+        role: 'assistant',
+        content: `❌ **Download Failed**: ${errMsg}`,
+        timestamp: new Date()
+      };
+      setCurrentMessages(prev => [...prev, errorMessage]);
     }
   };
 
@@ -404,23 +513,177 @@ export function AICodeGenContainer() {
     window.URL.revokeObjectURL(url);
   };
 
+  // Helper: derive a title from the first user message
+  const deriveChatTitle = (messages: AIMessage[]): string => {
+    const firstUserMsg = messages.find(m => m.role === 'user');
+    if (firstUserMsg) {
+      const text = firstUserMsg.content.trim();
+      return text.length > 50 ? text.slice(0, 50) + '…' : text;
+    }
+    return 'Untitled Chat';
+  };
+
+  // Helper: persist saved conversations to localStorage
+  const persistConversations = (convs: SavedConversation[]) => {
+    try {
+      localStorage.setItem('ai_saved_conversations', JSON.stringify(convs));
+    } catch (e) {
+      console.warn('Failed to persist conversations:', e);
+    }
+  };
+
   const handleNewChat = useCallback(() => {
+    // Stop any ongoing generation / polling
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current);
+      pollIntervalRef.current = null;
+    }
+    setIsGenerating(false);
+    setBuildLogs([]);
+
+    // Save the current conversation if it has messages
+    setCurrentMessages(prevMessages => {
+      if (prevMessages.length > 0) {
+        const convId = activeConversationId || `conv_${Date.now()}`;
+        const newSaved: SavedConversation = {
+          id: convId,
+          title: deriveChatTitle(prevMessages),
+          messages: prevMessages.filter(m => m.id !== 'loading-spinner'),
+          model: selectedModel,
+          projectId: activeProject?._id || undefined,
+          createdAt: new Date().toISOString(),
+        };
+
+        setSavedConversations(prev => {
+          // Update existing or prepend new
+          const exists = prev.findIndex(c => c.id === convId);
+          let updated: SavedConversation[];
+          if (exists > -1) {
+            updated = [...prev];
+            updated[exists] = newSaved;
+          } else {
+            updated = [newSaved, ...prev];
+          }
+          persistConversations(updated);
+          return updated;
+        });
+      }
+      return []; // clear messages
+    });
+
+    // Reset chat state
     setActiveProject(null);
-    setCurrentMessages([]);
+    setActiveConversationId(null);
     setUploadedFile(null);
-  }, []);
+    localStorage.removeItem('activeProjectId');
+  }, [activeConversationId, selectedModel, activeProject]);
 
   const handleDeleteProject = useCallback((id: string) => {
-    // Delete local reference
+    // Check if it's a saved conversation
+    setSavedConversations(prev => {
+      const updated = prev.filter(c => c.id !== id);
+      persistConversations(updated);
+      return updated;
+    });
+
+    // Also remove from deployed projects
     setDeployedProjects(prev => prev.filter(p => p.projectId !== id));
-    if (activeProject?._id === id) {
-      handleNewChat();
+
+    if (activeProject?._id === id || activeConversationId === id) {
+      // Stop generation and clear state without re-saving
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+        pollIntervalRef.current = null;
+      }
+      setIsGenerating(false);
+      setBuildLogs([]);
+      setActiveProject(null);
+      setActiveConversationId(null);
+      setCurrentMessages([]);
+      setUploadedFile(null);
+      localStorage.removeItem('activeProjectId');
     }
-  }, [activeProject]);
+  }, [activeProject, activeConversationId]);
 
   // View toggler UI helpers
   const handleSelectConversation = useCallback((id: string) => {
+    // Check if it's a locally saved conversation first
+    const saved = savedConversations.find(c => c.id === id);
+    if (saved) {
+      // Stop any ongoing generation
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+        pollIntervalRef.current = null;
+      }
+      setIsGenerating(false);
+      setBuildLogs([]);
+
+      setActiveConversationId(saved.id);
+      setCurrentMessages(saved.messages.map(m => ({
+        ...m,
+        timestamp: new Date(m.timestamp),
+      })));
+      setSelectedModel(saved.model);
+      setUploadedFile(null);
+
+      // If the saved conversation had a linked project, load it
+      if (saved.projectId) {
+        handleLoadProject(saved.projectId);
+      } else {
+        setActiveProject(null);
+        localStorage.removeItem('activeProjectId');
+      }
+      return;
+    }
+
+    // Otherwise it's a deployed project — load from API
     handleLoadProject(id);
+  }, [savedConversations]);
+
+  // Load User Info & Deployed Projects on Mount
+  useEffect(() => {
+    const user = authService.getStoredUser() as any;
+    if (user) {
+      setUserName((user?.name || user?.username)?.split(' ')[0] || 'User');
+      setUserId(user.id || user._id || '');
+      // Fetch credits if endpoint exists, otherwise fallback to default
+      apiGetCredits();
+    }
+
+    checkServiceHealth();
+    fetchDeployedProjects();
+
+    // Load saved conversations from localStorage
+    try {
+      const stored = localStorage.getItem('ai_saved_conversations');
+      if (stored) {
+        setSavedConversations(JSON.parse(stored));
+      }
+    } catch (e) {
+      console.warn('Failed to load saved conversations:', e);
+    }
+
+    const storedProjectId = localStorage.getItem('activeProjectId');
+    if (storedProjectId) {
+      handleLoadProject(storedProjectId);
+    }
+
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setIsSidebarOpen(false);
+      } else {
+        setIsSidebarOpen(true);
+      }
+    };
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      setIsSidebarOpen(false);
+    }
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+      window.removeEventListener('resize', handleResize);
+    };
   }, []);
 
   return (
@@ -437,11 +700,10 @@ export function AICodeGenContainer() {
               setActiveTab('chat');
               fetchDeployedProjects();
             }}
-            className={`px-5 py-2.5 font-semibold text-sm transition-all border-b-2 cursor-pointer ${
-              activeTab === 'chat' 
-                ? 'border-[#103B40] text-[#103B40]' 
+            className={`px-5 py-2.5 font-semibold text-sm transition-all border-b-2 cursor-pointer ${activeTab === 'chat'
+                ? 'border-[#103B40] text-[#103B40]'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
-            }`}
+              }`}
           >
             AI Generator
           </button>
@@ -450,11 +712,10 @@ export function AICodeGenContainer() {
               setActiveTab('dashboard');
               fetchDeployedProjects();
             }}
-            className={`px-5 py-2.5 font-semibold text-sm transition-all border-b-2 cursor-pointer ${
-              activeTab === 'dashboard' 
-                ? 'border-[#103B40] text-[#103B40]' 
+            className={`px-5 py-2.5 font-semibold text-sm transition-all border-b-2 cursor-pointer ${activeTab === 'dashboard'
+                ? 'border-[#103B40] text-[#103B40]'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
-            }`}
+              }`}
           >
             Deployed Projects ({deployedProjects.length})
           </button>
@@ -462,13 +723,12 @@ export function AICodeGenContainer() {
 
         {/* Service Health Banner */}
         <div className="flex items-center gap-2 bg-white border border-gray-200 px-3 py-1.5 rounded-full text-xs font-medium shadow-sm mb-1.5 flex-shrink-0">
-          <span className={`w-2.5 h-2.5 rounded-full ${
-            serviceStatus === 'healthy' ? 'bg-emerald-500 animate-pulse' : 
-            serviceStatus === 'loading' ? 'bg-amber-500 animate-pulse' : 'bg-red-500'
-          }`} />
+          <span className={`w-2.5 h-2.5 rounded-full ${serviceStatus === 'healthy' ? 'bg-emerald-500 animate-pulse' :
+              serviceStatus === 'loading' ? 'bg-amber-500 animate-pulse' : 'bg-red-500'
+            }`} />
           <span className="text-gray-600">{serviceMessage}</span>
-          <button 
-            onClick={checkServiceHealth} 
+          <button
+            onClick={checkServiceHealth}
             className="ml-1.5 p-0.5 hover:bg-gray-100 rounded text-gray-400 hover:text-[#103B40] transition-colors cursor-pointer"
             title="Refresh status"
           >
@@ -498,8 +758,8 @@ export function AICodeGenContainer() {
               <UploadCloud className="w-12 h-12 text-gray-300 mx-auto mb-4" />
               <h4 className="text-md font-bold text-gray-700 mb-1">No Deployed Projects</h4>
               <p className="text-sm text-gray-400 mb-6">You haven't generated any systems yet. Head over to the AI Generator to build your first template.</p>
-              <button 
-                onClick={() => setActiveTab('chat')} 
+              <button
+                onClick={() => setActiveTab('chat')}
                 className="bg-[#103B40] hover:bg-teal-800 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm transition-colors cursor-pointer"
               >
                 Go to AI Generator
@@ -555,7 +815,7 @@ export function AICodeGenContainer() {
                       <Play className="w-3.5 h-3.5 fill-current" />
                       Workspace
                     </button>
-                    
+
                     <button
                       onClick={() => {
                         // Look up URL details by loading first if not set
@@ -566,7 +826,7 @@ export function AICodeGenContainer() {
                     >
                       <ExternalLink className="w-4 h-4" />
                     </button>
-                    
+
                     {/* Downloads Menu */}
                     <div className="relative group col-span-1">
                       <button
@@ -575,16 +835,16 @@ export function AICodeGenContainer() {
                       >
                         <Download className="w-4 h-4" />
                       </button>
-                      
+
                       <div className="absolute right-0 bottom-full mb-1 bg-white border border-gray-200 rounded-lg shadow-lg hidden group-hover:block z-50 w-[150px] overflow-hidden">
                         <button
-                          onClick={() => handleDownloadDist({ sessionId: proj.projectId, projectName: proj.projectName })}
+                          onClick={() => handleDownloadDist({ sessionId: proj.sessionId || proj.projectId, projectName: proj.projectName, distUrl: (proj as any).distUrl ?? undefined })}
                           className="w-full text-left px-3 py-2 text-xs text-gray-700 hover:bg-teal-50 hover:text-[#103B40] transition-colors font-medium border-b border-gray-100 cursor-pointer"
                         >
                           Built ZIP (.dist)
                         </button>
                         <button
-                          onClick={() => handleDownloadSource({ sessionId: proj.projectId, projectName: proj.projectName })}
+                          onClick={() => handleDownloadSource({ sessionId: proj.sessionId || proj.projectId, projectName: proj.projectName, downloadUrl: (proj as any).downloadUrl ?? undefined })}
                           className="w-full text-left px-3 py-2 text-xs text-gray-700 hover:bg-teal-50 hover:text-[#103B40] transition-colors font-medium cursor-pointer"
                         >
                           Source ZIP (.src)
@@ -604,13 +864,25 @@ export function AICodeGenContainer() {
         <div className="flex flex-1 relative gap-0 md:gap-5 pb-6">
           {/* History Sidebar */}
           <ChatHistorySidebar
-            conversations={deployedProjects.map(p => ({
-              id: p.projectId,
-              title: p.projectName || 'Unnamed Project',
-              preview: p.aiModelId,
-              date: 'Deployed'
-            }))}
-            activeId={activeProject?._id || null}
+            conversations={[
+              // Saved local conversations first
+              ...savedConversations.map(c => ({
+                id: c.id,
+                title: c.title,
+                preview: c.model,
+                date: new Date(c.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+              })),
+              // Then deployed projects (exclude any that are already in saved conversations)
+              ...deployedProjects
+                .filter(p => !savedConversations.some(c => c.projectId === p.projectId))
+                .map(p => ({
+                  id: p.projectId,
+                  title: p.projectName || 'Unnamed Project',
+                  preview: p.aiModelId,
+                  date: 'Deployed',
+                })),
+            ]}
+            activeId={activeConversationId || activeProject?._id || null}
             onSelect={handleSelectConversation}
             onNewChat={handleNewChat}
             onDelete={handleDeleteProject}
@@ -627,11 +899,11 @@ export function AICodeGenContainer() {
                   className="absolute top-0 left-0 md:-left-5 p-1.5 text-gray-400 hover:text-[#103B40] hover:bg-gray-100 rounded-r-lg border border-l-0 border-gray-200 bg-white transition-colors shadow-sm cursor-pointer"
                   title="Open sidebar"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-panel-left-open"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m14 9 3 3-3 3"/></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-panel-left-open"><rect width="18" height="18" x="3" y="3" rx="2" /><path d="M9 3v18" /><path d="m14 9 3 3-3 3" /></svg>
                 </button>
               </div>
             )}
-            
+
             {/* If there is no active project and we aren't generating, show empty state */}
             {currentMessages.length === 0 && !isGenerating ? (
               <div className="flex-1 flex items-center justify-center py-10">
@@ -655,11 +927,11 @@ export function AICodeGenContainer() {
                     <span className="text-xs font-bold text-[#103B40]">AI Generation Thread</span>
                     {activeProject && (
                       <span className="text-[10px] font-medium text-gray-400">
-                        Session: {activeProject.sessionId.substring(0, 10)}...
+                        Session: {activeProject.sessionId ? `${activeProject.sessionId.substring(0, 10)}...` : 'N/A'}
                       </span>
                     )}
                   </div>
-                  
+
                   {/* Messages */}
                   <div className="flex-1 overflow-y-auto p-4 min-h-[300px]">
                     <AIChatInterface
@@ -688,7 +960,7 @@ export function AICodeGenContainer() {
                           WORKSPACE EDITOR: {activeProject?.projectName || 'INITIALIZING'}
                         </span>
                       </div>
-                      
+
                       {activeProject?.status === 'completed' && (
                         <div className="flex items-center gap-2">
                           {activeProject.previewUrl && (
@@ -701,7 +973,7 @@ export function AICodeGenContainer() {
                             </button>
                           )}
                           <button
-                            onClick={() => handleDownloadDist({ sessionId: activeProject.sessionId, projectName: activeProject.projectName })}
+                            onClick={() => handleDownloadDist({ sessionId: activeProject.sessionId, projectName: activeProject.projectName, distUrl: activeProject.distUrl ?? undefined })}
                             className="flex items-center gap-1 px-2 py-1 hover:bg-white/10 rounded text-xs text-white/80 hover:text-white transition-colors cursor-pointer border border-[#333]"
                             title="Download package (dist.zip)"
                           >
@@ -709,7 +981,7 @@ export function AICodeGenContainer() {
                             Build
                           </button>
                           <button
-                            onClick={() => handleDownloadSource({ sessionId: activeProject.sessionId, projectName: activeProject.projectName })}
+                            onClick={() => handleDownloadSource({ sessionId: activeProject.sessionId, projectName: activeProject.projectName, downloadUrl: activeProject.downloadUrl ?? undefined })}
                             className="flex items-center gap-1 px-2 py-1 hover:bg-white/10 rounded text-xs text-white/80 hover:text-white transition-colors cursor-pointer border border-[#333]"
                             title="Download source code"
                           >
@@ -744,20 +1016,22 @@ export function AICodeGenContainer() {
                             Project Files
                           </div>
                           <div className="flex flex-row md:flex-col p-1.5 md:space-y-1 gap-2 md:gap-0 flex-1 overflow-x-auto md:overflow-y-auto whitespace-nowrap md:whitespace-normal">
-                            {activeProject.files.map((file, idx) => (
-                              <button
-                                key={file.path}
-                                onClick={() => setActiveFileIndex(idx)}
-                                className={`flex items-center gap-1.5 px-3 py-1.5 md:px-2 rounded text-xs font-mono transition-colors cursor-pointer flex-shrink-0 md:w-full md:text-left ${
-                                  activeFileIndex === idx
-                                    ? 'bg-[#103B40] text-white font-medium'
-                                    : 'text-gray-400 hover:bg-[#252525] hover:text-white'
-                                }`}
-                              >
-                                <FileCode className="w-3.5 h-3.5 text-teal-400 flex-shrink-0" />
-                                <span className="truncate max-w-[120px] md:max-w-none">{file.path}</span>
-                              </button>
-                            ))}
+                            {activeProject.files.map((file, idx) => {
+                              if (!file) return null;
+                              return (
+                                <button
+                                  key={file.path || `file-${idx}`}
+                                  onClick={() => setActiveFileIndex(idx)}
+                                  className={`flex items-center gap-1.5 px-3 py-1.5 md:px-2 rounded text-xs font-mono transition-colors cursor-pointer flex-shrink-0 md:w-full md:text-left ${activeFileIndex === idx
+                                      ? 'bg-[#103B40] text-white font-medium'
+                                      : 'text-gray-400 hover:bg-[#252525] hover:text-white'
+                                    }`}
+                                >
+                                  <FileCode className="w-3.5 h-3.5 text-teal-400 flex-shrink-0" />
+                                  <span className="truncate max-w-[120px] md:max-w-none">{file.path || `File ${idx}`}</span>
+                                </button>
+                              );
+                            })}
                           </div>
                         </div>
 
@@ -769,7 +1043,7 @@ export function AICodeGenContainer() {
                               {activeProject.files[activeFileIndex]?.language || 'javascript'}
                             </span>
                           </div>
-                          
+
                           <div className="flex-1 min-h-0">
                             <Editor
                               theme="vs-dark"
@@ -789,6 +1063,26 @@ export function AICodeGenContainer() {
                             />
                           </div>
                         </div>
+                      </div>
+                    ) : activeProject?.status === 'completed' && activeProject.previewUrl ? (
+                      // No files but preview URL available — show preview iframe
+                      <div className="flex-1 flex flex-col min-h-0">
+                        <div className="bg-[#151515] px-4 py-2 border-b border-[#2d2d2d] flex items-center gap-2 text-xs font-mono text-gray-400 flex-shrink-0">
+                          <ExternalLink className="w-3.5 h-3.5 text-teal-400" />
+                          <span className="truncate">{activeProject.previewUrl}</span>
+                          <button
+                            onClick={() => window.open(activeProject.previewUrl!, '_blank')}
+                            className="ml-auto shrink-0 px-2 py-0.5 bg-teal-900/40 hover:bg-teal-800 text-teal-300 rounded text-[10px] transition-colors cursor-pointer border border-teal-800/50"
+                          >
+                            Open ↗
+                          </button>
+                        </div>
+                        <iframe
+                          src={activeProject.previewUrl}
+                          className="flex-1 w-full border-0 bg-white"
+                          title="Project Preview"
+                          sandbox="allow-scripts allow-same-origin allow-forms"
+                        />
                       </div>
                     ) : (
                       <div className="flex-1 flex flex-col items-center justify-center text-gray-500 py-10 bg-[#1e1e1e]">

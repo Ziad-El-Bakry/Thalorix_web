@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { User as UserIcon, Lock, LogOut, Trash2, CheckCircle, Palette, Sun, Moon, Monitor } from "lucide-react";
+import { User as UserIcon, Lock, LogOut, Trash2, CheckCircle, Palette, Sun, Moon, Monitor, Eye, EyeOff, Mail, Volume2, Bell } from "lucide-react";
 import { authService, User } from "@/lib/api/services/auth.service";
 import { usersService } from "@/lib/api/services/users.service";
 import { useRouter } from "next/navigation";
@@ -37,11 +37,17 @@ export default function SettingsPageContent() {
 
   // Appearance state
   const [themeMode, setThemeMode] = useState<ThemeMode>("light");
+  const [emailAlerts, setEmailAlerts] = useState(true);
+  const [soundAlerts, setSoundAlerts] = useState(true);
+  const [pushNotifications, setPushNotifications] = useState(false);
 
   
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -61,6 +67,9 @@ export default function SettingsPageContent() {
         const parsed = JSON.parse(saved);
         if (parsed.themeMode) setThemeMode(parsed.themeMode);
         applyTheme(parsed.themeMode || "light");
+        if (parsed.emailAlerts !== undefined) setEmailAlerts(parsed.emailAlerts);
+        if (parsed.soundAlerts !== undefined) setSoundAlerts(parsed.soundAlerts);
+        if (parsed.pushNotifications !== undefined) setPushNotifications(parsed.pushNotifications);
       }
     } catch {
       // ignore
@@ -120,16 +129,18 @@ export default function SettingsPageContent() {
   };
 
   const handleLogoutConfirm = async () => {
+    const isAdmin = user?.role === "admin";
     await authService.logout();
-    router.push("/login");
+    router.push(isAdmin ? "/admin/login" : "/login");
   };
 
   const handleDeleteConfirm = async () => {
     if (user?.id) {
       try {
+        const isAdmin = user?.role === "admin";
         await usersService.deleteUser(user.id);
         await authService.logout();
-        router.push("/login");
+        router.push(isAdmin ? "/admin/login" : "/login");
       } catch (error) {
         fireToast("Failed to delete account");
       }
@@ -137,19 +148,40 @@ export default function SettingsPageContent() {
   };
 
   const persistAppearance = useCallback(
-    (overrides: Partial<{ themeMode: ThemeMode }>) => {
+    (overrides: Partial<{ themeMode: ThemeMode; emailAlerts: boolean; soundAlerts: boolean; pushNotifications: boolean }>) => {
       const next = {
         themeMode: overrides.themeMode ?? themeMode,
+        emailAlerts: overrides.emailAlerts ?? emailAlerts,
+        soundAlerts: overrides.soundAlerts ?? soundAlerts,
+        pushNotifications: overrides.pushNotifications ?? pushNotifications,
       };
       localStorage.setItem("thalorix-appearance", JSON.stringify(next));
     },
-    [themeMode]
+    [themeMode, emailAlerts, soundAlerts, pushNotifications]
   );
 
   const handleThemeChange = (mode: ThemeMode) => {
     setThemeMode(mode);
     applyTheme(mode);
     persistAppearance({ themeMode: mode });
+  };
+
+  const handleToggleEmail = () => {
+    const nextVal = !emailAlerts;
+    setEmailAlerts(nextVal);
+    persistAppearance({ emailAlerts: nextVal });
+  };
+
+  const handleToggleSound = () => {
+    const nextVal = !soundAlerts;
+    setSoundAlerts(nextVal);
+    persistAppearance({ soundAlerts: nextVal });
+  };
+
+  const handleTogglePush = () => {
+    const nextVal = !pushNotifications;
+    setPushNotifications(nextVal);
+    persistAppearance({ pushNotifications: nextVal });
   };
 
   if (!user) return null;
@@ -185,7 +217,7 @@ export default function SettingsPageContent() {
 
       {/* Sidebar Tabs */}
       <div className="w-full md:w-64 flex-shrink-0">
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col p-2 space-y-1">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden flex flex-col p-2 space-y-1">
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -193,23 +225,23 @@ export default function SettingsPageContent() {
               className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                 activeTab === tab.id
                   ? "bg-[#103B40] text-white shadow-md"
-                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
               }`}
             >
-              <div className={activeTab === tab.id ? "text-white" : "text-gray-400"}>
+              <div className={activeTab === tab.id ? "text-white" : "text-gray-400 dark:text-gray-500"}>
                 {tab.icon}
               </div>
               {tab.label}
             </button>
           ))}
 
-          <div className="h-px bg-gray-100 my-2 mx-2" />
+          <div className="h-px bg-gray-100 dark:bg-gray-800 my-2 mx-2" />
 
           <button
             onClick={() => setIsLogoutModalOpen(true)}
-            className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-all"
+            className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all"
           >
-            <LogOut size={18} className="text-gray-400" />
+            <LogOut size={18} className="text-gray-400 dark:text-gray-500" />
             Log Out
           </button>
           <button
@@ -224,8 +256,8 @@ export default function SettingsPageContent() {
 
       {/* Main Content Area */}
       <div className="flex-1">
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8 min-h-[500px]">
-          <h2 className="text-xl font-bold text-gray-900 mb-6 border-b border-gray-100 pb-4">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-6 sm:p-8 min-h-[500px]">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">
             {tabs.find((t) => t.id === activeTab)?.label}
           </h2>
 
@@ -239,42 +271,31 @@ export default function SettingsPageContent() {
                   exit={{ opacity: 0, y: -10 }}
                   className="space-y-5"
                 >
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-1.5">Full Name</label>
-                      <input
-                        type="text"
-                        defaultValue={user.name}
-                        placeholder="Enter your full name"
-                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#43B0B5]/30 focus:border-[#43B0B5] transition-all"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-1.5">Username</label>
-                      <input
-                        type="text"
-                        defaultValue={user.username}
-                        placeholder="Enter your username"
-                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#43B0B5]/30 focus:border-[#43B0B5] transition-all"
-                      />
-                    </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5">Full Name</label>
+                    <input
+                      type="text"
+                      defaultValue={user.name}
+                      placeholder="Enter your full name"
+                      className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#43B0B5]/30 focus:border-[#43B0B5] transition-all text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                    />
                   </div>
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-1.5">Email Address</label>
+                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5">Email Address</label>
                     <input
                       type="email"
                       defaultValue={user.email}
                       placeholder="Enter your email address"
-                      className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#43B0B5]/30 focus:border-[#43B0B5] transition-all"
+                      className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#43B0B5]/30 focus:border-[#43B0B5] transition-all text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-1.5">Bio</label>
+                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5">Bio</label>
                     <textarea
                       rows={4}
                       defaultValue={user.bio}
                       placeholder="Tell us about yourself"
-                      className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#43B0B5]/30 focus:border-[#43B0B5] transition-all resize-none"
+                      className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#43B0B5]/30 focus:border-[#43B0B5] transition-all resize-none text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
                     />
                   </div>
                 </motion.div>
@@ -289,35 +310,62 @@ export default function SettingsPageContent() {
                   className="space-y-5"
                 >
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-1.5">Current Password</label>
-                    <input
-                      type="password"
-                      value={oldPassword}
-                      onChange={(e) => setOldPassword(e.target.value)}
-                      placeholder="Enter current password"
-                      className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#43B0B5]/30 focus:border-[#43B0B5] transition-all"
-                    />
+                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5">Current Password</label>
+                    <div className="relative">
+                      <input
+                        type={showOldPassword ? "text" : "password"}
+                        value={oldPassword}
+                        onChange={(e) => setOldPassword(e.target.value)}
+                        placeholder="Enter current password"
+                        className="w-full pl-4 pr-12 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#43B0B5]/30 focus:border-[#43B0B5] transition-all text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowOldPassword(!showOldPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                      >
+                        {showOldPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-1.5">New Password</label>
-                      <input
-                        type="password"
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        placeholder="Enter new password"
-                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#43B0B5]/30 focus:border-[#43B0B5] transition-all"
-                      />
+                      <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5">New Password</label>
+                      <div className="relative">
+                        <input
+                          type={showNewPassword ? "text" : "password"}
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          placeholder="Enter new password"
+                          className="w-full pl-4 pr-12 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#43B0B5]/30 focus:border-[#43B0B5] transition-all text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                        >
+                          {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
+                      </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-1.5">Confirm New Password</label>
-                      <input
-                        type="password"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        placeholder="Confirm new password"
-                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#43B0B5]/30 focus:border-[#43B0B5] transition-all"
-                      />
+                      <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5">Confirm New Password</label>
+                      <div className="relative">
+                        <input
+                          type={showConfirmPassword ? "text" : "password"}
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          placeholder="Confirm new password"
+                          className="w-full pl-4 pr-12 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#43B0B5]/30 focus:border-[#43B0B5] transition-all text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                        >
+                          {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </motion.div>
@@ -333,8 +381,8 @@ export default function SettingsPageContent() {
                 >
                   {/* ─── Theme Mode Selector ─── */}
                   <div>
-                    <h3 className="text-sm font-bold text-gray-700 mb-1">Theme Mode</h3>
-                    <p className="text-xs text-gray-400 mb-4">Choose how Thalorix looks to you</p>
+                    <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Theme Mode</h3>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">Choose how Thalorix looks to you</p>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       {themeModes.map((mode) => {
                         const isActive = themeMode === mode.id;
@@ -345,8 +393,8 @@ export default function SettingsPageContent() {
                             onClick={() => handleThemeChange(mode.id)}
                             className={`relative flex flex-col items-center gap-3 p-5 rounded-2xl border-2 transition-all duration-200 cursor-pointer group ${
                               isActive
-                                ? "border-[#43B0B5] bg-[#43B0B5]/5 shadow-lg shadow-[#43B0B5]/10"
-                                : "border-gray-100 bg-gray-50 hover:border-gray-200 hover:bg-gray-100/50"
+                                ? "border-[#43B0B5] bg-[#43B0B5]/5 dark:bg-[#43B0B5]/10 shadow-lg shadow-[#43B0B5]/10"
+                                : "border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 hover:border-gray-200 dark:hover:border-gray-600 hover:bg-gray-100/50 dark:hover:bg-gray-700/50"
                             }`}
                           >
                             {/* Active indicator */}
@@ -403,12 +451,12 @@ export default function SettingsPageContent() {
                               <div className="text-left">
                                 <p
                                   className={`text-sm font-bold ${
-                                    isActive ? "text-[#103B40]" : "text-gray-700"
+                                    isActive ? "text-[#103B40] dark:text-[#43B0B5]" : "text-gray-700 dark:text-gray-200"
                                   }`}
                                 >
                                   {mode.label}
                                 </p>
-                                <p className="text-[11px] text-gray-400">{mode.desc}</p>
+                                <p className="text-[11px] text-gray-400 dark:text-gray-500">{mode.desc}</p>
                               </div>
                             </div>
                           </button>
@@ -416,11 +464,99 @@ export default function SettingsPageContent() {
                       })}
                     </div>
                   </div>
+
+                  {/* ─── Notification Settings ─── */}
+                  <div className="pt-6 border-t border-gray-100">
+                    <h3 className="text-sm font-bold text-gray-700 mb-1">Notification Settings</h3>
+                    <p className="text-xs text-gray-400 mb-4">Manage how you receive updates and alerts</p>
+                    <div className="space-y-4">
+                      {/* Email Alerts Toggle */}
+                      <div className="flex items-center justify-between p-4 bg-gray-50 border border-gray-100 rounded-2xl hover:border-gray-200 transition-all">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-teal-50 rounded-xl text-[#43B0B5] flex-shrink-0">
+                            <Mail size={18} />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-[#103B40]">Email Notifications</p>
+                            <p className="text-xs text-gray-400">Receive email alerts for new messages, posts activity, and updates.</p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleToggleEmail}
+                          className={`w-11 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 focus:outline-none ${
+                            emailAlerts ? "bg-[#43B0B5]" : "bg-gray-200"
+                          }`}
+                        >
+                          <motion.div
+                            layout
+                            className="bg-white w-4 h-4 rounded-full shadow-md"
+                            animate={{ x: emailAlerts ? 20 : 0 }}
+                            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                          />
+                        </button>
+                      </div>
+
+                      {/* Sound Alerts Toggle */}
+                      <div className="flex items-center justify-between p-4 bg-gray-50 border border-gray-100 rounded-2xl hover:border-gray-200 transition-all">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-teal-50 rounded-xl text-[#43B0B5] flex-shrink-0">
+                            <Volume2 size={18} />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-[#103B40]">Sound Alerts</p>
+                            <p className="text-xs text-gray-400">Play an alert sound when a new message or notification arrives.</p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleToggleSound}
+                          className={`w-11 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 focus:outline-none ${
+                            soundAlerts ? "bg-[#43B0B5]" : "bg-gray-200"
+                          }`}
+                        >
+                          <motion.div
+                            layout
+                            className="bg-white w-4 h-4 rounded-full shadow-md"
+                            animate={{ x: soundAlerts ? 20 : 0 }}
+                            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                          />
+                        </button>
+                      </div>
+
+                      {/* Push Notifications Toggle */}
+                      <div className="flex items-center justify-between p-4 bg-gray-50 border border-gray-100 rounded-2xl hover:border-gray-200 transition-all">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-teal-50 rounded-xl text-[#43B0B5] flex-shrink-0">
+                            <Bell size={18} />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-[#103B40]">Push Notifications</p>
+                            <p className="text-xs text-gray-400">Receive browser alerts when Thalorix runs in the background.</p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleTogglePush}
+                          className={`w-11 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 focus:outline-none ${
+                            pushNotifications ? "bg-[#43B0B5]" : "bg-gray-200"
+                          }`}
+                        >
+                          <motion.div
+                            layout
+                            className="bg-white w-4 h-4 rounded-full shadow-md"
+                            animate={{ x: pushNotifications ? 20 : 0 }}
+                            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                          />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
 
-            <div className="pt-6 border-t border-gray-100 flex justify-end">
+            <div className="pt-6 border-t border-gray-100 dark:border-gray-800 flex justify-end">
               <button
                 type="submit"
                 disabled={isLoading}

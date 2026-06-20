@@ -6,9 +6,27 @@ import { motion } from "framer-motion";
 
 interface UploadSuccessStepProps {
   onRestart: () => void;
+  createdTemplate?: {
+    _id: string;
+    fileSize?: string;
+  } | null;
+  file?: File | null;
 }
 
-export default function UploadSuccessStep({ onRestart }: UploadSuccessStepProps) {
+export default function UploadSuccessStep({ onRestart, createdTemplate, file }: UploadSuccessStepProps) {
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
+  };
+
+  const displaySize = createdTemplate?.fileSize || (file ? formatFileSize(file.size) : "2.4 MB");
+  const displayId = createdTemplate?._id 
+    ? `#TPL-${createdTemplate._id.substring(createdTemplate._id.length - 6).toUpperCase()}`
+    : "#TPL-2024-001";
+
   return (
     <motion.div 
       key="success"
@@ -45,11 +63,11 @@ export default function UploadSuccessStep({ onRestart }: UploadSuccessStepProps)
            </div>
            <div className="flex justify-between items-center text-sm">
              <span className="text-gray-500">File Size</span>
-             <span className="font-semibold text-gray-900">2.4 MB</span>
+             <span className="font-semibold text-gray-900">{displaySize}</span>
            </div>
            <div className="flex justify-between items-center text-sm">
              <span className="text-gray-500">Template ID</span>
-             <span className="font-semibold text-gray-900">#TPL-2024-001</span>
+             <span className="font-semibold text-gray-900">{displayId}</span>
            </div>
          </div>
       </div>

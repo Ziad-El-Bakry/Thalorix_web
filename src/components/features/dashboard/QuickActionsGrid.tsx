@@ -28,7 +28,7 @@ function ActionItem({ icon, label, isActive, href, color = "#103B40", delay = 0 
         className={`group relative flex flex-col items-center justify-center gap-3 p-4 rounded-2xl transition-all duration-300 h-full overflow-hidden ${
           isActive 
             ? "bg-[#103B40] text-white shadow-[0_10px_25px_-5px_rgba(16,59,64,0.4)]" 
-            : "bg-white text-gray-700 hover:shadow-xl border border-gray-100/50"
+            : "bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:shadow-xl dark:hover:shadow-gray-900/40 border border-gray-100/50 dark:border-gray-800"
         }`}
       >
         {/* Background Accent */}
@@ -42,14 +42,14 @@ function ActionItem({ icon, label, isActive, href, color = "#103B40", delay = 0 
         <div className={`p-3 rounded-xl transition-colors duration-300 ${
           isActive 
             ? "bg-white/10 text-[#43B0B5]" 
-            : "bg-gray-50 text-gray-400 group-hover:bg-[#103B40]/5 group-hover:text-[#103B40]"
+            : "bg-gray-50 dark:bg-gray-800 text-gray-400 group-hover:bg-[#103B40]/5 dark:group-hover:bg-[#43B0B5]/10 group-hover:text-[#103B40] dark:group-hover:text-[#43B0B5]"
         }`}>
           {icon}
         </div>
         
         <div className="flex flex-col items-center gap-0.5">
           <span className={`text-[11px] font-bold tracking-wide uppercase text-center ${
-            isActive ? "text-white" : "text-gray-500 group-hover:text-gray-900"
+            isActive ? "text-white" : "text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
           }`}>
             {label}
           </span>
@@ -117,11 +117,11 @@ export default function QuickActionsGrid() {
   return (
     <div className="flex flex-col h-full">
       <div className="mb-6 px-1 flex items-center justify-between">
-        <h3 className="text-xs font-bold text-gray-400 tracking-[0.2em] uppercase flex items-center gap-2">
-          <div className="w-1.5 h-1.5 rounded-full bg-[#103B40]" />
+        <h3 className="text-xs font-bold text-gray-400 dark:text-gray-500 tracking-[0.2em] uppercase flex items-center gap-2">
+          <div className="w-1.5 h-1.5 rounded-full bg-[#103B40] dark:bg-[#43B0B5]" />
           Quick Actions
         </h3>
-        <div className="h-px flex-1 ml-4 bg-gradient-to-r from-gray-200 to-transparent" />
+        <div className="h-px flex-1 ml-4 bg-gradient-to-r from-gray-200 dark:from-gray-700 to-transparent" />
       </div>
       
       <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 gap-4">

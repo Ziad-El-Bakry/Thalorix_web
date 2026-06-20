@@ -6,6 +6,7 @@ import { ChatList, ChatWindow } from "../../../components/features/messages";
 import { useChatState } from "../../../components/features/messages/useChatState";
 import { Conversation } from "../../../types/message";
 import { useChatStore } from "../../../store/useChatStore";
+import { useNotifications } from "../../../components/shared/useNotifications";
 
 const MIN_LIST_WIDTH = 280;
 const MAX_LIST_WIDTH = 560;
@@ -25,6 +26,7 @@ function MessagesContent() {
   } = useChatStore();
 
   const { setIsChatOpen } = useChatState();
+  const { markMessagesRead } = useNotifications();
 
   const [listWidth, setListWidth] = useState(DEFAULT_LIST_WIDTH);
   const isDragging = useRef(false);
@@ -35,8 +37,9 @@ function MessagesContent() {
   useEffect(() => {
     init();
     loadConversations();
+    markMessagesRead();
     return () => cleanup();
-  }, [init, loadConversations, cleanup]);
+  }, [init, loadConversations, cleanup, markMessagesRead]);
 
   useEffect(() => {
     setIsChatOpen(!!activeConversationId);

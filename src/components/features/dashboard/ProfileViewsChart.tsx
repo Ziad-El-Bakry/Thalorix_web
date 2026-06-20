@@ -14,10 +14,10 @@ const data = [
 
 export default function ProfileViewsChart() {
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col h-full">
+    <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col h-full">
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-sm font-bold text-gray-400 tracking-wider uppercase">Profile Views This Week</h3>
-        <span className="text-sm font-semibold text-[#103B40]">+12% vs last week</span>
+        <h3 className="text-sm font-bold text-gray-400 dark:text-gray-500 tracking-wider uppercase">Profile Views This Week</h3>
+        <span className="text-sm font-semibold text-[#103B40] dark:text-[#43B0B5]">+12% vs last week</span>
       </div>
       
       <div className="flex-1 w-full min-h-[250px]">

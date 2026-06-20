@@ -24,6 +24,7 @@ import {
 import { useNotifications } from "@/components/shared/useNotifications";
 import { useEffect, useState } from "react";
 import { authService } from "@/lib/api/services/auth.service";
+import { useAvatar } from "@/store/useAvatarStore";
 
 interface NavItem {
   label: string;
@@ -45,6 +46,13 @@ const SELLER_NAV: NavItem[] = [
   { label: "My Products", href: "/dashboard/seller/products", icon: Package },
   { label: "Upload Template", href: "/dashboard/marketplace/upload", icon: Upload },
   { label: "Earnings", href: "/dashboard/seller/earnings", icon: DollarSign },
+];
+
+const ADMIN_NAV: NavItem[] = [
+  { label: "Admin Dashboard", href: "/dashboard/admin", icon: LayoutDashboard },
+  { label: "Users", href: "/dashboard/admin/users", icon: Users },
+  { label: "Sellers", href: "/dashboard/admin/sellers", icon: Store },
+  { label: "Categories", href: "/dashboard/admin/categories", icon: Package },
 ];
 
 const BOTTOM_NAV: NavItem[] = [
@@ -92,10 +100,10 @@ function NavLink({
           style={{
             backgroundColor: isActive ? "rgba(255,255,255,0.12)" : "transparent",
             color: isActive ? "#ffffff" : "rgba(255,255,255,0.65)",
-            borderLeft: isActive ? "3px solid #43B0B5" : "3px solid transparent",
+            borderLeft: isActive ? "3px solid var(--sidebar-active)" : "3px solid transparent",
           }}
         >
-          <Icon size={18} className={isActive ? "text-[#43B0B5]" : ""} />
+          <Icon size={18} className={isActive ? "text-[var(--sidebar-active)]" : ""} />
           <span className="flex-1">{item.label}</span>
           {item.label === "Messages" && hasUnread && (
             <span className="w-2 h-2 bg-red-500 rounded-full shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
@@ -163,15 +171,37 @@ export default function Sidebar() {
   const [userRole, setUserRole] = useState<string>("user");
   const [userName, setUserName] = useState("User");
   const [userAvatar, setUserAvatar] = useState("/images/avatar.png");
+  const { avatar } = useAvatar();
 
   useEffect(() => {
-    const user = authService.getStoredUser();
-    if (user) {
-      setUserRole(user.role || "user");
-      setUserName(user.name || user.username || "User");
-      if (user.avatar) setUserAvatar(user.avatar);
-    }
+    const handleProfileSync = () => {
+      const user = authService.getStoredUser();
+      if (user) {
+        setUserRole(user.role || "user");
+        setUserName(user.name || user.username || "User");
+        if (user.avatar) setUserAvatar(user.avatar);
+        else if (user.avatarUrl) setUserAvatar(user.avatarUrl);
+        else if (user.logo) setUserAvatar(user.logo);
+      }
+    };
+
+    handleProfileSync(); // Run initially
+
+    window.addEventListener("thalorix_profile_sync", handleProfileSync);
+    window.addEventListener("thalorix_avatar_sync", handleProfileSync);
+    return () => {
+      window.removeEventListener("thalorix_profile_sync", handleProfileSync);
+      window.removeEventListener("thalorix_avatar_sync", handleProfileSync);
+    };
   }, []);
+
+  useEffect(() => {
+    if (avatar && avatar !== "/images/avatar.png") {
+      setUserAvatar(avatar);
+    } else if (avatar === "") {
+      setUserAvatar("/images/avatar.png");
+    }
+  }, [avatar]);
 
   const isSeller = userRole === "seller";
   const isAdmin = userRole === "admin";
@@ -204,7 +234,7 @@ export default function Sidebar() {
       animate={{ x: 0, opacity: 1 }}
       transition={{ duration: 0.4 }}
       className="fixed left-0 top-0 h-screen w-64 text-white hidden lg:flex flex-col z-50"
-      style={{ backgroundColor: "#103B40" }}
+      style={{ backgroundColor: "var(--sidebar)" }}
     >
       {/* Logo */}
       <Link href="/dashboard" className="block cursor-pointer group">
@@ -288,6 +318,21 @@ export default function Sidebar() {
           </>
         )}
 
+        {/* Admin Tools Section */}
+        {isAdmin && (
+          <>
+            <SectionLabel label="Admin Tools" />
+            <ul className="space-y-0.5">
+              {ADMIN_NAV.map((item) => (
+                <NavLink
+                  key={item.href}
+                  item={item}
+                  isActive={isRouteActive(pathname, item.href, item.label)}
+                />
+              ))}
+            </ul>
+          </>
+        )}
 
       </nav>
 

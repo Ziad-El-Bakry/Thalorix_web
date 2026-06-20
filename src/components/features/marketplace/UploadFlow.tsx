@@ -17,6 +17,7 @@ export default function UploadFlow() {
   const [step, setStep] = useState<UploadState>("form");
   const [progress, setProgress] = useState(0);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [createdTemplate, setCreatedTemplate] = useState<any>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -37,7 +38,7 @@ export default function UploadFlow() {
         setProgress(p => (p < 90 ? p + 10 : p));
       }, 500);
 
-      await templatesService.createTemplate({
+      const res = await templatesService.createTemplate({
         title: data.title,
         description: data.description,
         price: data.price,
@@ -45,9 +46,10 @@ export default function UploadFlow() {
         fileUrl: data.file,
         image: data.image,
       });
-
+ 
       clearInterval(interval);
       setProgress(100);
+      setCreatedTemplate(res);
       setTimeout(() => setStep("success"), 500);
     } catch (error) {
       console.error("Upload failed", error);
@@ -92,7 +94,9 @@ export default function UploadFlow() {
 
           {step === "success" && (
             <UploadSuccessStep 
-              onRestart={() => { setStep("form"); setProgress(0); }} 
+              createdTemplate={createdTemplate}
+              file={uploadedFile}
+              onRestart={() => { setStep("form"); setProgress(0); setCreatedTemplate(null); setUploadedFile(null); }} 
             />
           )}
         </AnimatePresence>

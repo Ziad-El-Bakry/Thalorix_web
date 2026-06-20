@@ -18,6 +18,7 @@ import {
   List,
   LinkIcon,
 } from "lucide-react";
+import EmojiPicker from "emoji-picker-react";
 
 type PostTab = "text" | "video" | "photo" | "article";
 
@@ -49,6 +50,7 @@ export default function CreatePostModal({
   const [activeTab, setActiveTab] = useState<PostTab>(initialTab);
   const [visibility, setVisibility] = useState("Anyone");
   const [showVisibilityMenu, setShowVisibilityMenu] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
   const [mediaPreviews, setMediaPreviews] = useState<string[]>([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -67,6 +69,7 @@ export default function CreatePostModal({
       setMediaFiles([]);
       setMediaPreviews([]);
       setShowVisibilityMenu(false);
+      setShowEmojiPicker(false);
       // Focus textarea after animation
       setTimeout(() => textareaRef.current?.focus(), 300);
     }
@@ -186,7 +189,7 @@ export default function CreatePostModal({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-[100] flex items-start justify-center pt-[8vh] px-4"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6"
           onClick={(e) => {
             if (e.target === e.currentTarget) onClose();
           }}
@@ -201,7 +204,7 @@ export default function CreatePostModal({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.97 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
-            className="relative w-full max-w-[560px] bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]"
+            className="relative w-full max-w-[570px] bg-white rounded-xl shadow-2xl flex flex-col max-h-[85vh]"
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
@@ -393,13 +396,29 @@ export default function CreatePostModal({
             </div>
 
             {/* Emoji and Link row */}
-            <div className="px-5 py-2 flex items-center gap-3">
+            <div className="px-5 py-2 flex items-center gap-3 relative">
               <button 
                 type="button"
-                className="p-1.5 rounded-full hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600"
+                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                className={`p-1.5 rounded-full hover:bg-gray-100 transition-colors ${showEmojiPicker ? "text-teal-600 bg-teal-50" : "text-gray-400 hover:text-gray-600"}`}
               >
                 <Smile size={20} />
               </button>
+              
+              {showEmojiPicker && (
+                <div className="absolute bottom-12 left-2 z-[100] shadow-2xl rounded-xl overflow-hidden border border-gray-100">
+                  <EmojiPicker 
+                    onEmojiClick={(emojiData) => {
+                      setContent(prev => prev + emojiData.emoji);
+                      setShowEmojiPicker(false);
+                    }} 
+                    autoFocusSearch={false}
+                    width={320}
+                    height={380}
+                  />
+                </div>
+              )}
+
               <button 
                 type="button"
                 onClick={() => setShowLinkInput(!showLinkInput)}

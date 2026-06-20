@@ -5,11 +5,13 @@ import { Conversation, Message } from "../../../types/message";
 import ChatHeader from "./ChatHeader";
 import MessageBubble from "./MessageBubble";
 import MessageInput from "./MessageInput";
-import { X, Trash2 } from "lucide-react";
+import { X, Trash2, Download } from "lucide-react";
 import { useAvatar } from "@/store/useAvatarStore";
 import { useChatStore } from "@/store/useChatStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import ConnectionStatusBanner from "./ConnectionStatusBanner";
+import { motion, AnimatePresence } from "framer-motion";
+import { backdropTransition, scaleIn } from "@/lib/utils/animations";
 
 export default function ChatWindow({
   conversation,
@@ -120,14 +122,21 @@ export default function ChatWindow({
 
   if (!conversation) {
     return (
-      <div className="flex-1 flex flex-col h-full bg-[#f0f2f5] items-center justify-center text-gray-500">
+      <div className="flex-1 flex flex-col h-full bg-[#f0f2f5] dark:bg-gray-950 items-center justify-center text-gray-500 dark:text-gray-400">
         Select a conversation to start chatting
       </div>
     );
   }
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-[#f0f2f5] relative">
+    <motion.div
+      key={conversation.id}
+      initial={{ opacity: 0, x: 12 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -12 }}
+      transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+      className="flex-1 flex flex-col h-full bg-[#f0f2f5] dark:bg-gray-950 relative"
+    >
       <ConnectionStatusBanner />
       {selectedMessages.length > 0 ? (
         <div className="flex items-center justify-between px-4 py-2 border-b bg-teal-800 h-[56px] min-h-[56px] sticky top-0 z-10 shadow-lg shadow-black/20">
@@ -178,7 +187,7 @@ export default function ChatWindow({
               <React.Fragment key={m.id}>
                 {showDate && (
                   <div className="flex justify-center my-4">
-                    <span className="bg-white/90 text-gray-500 text-xs font-medium px-4 py-1.5 rounded-full shadow-sm tracking-wide">
+                    <span className="bg-white/90 dark:bg-gray-800/90 text-gray-500 dark:text-gray-400 text-xs font-medium px-4 py-1.5 rounded-full shadow-sm tracking-wide">
                       {dateLabel}
                     </span>
                   </div>
@@ -208,7 +217,7 @@ export default function ChatWindow({
 
         {isTyping && (
           <div className="flex w-full mb-4">
-            <div className="flex gap-1.5 items-center bg-white border border-gray-100 px-4 py-3 rounded-2xl rounded-tl-sm w-fit shadow-sm">
+            <div className="flex gap-1.5 items-center bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 px-4 py-3 rounded-2xl rounded-tl-sm w-fit shadow-sm">
               <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
               <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
               <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></span>
@@ -227,21 +236,46 @@ export default function ChatWindow({
       />
 
       {/* Fullscreen Image Modal */}
-      {selectedImage && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4 animate-in fade-in duration-200">
-          <button
-            onClick={() => setSelectedImage(null)}
-            className="absolute top-4 right-4 text-white hover:bg-white/20 p-2 rounded-full transition-colors z-50"
+      <AnimatePresence>
+        {selectedImage && (
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            variants={backdropTransition}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4"
           >
-            <X className="w-8 h-8" />
-          </button>
-          <img
-            src={selectedImage}
-            alt="Fullscreen view"
-            className="max-w-full max-h-full object-contain rounded-md"
-          />
-        </div>
-      )}
-    </div>
+            <div className="absolute top-4 right-4 flex items-center gap-4 z-50">
+              <button
+                onClick={() => {
+                  const a = document.createElement("a");
+                  a.href = selectedImage;
+                  a.download = "image";
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                }}
+                className="text-white hover:bg-white/20 p-2 rounded-full transition-colors cursor-pointer"
+                title="Download Image"
+              >
+                <Download className="w-6 h-6" />
+              </button>
+              <button
+                onClick={() => setSelectedImage(null)}
+                className="text-white hover:bg-white/20 p-2 rounded-full transition-colors cursor-pointer"
+              >
+                <X className="w-8 h-8" />
+              </button>
+            </div>
+            <motion.img
+              variants={scaleIn}
+              src={selectedImage}
+              alt="Fullscreen view"
+              className="max-w-full max-h-full object-contain rounded-md"
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }

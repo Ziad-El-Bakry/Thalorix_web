@@ -18,11 +18,9 @@ declare module 'axios' {
 // ============================================
 // Configuration
 // ============================================
-const isProd = typeof window !== 'undefined' ? window.location.hostname !== 'localhost' : process.env.NODE_ENV === 'production';
-
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 
                      process.env.NEXT_PUBLIC_API_URL || 
-                     (isProd ? '/api' : 'http://localhost:3000/api');
+                     'https://pleny-task.onrender.com/api/v1';
 
 const API_VERSION = process.env.NEXT_PUBLIC_API_VERSION || 'v1';
 
@@ -59,7 +57,7 @@ export const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 120000, // Increased timeout for file uploads
+  timeout: 60000, // Changed timeout to 30 seconds
   withCredentials: true,
 });
 
@@ -178,15 +176,30 @@ api.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return api(originalRequest);
         
-      } catch (refreshError) {
+      } catch (refreshError: any) {
         console.warn('❌ Token refresh failed:', refreshError);
         
-        // Clear storage and redirect
-        localStorage.clear();
+        // Only log out if it's a clear auth failure (4xx) 
+        // If it's a network error or server error (5xx), we should NOT log the user out.
+        const isAuthError = refreshError.response?.status >= 400 && refreshError.response?.status < 500;
         
-        // Only redirect if we're in browser
-        if (typeof window !== 'undefined') {
-          window.location.href = '/login';
+        if (isAuthError) {
+          // Clear storage and redirect
+          const storedUser = localStorage.getItem('user');
+          let isAdmin = false;
+          if (storedUser) {
+            try {
+              const userObj = JSON.parse(storedUser);
+              isAdmin = userObj.role === 'admin';
+            } catch {}
+          }
+          
+          localStorage.clear();
+          
+          // Only redirect if we're in browser
+          if (typeof window !== 'undefined') {
+            window.location.href = isAdmin ? '/admin/login' : '/login';
+          }
         }
         
         return Promise.reject(refreshError);

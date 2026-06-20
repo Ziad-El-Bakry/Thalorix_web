@@ -22,16 +22,39 @@ interface UserHeaderProps {
 export default function UserHeader({ name, avatar, badge, badgeIcon, compact = false }: UserHeaderProps) {
   const { avatar: globalAvatar } = useAvatar();
   const [user, setUser] = useState<User | null>(null);
+  const [avatarSrc, setAvatarSrc] = useState("/images/avatar.png");
 
   useEffect(() => {
-    const storedUser = authService.getStoredUser();
-    if (storedUser) {
-      setUser(storedUser as User);
-    }
+    const handleProfileSync = () => {
+      const storedUser = authService.getStoredUser();
+      if (storedUser) {
+        setUser(storedUser as User);
+      }
+    };
+    
+    handleProfileSync(); // Run initially
+    
+    window.addEventListener("thalorix_profile_sync", handleProfileSync);
+    window.addEventListener("thalorix_avatar_sync", handleProfileSync);
+    return () => {
+      window.removeEventListener("thalorix_profile_sync", handleProfileSync);
+      window.removeEventListener("thalorix_avatar_sync", handleProfileSync);
+    };
   }, []);
 
-  // Use prop avatar first, then global avatar from store
-  const avatarSrc = avatar || user?.avatar || user?.avatarUrl || user?.logo || globalAvatar || "/images/avatar.png";
+  useEffect(() => {
+    const baseAvatar = avatar || user?.avatar || user?.avatarUrl || user?.logo;
+    if (globalAvatar && globalAvatar !== "/images/avatar.png") {
+      setAvatarSrc(globalAvatar);
+    } else if (globalAvatar === "") {
+      setAvatarSrc("/images/avatar.png");
+    } else if (baseAvatar) {
+      setAvatarSrc(baseAvatar);
+    } else {
+      setAvatarSrc("/images/avatar.png");
+    }
+  }, [avatar, globalAvatar, user]);
+
   const pathname = usePathname();
   const isMessagesPage = pathname?.includes("/messages");
 
@@ -64,7 +87,7 @@ export default function UserHeader({ name, avatar, badge, badgeIcon, compact = f
           />
         </div>
         <div>
-          <h1 className={`${compact ? 'text-lg md:text-[18px]' : 'text-xl md:text-[22px]'} font-bold text-[#103B40] mb-0.5 md:mb-1`}>
+          <h1 className={`${compact ? 'text-lg md:text-[18px]' : 'text-xl md:text-[22px]'} font-bold text-[#103B40] dark:text-white mb-0.5 md:mb-1`}>
             Welcome {displayName}
           </h1>
         </div>

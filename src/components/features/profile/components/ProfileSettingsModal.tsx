@@ -116,6 +116,9 @@ export default function ProfileSettingsModal({
                         const newUser = { ...user, ...updatedData };
                         setUser(newUser);
                         localStorage.setItem("user", JSON.stringify(newUser));
+                        if (typeof window !== "undefined") {
+                          window.dispatchEvent(new CustomEvent("thalorix_profile_sync", { detail: newUser }));
+                        }
                         fireToast("Profile updated successfully!");
                       }}
                       expertise={expertiseData}
@@ -138,9 +141,6 @@ export default function ProfileSettingsModal({
             <div className="border-t border-gray-100 px-6 py-4 flex items-center justify-between">
               <button onClick={handleLogoutClick} className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors font-medium">
                 <LogOut size={16} /> Logout
-              </button>
-              <button onClick={handleDeleteAccountClick} className="flex items-center gap-2 text-sm text-red-500 hover:text-red-700 transition-colors font-medium">
-                <Trash2 size={16} /> Delete Account
               </button>
             </div>
           </motion.div>
@@ -214,10 +214,12 @@ function PersonalDetails({ user, onSave, expertise, setExpertise, socialLinks, s
             <label className="block text-xs font-semibold text-gray-700 mb-2">Instagram</label>
             <Input value={socialLinks.instagram || ""} onChange={(e: any) => setSocialLinks({ ...socialLinks, instagram: e.target.value })} className="bg-gray-50 border border-gray-200 shadow-sm h-11" />
           </div>
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 mb-2">GitHub</label>
+            <Input value={socialLinks.github || ""} onChange={(e: any) => setSocialLinks({ ...socialLinks, github: e.target.value })} className="bg-gray-50 border border-gray-200 shadow-sm h-11" />
+          </div>
         </div>
       </motion.div>
-
-
 
       <motion.div variants={itemVariants} className="flex justify-end">
         <Button onClick={handleSave} disabled={isSaving} variant="primary" className="bg-[#103B40] hover:bg-[#0c2e32] h-10 shadow-md font-medium px-8 transition-transform hover:scale-105 active:scale-95 disabled:opacity-70">

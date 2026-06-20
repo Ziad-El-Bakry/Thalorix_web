@@ -1,59 +1,27 @@
 "use client";
 
-import { useState, useEffect } from "react";
-
-// Global state map to link all instances
-let unreadNotifications = true;
-let unreadMessages = false;
-const listeners = new Set<() => void>();
-
-function notifyListeners() {
-    listeners.forEach(listener => listener());
-}
+import { useEffect } from "react";
+import { useNotificationStore } from "@/store/useNotificationStore";
+import { useAuthStore } from "@/store/useAuthStore";
+import { authService } from "@/lib/api/services/auth.service";
 
 export function useNotifications() {
-    const [state, setState] = useState({
-        unreadNotifications,
-        unreadMessages
-    });
+  const store = useNotificationStore();
+  const storeUserId = useAuthStore((state) => state.currentUserId);
+  const user = authService.getStoredUser();
+  const currentUserId = storeUserId || user?.id || null;
 
-    useEffect(() => {
-        const listener = () => {
-            setState({
-                unreadNotifications,
-                unreadMessages
-            });
-        };
-        listeners.add(listener);
-        return () => {
-            listeners.delete(listener);
-        };
-    }, []);
+  useEffect(() => {
+    if (currentUserId) {
+      store.initNotifications(currentUserId);
+    }
+  }, [currentUserId, store]);
 
-    const markNotificationsRead = () => {
-        if (unreadNotifications) {
-            unreadNotifications = false;
-            notifyListeners();
-
-            // Simulate arriving message after a delay if they've checked their notifications
-            setTimeout(() => {
-                unreadMessages = true;
-                notifyListeners();
-            }, 4000); // 4 seconds after opening notifications
-        }
-    };
-
-    const markMessagesRead = () => {
-        if (unreadMessages) {
-            unreadMessages = false;
-            notifyListeners();
-        }
-    };
-
-    return {
-        hasUnread: state.unreadNotifications,
-        hasUnreadMessages: state.unreadMessages,
-        markNotificationsRead,
-        markMessagesRead
-    };
+  return {
+    hasUnread: store.hasUnreadNotifications,
+    hasUnreadMessages: store.hasUnreadMessages,
+    markNotificationsRead: store.markNotificationsRead,
+    markMessagesRead: store.markMessagesRead,
+  };
 }
+

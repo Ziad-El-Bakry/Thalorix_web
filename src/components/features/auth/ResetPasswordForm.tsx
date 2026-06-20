@@ -38,12 +38,13 @@ export function ResetPasswordForm() {
             return;
         }
 
+        const role = searchParams?.get("role") || "";
         setLoading(true);
         try {
             await authService.resetPassword(email, token, password);
             setSuccess(true);
             setTimeout(() => {
-                router.push("/login");
+                router.push(role === "admin" ? "/admin/login" : "/login");
             }, 3000);
         } catch (err: any) {
             setError(err?.response?.data?.message || err?.message || "Failed to reset password.");
