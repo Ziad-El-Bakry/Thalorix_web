@@ -105,21 +105,29 @@ export const usePostStore = create<PostStore>((set: any, get: any) => ({
   fetchFeed: async (userId?: string) => {
     set({ isLoading: true });
     try {
-      const data = await communityService.getFeed(userId);
       const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
       const currentUserId = currentUser?.id || currentUser?._id || 'guest';
+      const data = await communityService.getFeed(userId || (currentUserId !== 'guest' ? currentUserId : undefined));
       const savedLikes = JSON.parse(localStorage.getItem(`liked_posts_${currentUserId}`) || '[]');
       
       const mappedPosts = data.map((backendPost: any) => {
         const post = mapBackendPost(backendPost);
-        // Apply local likes since backend isn't tracking it
-        if (savedLikes.includes(post.id)) {
-          post.liked = true;
-          // Increment display count because backend doesn't know about this like
-          post.likes += 1;
+        // Sync local storage with database-reported liked state
+        if (post.liked) {
+          if (!savedLikes.includes(post.id)) {
+            savedLikes.push(post.id);
+          }
+        } else {
+          // If the database says not liked, trust the database
+          const idx = savedLikes.indexOf(post.id);
+          if (idx > -1) {
+            savedLikes.splice(idx, 1);
+          }
         }
         return post;
       });
+      
+      localStorage.setItem(`liked_posts_${currentUserId}`, JSON.stringify(savedLikes));
       
       const sortedPosts = sortPostsByRelevance(mappedPosts);
       set({ posts: sortedPosts, isLoading: false });
@@ -172,7 +180,10 @@ export const usePostStore = create<PostStore>((set: any, get: any) => ({
         } : p)
       }));
       
-      // Save locally (Frontend-only approach as requested)
+      // Save in DB via service call
+      await communityService.toggleLike(postId, userId);
+      
+      // Save locally (Frontend-only approach fallback/local sync)
       const likedKey = `liked_posts_${userId}`;
       const savedLikes = JSON.parse(localStorage.getItem(likedKey) || '[]');
       const currentPosts = get().posts;
